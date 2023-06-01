@@ -9,7 +9,7 @@ import { InteractorV2 } from '../interactor_side_bar';
 
 // INTERACTOR DETECTOR
 
-export const detector_interactorV2 = new InteractorV2("detector", "DEV Tool", "d", ORIENTATION_INFO.LEFT, "img/interactors/detector.svg", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
+export const detector_interactorV2 = new InteractorV2("detector", "DEV Tool", "d", ORIENTATION_INFO.LEFT, "detector", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
 
 const infobox = document.createElement("div");
 infobox.id = "the_infobox";

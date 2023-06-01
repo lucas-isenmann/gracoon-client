@@ -1,5 +1,8 @@
 import { SideBar } from "./side_bar";
 
+import svgIcons from '../img/icons/*.svg';
+
+
 export enum ORIENTATION_SIDE_BAR{
     VERTICAL = 1,
     HORIZONTAL = 2
@@ -50,7 +53,7 @@ export abstract class ElementSideBar{
      */
     update_img(src :string):boolean{
         try {
-            this.img_dom.src = src; 
+            this.img_dom.src = svgIcons[src]; 
             return true;
         } catch (error) {
             console.error("Image not loaded yet when you tried to update it. Dom is null.", error);
@@ -65,7 +68,7 @@ export abstract class ElementSideBar{
      */
     reset_img():boolean{
         try {
-            this.img_dom.src = this.initial_img_src; 
+            this.img_dom.src = svgIcons[this.initial_img_src]; 
             return true;
         } catch (error) {
             console.error("Image not loaded yet when you tried to update it. Dom is null.", error);
@@ -92,7 +95,7 @@ export abstract class ElementSideBar{
         this.dom.classList.add("side_bar_element");
 
         this.img_dom = document.createElement("img");
-        this.img_dom.src = this.initial_img_src;
+        this.img_dom.src = svgIcons[this.initial_img_src];
         this.img_dom.id = this.id+'_img';
         this.img_dom.classList.add("side_bar_element_img");
         

@@ -82,14 +82,14 @@ function setup() {
 
     const bottom_side_bar = new SideBar("side_bar_bottom_test", ORIENTATION_SIDE_BAR.HORIZONTAL, true);  
 
-    const show_generators = new SideBarLauncher("show_generators", "Show graph generators", "", ORIENTATION_INFO.BOTTOM, "img/actions/generator.svg", "pointer", turn_on_generators_div, bottom_side_bar);
+    const show_generators = new SideBarLauncher("show_generators", "Show graph generators", "", ORIENTATION_INFO.BOTTOM, "generator", "pointer", turn_on_generators_div, bottom_side_bar);
 
 
-    const show_modifyers = new SideBarLauncher("show_modifyers", "Show graph modifyers", "",  ORIENTATION_INFO.BOTTOM, "img/actions/modifyer.svg", "pointer", turn_on_modifyers_div, bottom_side_bar);
+    const show_modifyers = new SideBarLauncher("show_modifyers", "Show graph modifyers", "",  ORIENTATION_INFO.BOTTOM, "modifyer", "pointer", turn_on_modifyers_div, bottom_side_bar);
 
 
-    const switch_button_triangular_grid = new SwitchSideBar("switch_button_triangular_grid", "Switch triangular grid", "", ORIENTATION_INFO.BOTTOM, "img/actions/triangular_grid.svg", "pointer", bottom_side_bar);
-    const switch_button_rect_grid = new SwitchSideBar("switch_button_rect_grid", "Switch rectangular grid", "", ORIENTATION_INFO.BOTTOM, "img/actions/grid.svg", "pointer", bottom_side_bar);
+    const switch_button_triangular_grid = new SwitchSideBar("switch_button_triangular_grid", "Switch triangular grid", "", ORIENTATION_INFO.BOTTOM, "triangular_grid", "pointer", bottom_side_bar);
+    const switch_button_rect_grid = new SwitchSideBar("switch_button_rect_grid", "Switch rectangular grid", "", ORIENTATION_INFO.BOTTOM, "grid", "pointer", bottom_side_bar);
     
     switch_button_triangular_grid.trigger = () => { 
         local_board.view.display_triangular_grid = switch_button_triangular_grid.state;
@@ -109,14 +109,14 @@ function setup() {
         }
     };
 
-    const align_action = new SwitchSideBar("align_mode", "Automatic alignement", "", ORIENTATION_INFO.BOTTOM, "img/actions/align.svg", "pointer", bottom_side_bar);
+    const align_action = new SwitchSideBar("align_mode", "Automatic alignement", "", ORIENTATION_INFO.BOTTOM, "align", "pointer", bottom_side_bar);
     align_action.trigger = () => {
         local_board.view.is_aligning = align_action.state;
 
     }
 
 
-    const dark_mode_launcher = new SideBarLauncher("dark_mode", "Toggle dark mode", "", ORIENTATION_INFO.BOTTOM, "img/actions/dark_mode.svg", "pointer", 
+    const dark_mode_launcher = new SideBarLauncher("dark_mode", "Toggle dark mode", "", ORIENTATION_INFO.BOTTOM, "dark_mode", "pointer", 
     () => {
         if(local_board.view.dark_mode){
             toggle_dark_mode(false);
@@ -138,9 +138,9 @@ function setup() {
 
 
     const export_dir = new SideBar("export_dir", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const export_dir2 = new FolderSideBar("export_dir", "Export graph", "", ORIENTATION_INFO.BOTTOM, "img/actions/export.svg", "default", export_dir, FOLDER_EXPAND_DIRECTION.BOTTOM);
+    const export_dir2 = new FolderSideBar("export_dir", "Export graph", "", ORIENTATION_INFO.BOTTOM, "export", "default", export_dir, FOLDER_EXPAND_DIRECTION.BOTTOM);
 
-    const export_tikz = new SideBarLauncher("export_tikz", "Export to .tex (tikz)", "", ORIENTATION_INFO.BOTTOM, "img/actions/export_tex.svg", "pointer", 
+    const export_tikz = new SideBarLauncher("export_tikz", "Export to .tex (tikz)", "", ORIENTATION_INFO.BOTTOM, "export_tex", "pointer", 
     () => {
         const tikz_data = TikZ_create_file_data(local_board.graph);
         const a = document.createElement("a");
@@ -150,7 +150,7 @@ function setup() {
     }
     ,export_dir);
 
-    const export_gco = new SideBarLauncher("export_gco", "Export to .gco (our special format)", "", ORIENTATION_INFO.BOTTOM, "img/actions/export_gco.svg", "pointer", 
+    const export_gco = new SideBarLauncher("export_gco", "Export to .gco (our special format)", "", ORIENTATION_INFO.BOTTOM, "export_gco", "pointer", 
     () => {
         socket.emit(SocketMsgType.GET_JSON, (response: string) => {
             const a = document.createElement("a");
@@ -181,7 +181,7 @@ function setup() {
         });
     }
 
-    new SideBarLauncher("shareAction", "Share URL", "", ORIENTATION_INFO.BOTTOM, "img/actions/share.svg", "pointer", shareLink, bottom_side_bar);
+    new SideBarLauncher("shareAction", "Share URL", "", ORIENTATION_INFO.BOTTOM, "share", "pointer", shareLink, bottom_side_bar);
 
 
     // --------------
@@ -208,37 +208,37 @@ function setup() {
     }
 
 
-    new SideBarLauncher("loadFile", "Load File", "", ORIENTATION_INFO.BOTTOM, "img/actions/import.svg", "pointer", loadFile, bottom_side_bar);
+    new SideBarLauncher("loadFile", "Load File", "", ORIENTATION_INFO.BOTTOM, "import", "pointer", loadFile, bottom_side_bar);
 
 
     // ---------------------
     // Automatic indexes
 
     const autom_indices_bar = new SideBar("autom_indices_dir_bar", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const autom_indices_dir = new FolderSideBar("autom_indices_dir", "Automatic indices", "", ORIENTATION_INFO.BOTTOM, "img/actions/index.svg", "default", autom_indices_bar, FOLDER_EXPAND_DIRECTION.BOTTOM);
+    const autom_indices_dir = new FolderSideBar("autom_indices_dir", "Automatic indices", "", ORIENTATION_INFO.BOTTOM, "index", "default", autom_indices_bar, FOLDER_EXPAND_DIRECTION.BOTTOM);
 
-    const change_to_none_index = new SideBarLauncher("index_type_none", "Remove all labels", "", ORIENTATION_INFO.BOTTOM, "img/actions/index_none.svg", "pointer", 
+    const change_to_none_index = new SideBarLauncher("index_type_none", "Remove all labels", "", ORIENTATION_INFO.BOTTOM, "index_none", "pointer", 
     () => {
         local_board.view.index_type = INDEX_TYPE.NONE;
         local_board.graph.compute_vertices_index_string(local_board.view);
     }
     ,autom_indices_bar);
 
-    const change_to_number_stable_index = new SideBarLauncher("index_type_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "img/actions/index_number_stable.svg", "pointer", 
+    const change_to_number_stable_index = new SideBarLauncher("index_type_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "index_number_stable", "pointer", 
     () => {
         local_board.view.index_type = INDEX_TYPE.NUMBER_STABLE;
         local_board.graph.compute_vertices_index_string(local_board.view);
     }
     ,autom_indices_bar);
 
-    const change_to_number_unstable_index = new SideBarLauncher("index_type_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", "", ORIENTATION_INFO.BOTTOM, "img/actions/index_number_unstable.svg", "pointer", 
+    const change_to_number_unstable_index = new SideBarLauncher("index_type_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", "", ORIENTATION_INFO.BOTTOM, "index_number_unstable", "pointer", 
     () => {
         local_board.view.index_type = INDEX_TYPE.NUMBER_UNSTABLE;
         local_board.graph.compute_vertices_index_string(local_board.view);
     }
     ,autom_indices_bar);
 
-    const change_to_alpha_stable_index = new SideBarLauncher("index_type_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "img/actions/index_alpha_stable.svg", "pointer", 
+    const change_to_alpha_stable_index = new SideBarLauncher("index_type_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "index_alpha_stable", "pointer", 
     () => {
         local_board.view.index_type = INDEX_TYPE.ALPHA_STABLE;
         local_board.graph.compute_vertices_index_string(local_board.view);
@@ -246,7 +246,7 @@ function setup() {
     ,autom_indices_bar);
 
 
-    const change_to_alpha_unstable_index = new SideBarLauncher("index_type_number_stable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", "", ORIENTATION_INFO.BOTTOM, "img/actions/index_alpha_unstable.svg", "pointer", 
+    const change_to_alpha_unstable_index = new SideBarLauncher("index_type_number_stable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", "", ORIENTATION_INFO.BOTTOM, "index_alpha_unstable", "pointer", 
     () => {
         local_board.view.index_type = INDEX_TYPE.ALPHA_UNSTABLE;
         local_board.graph.compute_vertices_index_string(local_board.view);
@@ -259,9 +259,9 @@ function setup() {
     // -------
 
     const b3 = new SideBar("b3", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const e7 = new InteractorV2("e7", "Test info", "K",ORIENTATION_INFO.TOP, "img/interactor/color.svg","pointer", new Set()); 
-    const e5 = new InteractorV2("e5", "Test info", "K",ORIENTATION_INFO.TOP, "img/interactor/arc.svg","pointer", new Set()); 
-    const e6 = new InteractorV2("e6", "Test info", "K",ORIENTATION_INFO.TOP, "img/interactor/color.svg","pointer", new Set()); 
+    const e7 = new InteractorV2("e7", "Test info", "K",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
+    const e5 = new InteractorV2("e5", "Test info", "K",ORIENTATION_INFO.TOP, "arc","pointer", new Set()); 
+    const e6 = new InteractorV2("e6", "Test info", "K",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
 
     b3.add_elements(e7, e5, e6);
 
@@ -274,7 +274,7 @@ function setup() {
 
 
     const b4 = new SideBar("b4", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const e8 = new InteractorV2("e8", "A",  "Test info",ORIENTATION_INFO.TOP, "img/interactor/color.svg","pointer", new Set()); 
+    const e8 = new InteractorV2("e8", "A",  "Test info",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
 
     b4.add_elements(e8);
 
@@ -289,7 +289,7 @@ function setup() {
 
     const edge_side_bar = new SideBar("b5", ORIENTATION_SIDE_BAR.VERTICAL);
 
-    const edge_folder = new FolderSideBar("edge_folder", "Link interactors", "", ORIENTATION_INFO.RIGHT, "img/interactors/edition.svg", "default", edge_side_bar, FOLDER_EXPAND_DIRECTION.RIGHT);
+    const edge_folder = new FolderSideBar("edge_folder", "Link interactors", "", ORIENTATION_INFO.RIGHT, "edition", "default", edge_side_bar, FOLDER_EXPAND_DIRECTION.RIGHT);
 
     edge_side_bar.add_elements(edge_interactorV2, arc_interactorV2, control_point_interactorV2);
 
