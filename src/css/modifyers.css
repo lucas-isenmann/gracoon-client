@@ -1,0 +1,28 @@
+#modifyers_list {
+    background-color: rgb(54, 54, 54);
+    width: 50%;
+    padding: 20px;
+    overflow-y: scroll;
+}
+
+#modifyer_configuration {
+    color: rgb(182, 182, 182);
+    background-color: rgb(54, 54, 54);
+    width: 50%;
+    padding: 20px;
+    border-left: 1px solid rgb(107, 107, 107);;
+}
+
+.modifyer_item {
+    cursor: pointer;
+    background-color: #1e1e1e;
+    color: white;
+    width: 90%;
+    padding: 6px 10px 6px 20px; 
+    margin-bottom: 1px;
+}
+
+.modifyer_item:hover {
+    background-color: rgb(10, 38, 78);
+}
+

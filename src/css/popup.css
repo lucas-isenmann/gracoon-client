@@ -1,0 +1,84 @@
+.popup {
+    position: fixed;
+    top: 100px;
+    width: 800px;
+    border-radius: 5px;
+    height: 350px;
+    display: none;
+    z-index: 2;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(41, 41, 41);
+    box-shadow: rgba(0, 0, 0, 0.15) 4.95px 4.95px 3.6px;
+    /*     
+    display: flex; */
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.popup_header {
+    /* height: 30px;
+    padding-left: 40px;
+    margin: -15px auto 15px auto; */
+    cursor: default;
+}
+
+.popup_title {
+    color: #fff;
+    font-family: system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 36px;
+    text-align: center;
+}
+
+.popup_content {
+    overflow-y: scroll;
+    height: 250px;
+    padding: 0 20px 20px 20px;
+    background: inherit;
+}
+
+
+/* OLD params available 
+css can be reused with .popup which is general */
+
+
+/*
+#params_available {
+    // background-color:#333333;
+    // color: #dddddd; 
+    position: fixed;
+    margin: 5px;
+    border-radius: 5px;
+    font-family: sans-serif;
+    display: none;
+    padding: 5px;
+    color: var(--color_div);
+    background-color: var(--background_color_div);
+    top: 50%;
+    right: calc(50% - 100px);
+    transform: translateY(calc(0px - 50%));
+    padding: 5px;
+    width: 200px;
+    text-align: center;
+    font-weight: bolder;
+}
+*/
+
+.close_button {
+    border-radius: 50%;
+    width: 25px;
+    filter: none;
+    transform: rotate(45deg);
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    transition: 150ms;
+    height: 25px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.close_button:hover {
+    /* background-color: black; */
+    filter: invert(1);
+}

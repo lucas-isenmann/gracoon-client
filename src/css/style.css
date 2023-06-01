@@ -1,0 +1,195 @@
+html,
+body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--background_color_page);
+}
+
+#actions {
+    border-radius: 5px;
+    background-color: var(--background_color_div);
+    /* position: fixed;
+    top: 7px;
+    left: 7px; */
+}
+
+.action {
+    margin: 8px;
+    padding: 2px;
+    transition: 250ms;
+    display: inline-block;
+}
+
+.action:hover {
+    background-color: lightcoral;
+    cursor: pointer;
+}
+
+.subaction_container {
+    border-radius: 5px;
+    background-color: var(--background_color_div);
+    position: fixed;
+    top: 70px;
+    left: 7px;
+}
+
+.subaction {
+    margin: 8px;
+    padding: 6px;
+    transition: 250ms;
+    display: inline-block;
+}
+
+.subaction:hover {
+    background-color: lightcoral;
+    cursor: pointer;
+}
+
+.subaction_info {
+    padding: 6px;
+    text-align: center;
+    cursor: default;
+}
+
+#subinteractor_bar {
+    border-radius: 5px;
+    background-color: var(--background_color_div);
+    position: fixed;
+    height: 52px;
+}
+
+#interaction_mode_selector {
+    border-radius: 5px;
+    background-color: var(--background_color_div);
+    position: fixed;
+    top: 50%;
+    left: 7px;
+    transform: translateY(calc(-50% + 27px));
+}
+
+.interactor {
+    margin: 8px;
+    padding: 6px;
+    transition: 250ms;
+    /* background-color: white; */
+}
+
+.interactor:hover {
+    background-color: lightcoral;
+}
+
+.interactor.selected,
+.action_activated {
+    background-color: lightblue;
+}
+
+.interactor_recap {
+    position: fixed;
+    background-color: #303030;
+    max-width: 350px;
+    color: white;
+    border-radius: 2px;
+    padding: 10px;
+    transition: 1000ms;
+    display: none;
+}
+
+.action_button {
+    background-color: #333333;
+    position: fixed;
+    color: white;
+    padding: 3px 5px;
+    border: 1px solid white;
+    border-radius: 5px;
+}
+
+.shortcut {
+    color: lightblue;
+    text-transform: capitalize;
+    font-weight: bold;
+    background-color: #333333;
+    border: 1px solid white;
+    border-radius: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+    font-weight: bold;
+    box-shadow: #fff 2px 2px;
+    margin-left: 10px;
+}
+
+#border {
+    box-sizing: border-box;
+    border: var(--background_color_page) 5px solid;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+#main {
+    width: calc(100vw - 10px);
+    height: calc(100vh - 10px);
+}
+
+#top_left_container {
+    position: fixed;
+    top: 7px;
+    left: 7px;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+    column-gap: 5px;
+}
+
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+
+.non_scrolling_bar::-webkit-scrollbar {
+    display: none;
+}
+
+.scrolling_y {
+    overflow-y: scroll;
+}
+
+.scrolling_x {
+    overflow-x: scroll;
+}
+
+.non_scrolling_bar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+
+/* Firefox */
+
+
+/* * {
+    scrollbar-width: auto;
+    scrollbar-color: transparent var(--background_color_div);
+} */
+
+
+/* Chrome, Edge, and Safari */
+
+
+/* 
+*::-webkit-scrollbar {
+    width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: none;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--background_color_div);
+    border-radius: 10px;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    z-index: 3;
+} */

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta name="robots " content="noindex" />
+    <title>Gracoon</title>
+    <meta name="description" content="Graphs and networks online collaborative editor" />
+
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modifyers.css">
+    <link rel="stylesheet" href="css/parametor.css">
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="css/color_picker.css">
+    <link rel="stylesheet" href="css/info_parametor.css">
+    <link rel="stylesheet" href="css/interactor_detector.css">
+    <link rel="stylesheet" href="css/generators.css">
+    <link rel="stylesheet" href="css/text_interactor.css">
+    <link rel="stylesheet" href="css/popup.css">
+    <link rel="stylesheet" href="css/search_filter.css">
+    <link rel="stylesheet" href="css/side_bar.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+
+    <script type="module" src="setup.ts"></script>
+
+    <!-- for Latex -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- for katex -->
+    <!-- <script src="katex_auto_render.js"></script> -->
+</head>
+
+<body>
+    <div id="border">
+        <canvas id="main"></canvas>
+    </div>
+    <div id="top_left_container">
+
+        <div id="actions"></div>
+        <div id="users_div">
+            <div id="self_user">
+                <div id="self_user_color"></div>
+                <div contenteditable="true" spellcheck="false" id="self_user_label"></div>
+            </div>
+            <div id="user_list"></div>
+        </div>
+    </div>
+
+    <div id="interaction_mode_selector"></div>
+
+    <div id="params_loaded">
+        <div id="params_loaded_button" class="div_button">+</div>
+        <div id="subgraph_list"></div>
+    </div>
+
+
+    <!--
+    <div id="modifyor"><button onclick="modifyers_list_turn_on_div()">Modify</button></div>
+    <div id="modifyers_list">
+        <h3>Modifyers:</h3><button onclick="modifyers_list_turn_off_div()">Close</button>
+    </div>
+    -->
+    <div id="area_list_container"></div>
+
+    <div id="info_parametor_container">
+        <div id="info_closing_button"> <img src="img/parametor/plus.svg" alt=""></div>
+        <div id="info_content"></div>
+    </div>
+</body>
+
+</html>
