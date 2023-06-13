@@ -27,7 +27,7 @@ import { SideBarLauncher } from "./side_bar/side_bar_launcher";
 import BASIC_COLORS from "./basic_colors.json";
 import { TikZ_create_file_data } from "./tikz";
 import { INDEX_TYPE } from "./board/camera";
-import { create_popup } from "./popup";
+import { createPopup } from "./popup";
 
 
 export const local_board = new ClientBoard();
@@ -188,7 +188,7 @@ function setup() {
     // Load file
 
     function loadFile() {
-        const popUpDiv = create_popup("loadFilePopUp", "Load file");
+        const popUpDiv = createPopup("loadFilePopUp", "Load file");
         popUpDiv.style.display = "block";
 
         const fileInput: HTMLInputElement = document.createElement("input");

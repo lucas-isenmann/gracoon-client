@@ -1,4 +1,8 @@
-export function create_popup(id: string, title: string){
+import closeIcon from './img/parametor/plus.svg';
+
+
+
+export function createPopup(id: string, title: string){
     const div = document.createElement("div");
     div.classList.add("popup");
     div.id = id;
@@ -12,18 +16,15 @@ export function create_popup(id: string, title: string){
     });
 
     // Title -----
-    const title_div_container = document.createElement("div");
-    title_div_container.classList.add("popup_header");
     const title_div = document.createElement("div");
     title_div.classList.add("popup_title");
     title_div.textContent = title;
-    title_div_container.appendChild(title_div);
-    div.appendChild(title_div_container);
+    div.appendChild(title_div);
 
     // Close button ------
-    const close_button = document.createElement("div");
+    const close_button = document.createElement("img");
     close_button.classList.add("close_button");
-    close_button.innerHTML = '<img src="img/parametor/plus.svg" alt="">';
+    close_button.src = closeIcon;
     close_button.onclick = () => {
         div.style.display = "none";
     }

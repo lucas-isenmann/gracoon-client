@@ -2,7 +2,7 @@ import { ClientBoard } from "../board/board";
 import { View } from "../board/camera";
 import { CanvasCoord } from "../board/vertex";
 import { set_clipboard } from "../clipboard";
-import { create_popup } from "../popup";
+import { createPopup } from "../popup";
 import { GraphGenerator } from "./generator";
 import { generators_available } from "./some_generators";
 
@@ -12,7 +12,7 @@ let last_generator: GraphGenerator = null;
 
 
 export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoard) {
-    const main_div = create_popup("generators_div", "Generators");
+    const main_div = createPopup("generators_div", "Generators");
     const popup_content = document.getElementById("generators_div_content");
     popup_content.style.display = "flex";
     popup_content.classList.add("scrolling_y","non_scrolling_bar");

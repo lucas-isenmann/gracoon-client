@@ -1,5 +1,5 @@
 import { View } from "../board/camera";
-import { create_popup } from "../popup";
+import { createPopup } from "../popup";
 import { local_board } from "../setup";
 import { socket } from "../socket";
 import { modifyer_into_tournament } from "./implementations/into_tournament";
@@ -13,7 +13,7 @@ modifyers_available.push(modifyer_into_tournament)
 
 
 export function setup_modifyers_div(canvas: HTMLCanvasElement, view: View) {
-    const main_div = create_popup("modifyers_div", "Modifyers");
+    const main_div = createPopup("modifyers_div", "Modifyers");
     const popup_content = document.getElementById("modifyers_div_content");
     popup_content.style.display = "flex";
     popup_content.classList.add("scrolling_y","non_scrolling_bar");

@@ -1,38 +1,32 @@
 .popup {
-    position: fixed;
-    top: 100px;
-    width: 800px;
-    border-radius: 5px;
-    height: 350px;
     display: none;
+    position: absolute;
+    left: 70px;
+    top: 70px;
+    right: 70px;
+    bottom: 70px;
+
+    border-radius: 5px;
+
     z-index: 2;
-    left: 50%;
-    transform: translateX(-50%);
     background-color: rgb(41, 41, 41);
     box-shadow: rgba(0, 0, 0, 0.15) 4.95px 4.95px 3.6px;
-    /*     
-    display: flex; */
     flex-direction: column;
-    justify-content: space-evenly;
 }
 
-.popup_header {
-    /* height: 30px;
-    padding-left: 40px;
-    margin: -15px auto 15px auto; */
-    cursor: default;
-}
+
 
 .popup_title {
+    height: 60px;
     color: #fff;
     font-family: system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
     font-size: 36px;
     text-align: center;
+    cursor: default;
 }
 
 .popup_content {
     overflow-y: scroll;
-    height: 250px;
     padding: 0 20px 20px 20px;
     background: inherit;
 }
@@ -79,6 +73,5 @@ css can be reused with .popup which is general */
 }
 
 .close_button:hover {
-    /* background-color: black; */
     filter: invert(1);
 }
