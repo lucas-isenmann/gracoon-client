@@ -1,5 +1,3 @@
-
-
 // INTERACTOR STROKE
 
 import { ClientGraph } from "../../board/graph";
@@ -9,6 +7,7 @@ import { DOWN_TYPE } from "../../interactors/interactor";
 import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
+import { color_selected } from "./color";
 
 let last_stroke = null;
 // var begin_last_stroke = null;
@@ -21,7 +20,7 @@ export const stroke_interactorV2 = new InteractorV2("pen", "Pen", "p", ORIENTATI
 
 stroke_interactorV2.mousedown = ((  canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
     const server_pos = local_board.view.create_server_coord(e);
-    last_stroke = new ClientStroke([server_pos], "black", 2, local_board.view);
+    last_stroke = new ClientStroke([server_pos], color_selected, 2, local_board.view);
 
     // TO CHANGE
     let index = 0;

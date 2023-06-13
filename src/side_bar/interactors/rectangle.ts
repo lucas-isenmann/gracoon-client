@@ -7,6 +7,7 @@ import { last_down } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
+import { color_selected } from "./color";
 
 
 export const rectangle_interactorV2 = new InteractorV2("rectangle", "Draw rectangle", "", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
@@ -22,7 +23,7 @@ rectangle_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoor
         first_corner = local_board.view.create_server_coord(e);
         opposite_corner = e.copy();
         index_rectangle = local_board.get_next_available_index_rectangle();
-        const client_rectangle = new ClientRectangle(first_corner, first_corner, local_board.view);
+        const client_rectangle = new ClientRectangle(first_corner, first_corner, color_selected, local_board.view);
         local_board.rectangles.set(index_rectangle, client_rectangle);
     } 
 })

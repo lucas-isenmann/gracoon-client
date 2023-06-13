@@ -1,13 +1,9 @@
 import { ClientArea, AREA_CORNER, AREA_SIDE } from "./area";
 import { INDEX_TYPE, View } from "./camera";
-import { DOWN_TYPE } from "../interactors/interactor";
-import { ClientStroke } from "./stroke";
 import { CanvasCoord, ClientVertex } from "./vertex";
 import { ClientLink } from "./link";
 import { Coord, Graph, Link, middle, ORIENTATION, Vect } from "gramoloss";
 import { CanvasVect } from "./vect";
-import { draw_circle } from "../draw_basics";
-import { draw } from "../draw";
 
 
 

@@ -11,7 +11,7 @@ import BASIC_COLORS from '../../basic_colors.json';
 export const color_interactorV2 = new InteractorV2("color", "Edit colors", "c", ORIENTATION_INFO.RIGHT, "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
 
 // Local variables
-let color_selected = "red";
+export let color_selected = "gray";
 const colors_available = new Array();
 
 for ( const name in BASIC_COLORS){
