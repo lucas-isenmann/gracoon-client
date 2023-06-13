@@ -9,7 +9,7 @@ import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 
 
-export const rectangle_interactorV2 = new InteractorV2("rectangle", "Draw rectangle", "r", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
+export const rectangle_interactorV2 = new InteractorV2("rectangle", "Draw rectangle", "", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
 
 let first_corner : Coord;
 let opposite_corner = new CanvasCoord(0,0);

@@ -1,4 +1,4 @@
-import { Interactor, DOWN_TYPE, RESIZE_TYPE } from './interactor'
+import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { draw } from '../draw';
 import { socket } from '../socket';
 import { self_user, update_users_canvas_pos } from '../user';
@@ -106,23 +106,6 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
                 console.log("Request: redo");
                 local_board.emit_redo();
             }
-            document.querySelectorAll(".interactor").forEach(interactor => {
-                interactor.classList.remove("selected");
-            });
-            for (let interactor of interactors_available) {
-                if (interactor.shortcut == e.key.toLowerCase()) {
-                    deselect_all_interactor_div()
-                    select_interactor(interactor, canvas, ctx, g, mouse_pos);
-                    return;
-                }
-            }
-            /*
-            for (const action of actions_available) {
-                if (action.shortcut == e.key) {
-                    select_action(action, canvas, ctx, g);
-                }
-            }
-            */
         }
     });
 
@@ -267,28 +250,8 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
 
 
 
-let interactors_available = [];
 
-
-
-
-function deselect_all_interactor_div() {
-    for (let div of document.getElementsByClassName("interactor")) {
-        div.classList.remove("selected");
-    }
-
-    
-}
-
-function deselect_subinteractor_bar_div(){
-
-    let subinteractor_bar_container = document.getElementById("subinteractor_bar");
-    if( subinteractor_bar_container != null){
-        subinteractor_bar_container.innerHTML = "";
-    }
-}
-
-function select_interactor_div(interactor: Interactor | InteractorV2 ) {
+function select_interactor_div(interactor: InteractorV2 ) {
     for (let div of document.getElementsByClassName("interactor")) {
         if (div.id == interactor.id) {
             div.classList.add("selected");
@@ -301,151 +264,7 @@ function select_interactor_div(interactor: Interactor | InteractorV2 ) {
 
 
 export function setup_interactors_div(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph) {
-    let subinteractor_bar_container = document.getElementById("subinteractor_bar");
-    if( subinteractor_bar_container == null){
-        subinteractor_bar_container = document.createElement("div");
-        subinteractor_bar_container.id = "subinteractor_bar";
-        document.body.appendChild(subinteractor_bar_container);
-    }
-
-    const interactors_div = document.getElementById("interaction_mode_selector");
-    for (let interactor of interactors_available) {
-        let newDiv = document.createElement("div");
-        newDiv.classList.add("interactor");
-        newDiv.id = interactor.name;
-        newDiv.innerHTML = '<img src="img/interactor/' + interactor.img_src + '" width="27px" />';
-        interactors_div.appendChild(newDiv);
-
-        let div_recap = document.createElement("div");
-        div_recap.classList.add("interactor_recap");
-        div_recap.innerHTML = interactor.name + " <span class='shortcut'>" + interactor.shortcut + "</span>";
-        document.body.appendChild(div_recap);
-
-        let time_out_id: number | undefined;
-
-        newDiv.onmouseenter = function () {
-
-            if(interactor.subinteractors.length === 0){
-                var offsets = newDiv.getBoundingClientRect();
-                div_recap.style.display = "block"
-                div_recap.style.left = "70px"; // String(e.clientX + 30)
-                div_recap.style.top = String(offsets.top) + "px"; //String(e.clientY - 16)
-            }
-            else{
-                // We reset the bar 
-                subinteractor_bar_container.innerHTML = "";
-
-                // We stop the timer.
-                if(time_out_id !== undefined)
-                {
-                    clearTimeout(time_out_id);
-                    time_out_id = undefined;
-                }
-
-                // Set the new bar on the left to the button
-                const offsets = newDiv.getBoundingClientRect();
-                subinteractor_bar_container.style.display = "flex";
-                subinteractor_bar_container.style.left = String(offsets.left + 53 ) + "px"; 
-                subinteractor_bar_container.style.top = String(offsets.top - 4) + "px";
-
-                subinteractor_bar_container.onmouseenter = function(){
-                    // We reset the fading timer 
-                    if(time_out_id !== undefined)
-                    {
-                        clearTimeout(time_out_id);
-                        time_out_id = undefined;
-                    }
-                }
-                
-                subinteractor_bar_container.onmouseleave = function () {
-                    // We initiate the fading of the div
-                    if(interactor.subinteractors.length !== 0){
-                        time_out_id = setTimeout(()=>{
-                            subinteractor_bar_container.innerHTML = "";
-                        }, 500);
-                    }
-                }
-
-                for(const subinteractor of interactor.subinteractors){
-                    // We create the div
-                    const new_subinteractor_div = document.createElement("div");
-                    new_subinteractor_div.classList.add("interactor");
-                    new_subinteractor_div.id = subinteractor.name;
-                    new_subinteractor_div.innerHTML = '<img src="img/interactor/' + subinteractor.img_src + '" width="27px" />';
-                    subinteractor_bar_container.appendChild(new_subinteractor_div);
-
-                    new_subinteractor_div.onclick = function (){
-                        // We select the interactor and we change the image 
-                        deselect_all_interactor_div();
-                        deselect_subinteractor_bar_div();
-                        newDiv.innerHTML = '<img src="img/interactor/' + subinteractor.img_src + '" width="27px" />';
-                        select_interactor(subinteractor, canvas, ctx, g, mouse_pos);
-                        newDiv.classList.add("selected");
-                        return;
-                    }
-                }
-            }
-        }
-
-        newDiv.onmouseleave = function () {
-            div_recap.style.display = "none";
-
-            // We start the timer of the fading
-            if(interactor.subinteractors.length !== 0){
-                time_out_id = setTimeout(()=>{
-                    subinteractor_bar_container.innerHTML = "";
-                },500);
-            }
-        }
-
-        newDiv.onclick = function () {
-            select_interactor(interactor, canvas, ctx, g, null);
-            div_recap.style.display = "none";
-        };
-
-
-        //  // SUBACTIONS
-        // const new_subinteractions_div = document.createElement("div");
-        // new_subinteractions_div.classList.add("subinteractions_container");
-        // new_subinteractions_div.id = interactor.name + "_subinteractions";
-        // new_subinteractions_div.style.display = "none";
-        // new_subinteractions_div.addEventListener("mouseleave", (event) => {
-        //     const target = event.target as HTMLDivElement;
-        //     target.style.display = "none";
-        // })
-
-        // newDiv.onclick = function () {
-        //     new_subinteractions_div.style.display = "block";
-        //     interactor.trigger();
-        //     requestAnimationFrame(function () { draw(canvas, ctx, g) });
-        // };
-        // //newDiv.innerHTML = '<img src="img/actions/' + action.img_src + '" width="30px" />';
-        // //actions_div.appendChild(newDiv);
-
-
-
-        // for (const subinteractor of interactor.subactions) {
-        //     const new_subinteractor_div = document.createElement("div");
-        //     new_subinteractor_div.classList.add("subaction");
-        //     new_subinteractor_div.id = subinteractor.name;
-        //     new_subinteractor_div.innerHTML = '<img src="img/interactor/' + subinteractor.img_src + '" width="27px" />';
-        //     new_subinteractor_div.onclick = function () {
-        //         new_subinteractor_div.style.display = "none";
-        //         subinteractor.trigger();
-        //         requestAnimationFrame(function () { draw(canvas, ctx, g) });
-        //     };
-        //     new_subinteractions_div.appendChild(new_subinteractor_div);
-
-        //     //add_recap_div(subaction, new_subaction_div, 130);
-        // }
-
-        // //add_recap_div(action, newDiv, 70);
-       
-
-
-        // // APPEND TO DOCUMENT
-        // document.body.appendChild(new_subinteractions_div);
-    }
+   
 }
 
 

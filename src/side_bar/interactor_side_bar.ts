@@ -1,7 +1,7 @@
 import { ClientGraph } from "../board/graph";
 import { CanvasCoord } from "../board/vertex";
-import { DOWN_TYPE, Interactor } from "../interactors/interactor";
-import { interactor_loaded, select_interactorV2 } from "../interactors/interactor_manager";
+import { DOWN_TYPE } from "../interactors/interactor";
+import { select_interactorV2 } from "../interactors/interactor_manager";
 import { local_board } from "../setup";
 import { ORIENTATION_INFO } from "./element_side_bar";
 import { ItemSideBar } from "./item_side_bar";
@@ -26,6 +26,16 @@ export class InteractorV2 extends ItemSideBar {
         this.mousedown = () => {};
         this.mousemove = () => {return false;};
         this.mouseup= () => {};
+
+        if (shortcut != ""){
+            console.log(`add shortcut ${shortcut}`);
+            const interactor = this;
+            window.addEventListener('keydown', function (e) {
+                if (shortcut.toLowerCase() == e.key.toLowerCase()){
+                    interactor.common_trigger(undefined);
+                }
+            });
+        }
     }
 
     render(my_sidebar: SideBar): void {

@@ -1,9 +1,3 @@
-import { ClientGraph } from "../board/graph";
-import { CanvasCoord } from "../board/vertex";
-
-
-
-
 
 
 export enum DOWN_TYPE {
@@ -58,33 +52,5 @@ export namespace RESIZE_TYPE {
     }
 }
 
-
-export class Interactor {
-    id: string;
-    shortcut: string;
-    img_src: string;
-    interactable_element_type: Set<DOWN_TYPE>;
-    cursor_style: string;
-    subinteractors: Array<Interactor>;
-
-    mousedown: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph, e: CanvasCoord) => void;
-    mousemove: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph, e: CanvasCoord) => boolean;
-    mouseup: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph, e: CanvasCoord) => void;
-    trigger: (mouse_pos: CanvasCoord, g: ClientGraph) => void;
-    onleave: () => void;
-    draw: (ctx: CanvasRenderingContext2D) => void;
-
-    constructor(name: string, shortcut: string, img_src: string, interactable_element_type: Set<DOWN_TYPE>, cursor_style: string) {
-        this.id = name;
-        this.shortcut = shortcut;
-        this.img_src = img_src;
-        this.interactable_element_type = interactable_element_type;
-        this.cursor_style = cursor_style;
-        this.trigger = (e, g) => { };
-        this.onleave = () => { };
-        this.draw = () => { };
-        this.subinteractors = new Array<Interactor>();
-    }
-}
 
 
