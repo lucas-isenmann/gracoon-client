@@ -1,4 +1,3 @@
-import { ClientArea } from "../board/area";
 import { ClientGraph } from "../board/graph";
 
 export enum SENSIBILITY {

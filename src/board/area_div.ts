@@ -1,8 +1,7 @@
-import { ClientArea } from "./area";
 import { center_canvas_on_rectangle } from "./camera";
 import { COLOR_BACKGROUND, draw } from "../draw";
 import { Parametor } from "../parametors/parametor";
-import { params_available, params_loaded, remove_loaded_param, update_parametor } from "../parametors/parametor_manager";
+import { params_available, remove_loaded_param, update_parametor } from "../parametors/parametor_manager";
 import { socket } from "../socket";
 import { CanvasCoord, ClientVertex } from "./vertex";
 import { local_board } from "../setup";
@@ -10,7 +9,8 @@ import { params_available_turn_on_div } from "../parametors/div_parametor";
 import { ClientGraph } from "./graph";
 import { ClientBoard } from "./board";
 
-type WholeGraphArea = {};
+import svgParamIcons from '../img/parametor/*.svg';
+
 
 
 
@@ -110,7 +110,7 @@ export function init_parametor_div(param:Parametor, area_id: number, board: Clie
             svg_reload_parametor.classList.add("white_svg", "hidden_button");
             svg_reload_parametor.id = "img_reload_" + html_id;
             svg_reload_parametor.title = "Recompute parameter";
-            svg_reload_parametor.src = "img/parametor/reload.svg";
+            svg_reload_parametor.src = svgParamIcons["reload"];
             svg_reload_parametor.addEventListener('click', ()=>{update_parametor(g,param_to_load)});
             svg_reload_parametor.classList.add("reload_img");
             div_hidden_buttons.appendChild(div_button);
@@ -128,7 +128,7 @@ export function init_parametor_div(param:Parametor, area_id: number, board: Clie
 
         let button = document.createElement('img');
         div_button.appendChild(button);
-        button.src = "img/parametor/trash.svg";
+        button.src = svgParamIcons["trash"];
         button.classList.add("remove_param_button", "white_svg", "hidden_button");
         button.title = "Remove parameter";
         button.addEventListener('click', () => { remove_loaded_param(param.id, area_id); });
@@ -146,7 +146,7 @@ export function init_parametor_div(param:Parametor, area_id: number, board: Clie
             svg_info_parametor.classList.add("white_svg", "hidden_button");
             svg_info_parametor.id = "img_info_" + html_id;
             svg_info_parametor.title = "Information on this parameter";
-            svg_info_parametor.src = "img/parametor/info.svg";
+            svg_info_parametor.src = svgParamIcons["info"];
             svg_info_parametor.addEventListener('click', ()=>{
                 console.log("INFO")
 
@@ -233,7 +233,7 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
 
             const load_new_parametors_button = document.createElement("img");
             load_new_parametors_button.classList.add("load_new_parametor_button");
-            load_new_parametors_button.src = "img/parametor/plus.svg";
+            load_new_parametors_button.src = svgParamIcons["plus"];
             load_new_parametors_button.title = "Load a new parameter";
             load_new_parametors_button.id = "load_parametor_area_"+area_id;
             load_new_parametors_button.onclick = ((e) => {
@@ -301,7 +301,7 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
 
             const expand_list_button = document.createElement("img");
             expand_list_button.classList.add("expand_button", "expanded", "hidden");
-            expand_list_button.src = "img/parametor/list.svg";
+            expand_list_button.src = svgParamIcons["list"];
             expand_list_button.title = "Expand/collapse the parameter list";
             expand_list_button.id = "expand_list_area_"+area_id;
             expand_list_button.addEventListener("click", ()=>{
