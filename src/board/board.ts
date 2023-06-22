@@ -1,4 +1,4 @@
-import { Area, Board, Coord, Graph, Link, Stroke, TextZone, Vect, Vertex } from "gramoloss";
+import { Area, Board, Coord, TextZone, Vect } from "gramoloss";
 import { GRID_COLOR } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
@@ -393,12 +393,12 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
     // TODO: improve that
     emit_add_element(element: ClientVertex | ClientLink | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
         switch(element.constructor){
-            case Vertex: {
+            case ClientVertex: {
                 const vertex = element as ClientVertex;
                 socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertex.pos}, callback);
                 break;
             }
-            case Link: {
+            case ClientLink: {
                 const link = element as ClientLink;
                 socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: link.start_vertex, end_index: link.end_vertex, orientation: link.orientation}, callback);
                 break;
