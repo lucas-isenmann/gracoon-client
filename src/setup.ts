@@ -92,26 +92,26 @@ function setup() {
     const switch_button_rect_grid = new SwitchSideBar("switch_button_rect_grid", "Switch rectangular grid", "", ORIENTATION_INFO.BOTTOM, "grid", "pointer", bottom_side_bar);
     
     switch_button_triangular_grid.trigger = () => { 
-        local_board.view.display_triangular_grid = switch_button_triangular_grid.state;
-        if (switch_button_triangular_grid.state){
+        local_board.view.display_triangular_grid = switch_button_triangular_grid.selected;
+        if (switch_button_triangular_grid.selected){
             local_board.view.grid_show = false;
-            switch_button_rect_grid.state = false;
+            switch_button_rect_grid.selected = false;
             switch_button_rect_grid.unselect();
         }
     };
     
     switch_button_rect_grid.trigger = () => { 
-        local_board.view.grid_show = switch_button_rect_grid.state;
-        if (switch_button_rect_grid.state){
+        local_board.view.grid_show = switch_button_rect_grid.selected;
+        if (switch_button_rect_grid.selected){
             local_board.view.display_triangular_grid = false;
-            switch_button_triangular_grid.state = false;
+            switch_button_triangular_grid.selected = false;
             switch_button_triangular_grid.unselect();
         }
     };
 
     const align_action = new SwitchSideBar("align_mode", "Automatic alignement", "", ORIENTATION_INFO.BOTTOM, "align", "pointer", bottom_side_bar);
     align_action.trigger = () => {
-        local_board.view.is_aligning = align_action.state;
+        local_board.view.is_aligning = align_action.selected;
 
     }
 
@@ -258,25 +258,14 @@ function setup() {
 
     // -------
 
-    const b3 = new SideBar("b3", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const e7 = new InteractorV2("e7", "Test info", "K",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
-    const e5 = new InteractorV2("e5", "Test info", "K",ORIENTATION_INFO.TOP, "arc","pointer", new Set()); 
-    const e6 = new InteractorV2("e6", "Test info", "K",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
-
-    b3.add_elements(e7, e5, e6);
-
-    
-
+    bottom_side_bar.setRootSideBar(bottom_side_bar);
 
 
     bottom_side_bar.dom.style.top = "10px";
     bottom_side_bar.dom.style.left = "200px";
 
 
-    const b4 = new SideBar("b4", ORIENTATION_SIDE_BAR.HORIZONTAL);
-    const e8 = new InteractorV2("e8", "A",  "Test info",ORIENTATION_INFO.TOP, "color","pointer", new Set()); 
 
-    b4.add_elements(e8);
 
     document.body.appendChild(bottom_side_bar.dom);
 
@@ -308,6 +297,7 @@ function setup() {
         eraser_interactorV2 );
 
 
+    left_side_bar.setRootSideBar(left_side_bar);
 
     left_side_bar.dom.style.left = "0px";
     left_side_bar.dom.style.top = "150px";

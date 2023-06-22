@@ -3,10 +3,11 @@ import { draw_circle } from "../../draw_basics";
 import { local_board } from "../../setup";
 import { View } from "../camera";
 import { ClientGraph } from "../graph";
+import { ClientLink } from "../link";
 import { CanvasVect } from "../vect";
-import { CanvasCoord } from "../vertex";
+import { CanvasCoord, ClientVertex } from "../vertex";
 
-export class ClientDegreeWidthRep extends DegreeWidthRep {
+export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLink> {
     canvas_corner_top_left : CanvasCoord;
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;

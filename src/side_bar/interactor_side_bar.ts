@@ -16,9 +16,9 @@ export class InteractorV2 extends ItemSideBar {
     onleave: () => void;
     draw: (ctx: CanvasRenderingContext2D) => void;
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,interactable_element_type: Set<DOWN_TYPE>, my_sidebar? : SideBar)
+    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,interactable_element_type: Set<DOWN_TYPE>, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar);
+        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
         this.interactable_element_type = interactable_element_type;
         this.cursor_style = cursor_style;
         this.onleave = () => {};
@@ -44,6 +44,9 @@ export class InteractorV2 extends ItemSideBar {
     }
 
     common_trigger(pos: CanvasCoord){
+        if ( typeof this.rootSidebar !== "undefined"){
+            this.rootSidebar.unselect_all_elements();
+        }
         document.querySelectorAll(".interactor").forEach(interactor => {
             interactor.classList.remove("selected");
         });
@@ -51,6 +54,10 @@ export class InteractorV2 extends ItemSideBar {
         const canvas = document.getElementById('main') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
         select_interactorV2(this, canvas, ctx, local_board.graph, pos);
+    }
+
+    setRootSideBar(rootSideBar: SideBar) {
+        this.rootSidebar = rootSideBar;
     }
 
 }

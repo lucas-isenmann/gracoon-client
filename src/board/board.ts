@@ -370,7 +370,7 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
         socket.emit(SocketMsgType.MERGE_VERTICES, index1, index2);
     }
 
-    emit_paste_graph(graph: Graph<Vertex, Link>){
+    emit_paste_graph(graph: ClientGraph){
         socket.emit(SocketMsgType.PASTE_GRAPH, [...graph.vertices.entries()], [...graph.links.entries()]);
     }
 
@@ -389,15 +389,15 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emit_add_element(element: Vertex | Link | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
+    emit_add_element(element: ClientVertex | ClientLink | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
         switch(element.constructor){
             case Vertex: {
-                const vertex = element as Vertex;
+                const vertex = element as ClientVertex;
                 socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertex.pos}, callback);
                 break;
             }
             case Link: {
-                const link = element as Link;
+                const link = element as ClientLink;
                 socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: link.start_vertex, end_index: link.end_vertex, orientation: link.orientation}, callback);
                 break;
             }

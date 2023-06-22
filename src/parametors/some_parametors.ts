@@ -1,8 +1,11 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { Coord, Graph, is_triangles_intersection, ORIENTATION } from 'gramoloss';
+import { Coord, Graph, ORIENTATION, Vect } from 'gramoloss';
 import { ClientLink } from '../board/link';
+import { local_board } from '../setup';
+import { ClientVertex } from '../board/vertex';
+import { ClientRectangle } from '../board/rectangle';
 
 export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
@@ -212,6 +215,146 @@ param_diameter.compute = ((g: ClientGraph) => {
     }
     return String(diameter);
 });
+
+// -----------------
+export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "delaunay", "delaunay", "Resets the edges of the graph", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
+
+paramDelaunayConstructor.compute = ((g: ClientGraph) => {
+    g.resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+    return String("/");
+});
+
+
+// -----------------
+export const paramStretch = new Parametor("Stretch", "stretch", "stretch", "Computes the stretch", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
+
+paramStretch.compute = ((g: ClientGraph) => {
+    return String(g.stretch().toFixed(3));
+});
+
+
+
+// -----------------
+export const paramStretchGeneticMaximizer = new Parametor("Stretch Genetic Maximizer", "stretchG", "stretchG", "Computes the stretch", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
+
+paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
+    const popSize = 36;
+    const graphSize = 20;
+    const nbRows = 6;
+    const w = 70;
+    const margin = 20;
+    const mutRange = 4;
+
+    let maxStretch: number | undefined = undefined;
+    const topLeftCorners = new Array<Coord>();
+
+    for (let i = 0 ; i < popSize ; i ++){
+        topLeftCorners.push(new Coord( 100 + (i % nbRows)*(w+margin), 100+ Math.floor(i/ nbRows)*(w+margin)));
+    }
+
+    if( g.vertices.size == 0){
+        for ( let i = 0 ; i < popSize ; i ++){
+            const c1 = topLeftCorners[i];
+            const c2 = c1.add(new Coord(w,w));
+            for( let j = 0 ; j < graphSize ; j ++){
+                const pos = c1.add(new Coord(Math.random()*w,Math.random()*w));
+                const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.view);
+                g.add_vertex(newVertex);
+            }
+            local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.view));
+            const subgraph = g.getSubgraphFromRectangle(c1,c2);
+            subgraph.resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+            const stretch = subgraph.stretch();
+            if (maxStretch == undefined){
+                maxStretch = stretch;
+            } else if (stretch > maxStretch){
+                maxStretch = stretch;
+            }
+            for (const link of subgraph.links.values()){
+                g.add_link(link);
+            }
+        }
+    } else {
+        const population = new Array<ClientGraph>();
+        const fitness = new Array();
+        let totalFitness = 0;
+        for ( let i = 0 ; i < popSize ; i ++){
+            const c1 = topLeftCorners[i];
+            const c2 = c1.add(new Coord(w,w));
+            const subgraph = g.getSubgraphFromRectangle(c1,c2);
+            population.push(ClientGraph.fromGraph(subgraph));
+            const stretch = subgraph.stretch()
+            fitness.push(Math.pow(stretch,3))
+            totalFitness += Math.pow(stretch,3);
+        }
+        // Normalize fitness array
+        let minFitness = 100;
+        let maxFitness = 0;
+        for (let i = 0 ; i < popSize ; i ++){
+            fitness[i] = fitness[i]/totalFitness;
+            minFitness = Math.min(minFitness, fitness[i]);
+            maxFitness = Math.max(maxFitness, fitness[i]);
+            // console.log((100*fitness[i]).toFixed(2));
+        }
+
+        // Selection and mutate
+        g.clear();
+        const newPop = new Array<ClientGraph>();
+        let sumStretch = 0;
+        for( let i = 0 ; i < popSize ; i ++){
+            const c1 = topLeftCorners[i];
+            const r = Math.random();
+            let s = 0;
+            for ( let j = 0 ; j < popSize ; j ++ ){
+                if ( r <= s + fitness[j]){
+                    newPop.push(population[j].clone());
+                    newPop[i].translateByServerVect(new Vect(((i%nbRows)-(j%nbRows))*(w+margin),((Math.floor(i/nbRows))-(Math.floor(j/nbRows)))*(w+margin)), local_board.view);
+
+                    // mutate
+                    const r2 = Math.floor(Math.random()* graphSize);
+                    const indices = Array.from(newPop[i].vertices.keys());
+                    const v = newPop[i].vertices.get(indices[r2]);
+                    if (typeof v != "undefined"){
+                        const nx = v.pos.x + Math.random()*mutRange -mutRange/2;
+                        const ny = v.pos.y + Math.random()*mutRange -mutRange/2;
+                        if ( c1.x <= nx && nx <= c1.x + w && c1.y <= ny && ny <= c1.y + w ){
+                            v.setPos(nx,ny);
+                        }
+                    }
+                    newPop[i].resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+
+                    const stretch = newPop[i].stretch();
+                    sumStretch += stretch;
+                    if (maxStretch == undefined){
+                        maxStretch = stretch;
+                    } else if (stretch > maxStretch){
+                        maxStretch = stretch;
+                    }
+
+                    g.pasteGraph(newPop[i]);
+                    break;
+                } 
+                s += fitness[j];
+            }
+        }
+        console.log((100*minFitness).toFixed(2),(100*maxFitness).toFixed(2), (sumStretch/popSize).toFixed(3), maxStretch.toFixed(3));
+
+
+
+    }
+
+    paramStretchGeneticMaximizer.compute(g, false);
+
+    if (maxStretch){
+        return String(maxStretch.toFixed(3));
+    } else {
+        return "/"
+    }
+});
+
+
+
+
 
 // -----------------
 

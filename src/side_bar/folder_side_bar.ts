@@ -17,8 +17,8 @@ export class FolderSideBar extends ElementSideBar{
     expand_direction : FOLDER_EXPAND_DIRECTION;
     expand : (mouse_pos : CanvasCoord) => void;
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  next_sidebar:SideBar, expand_direction : FOLDER_EXPAND_DIRECTION, my_sidebar?:SideBar) {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar); 
+    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  next_sidebar:SideBar, expand_direction : FOLDER_EXPAND_DIRECTION, my_sidebar?: SideBar, rootSidebar?: SideBar) {
+        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar); 
         this.expand = (e) => { };
         this.expand_direction = expand_direction;
         this.next_sidebar = next_sidebar;
@@ -93,6 +93,12 @@ export class FolderSideBar extends ElementSideBar{
         if(reset){
             // We reset the image to its default value
             this.reset_img();
+        }
+    }
+
+    setRootSideBar(rootSideBar: SideBar) {
+        for(const element of this.next_sidebar.elements){
+            element.setRootSideBar(rootSideBar);
         }
     }
 }

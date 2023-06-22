@@ -24,6 +24,40 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
         }
     }
 
+    translateByServerVect(shift: Vect, view: View){
+        for ( const vertex of this.vertices.values()){
+            vertex.translate_by_server_vect(shift, view);
+        }
+        for ( const link of this.links.values()){
+            link.translateByServerVect(shift, view);
+        }
+    }
+
+    /**
+     * Converts the graph into a ClientGraph.
+     * It does not clone the elements.
+     */
+    static fromGraph(g: Graph<ClientVertex, ClientLink>): ClientGraph{
+        const newGraph = new ClientGraph();
+        for( const [index, vertex] of g.vertices){
+            newGraph.set_vertex(index, vertex);
+        }
+        for (const [index, link] of g.links){
+            newGraph.set_link(index, link);
+        }
+        return newGraph;
+    }
+
+    clone(): ClientGraph {
+        const newGraph = new ClientGraph();
+        for( const [index, vertex] of this.vertices){
+            newGraph.set_vertex(index, vertex.clone());
+        }
+        for (const [index, link] of this.links){
+            newGraph.set_link(index, link.clone());
+        }
+        return newGraph;
+    }
 
 
 

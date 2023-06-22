@@ -3,6 +3,7 @@ import katex from "katex";
 import { COLOR_INNER_VERTEX_DEFAULT } from "../draw";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { interactor_loaded } from "../interactors/interactor_manager";
+import { local_board } from "../setup";
 import { display_weight_input, text_interactorV2, validate_weight } from "../side_bar/interactors/text";
 import { solutionQuadratic } from "../utils";
 import { View } from "./camera";
@@ -118,7 +119,7 @@ export class CanvasCoord extends Coord {
 
 
 
-export class ClientVertex extends Vertex {
+export class ClientVertex extends Vertex<ClientVertex> {
     canvas_pos: CanvasCoord;
     is_selected: boolean;
     index_string: string;
@@ -219,6 +220,24 @@ export class ClientVertex extends Vertex {
         // labelCode = "\\node[shift={(" + round(this.label.getExactLabelOffsetX() * 10) / 1000 + "," + -round(this.label.getExactLabelOffsetY() * 10) / 1000 + ")}, scale=\\scaleV] at  (v" + Vertices.indexOf(this) + ") {" + this.label.text + "};";
 
         return labelCode;
+    }
+
+    setPos(nx: number, ny: number) {
+        this.pos.x = nx;
+        this.pos.y = ny;
+        this.canvas_pos = local_board.view.create_canvas_coord(this.pos );
+        this.auto_weight_div_pos();
+    }
+
+    clone(): ClientVertex {
+        const newVertex = new ClientVertex(this.pos.x, this.pos.y, this.weight, local_board.view);
+        newVertex.color = this.color;
+        newVertex.is_selected = this.is_selected;
+        newVertex.index_string = this.index_string;
+        for (const [index, paramValue] of this.parameter_values){
+            newVertex.parameter_values.set(index, paramValue);
+        }
+        return newVertex;
     }
 
 }

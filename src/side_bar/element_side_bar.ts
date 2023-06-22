@@ -25,11 +25,12 @@ export abstract class ElementSideBar{
     cursor_style: string;
     dom : HTMLElement;
     my_sidebar: SideBar; // The sidebar the element belongs
+    rootSidebar: SideBar | undefined;
     orientation_info: ORIENTATION_INFO;
 
 
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  sidebar? : SideBar) {
+    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  sidebar?: SideBar, rootSidebar?: SideBar) {
         this.info = info;
         this.shortcut = shortcut;
         this.initial_img_src = img_src;
@@ -39,10 +40,16 @@ export abstract class ElementSideBar{
         if(sidebar !== undefined){
             this.my_sidebar = sidebar;
             this.render(sidebar);
-        }
-        else{
+            sidebar.add_elements(this);
+        } else {
             this.my_sidebar = null;
         }
+        if (rootSidebar !== undefined){
+            this.rootSidebar = rootSidebar;
+        } else {
+            this.rootSidebar = undefined;
+        }
+       
     }
 
     /**
@@ -125,7 +132,7 @@ export abstract class ElementSideBar{
    
         this.img_dom.addEventListener("mouseenter", () => {
             div_recap.style.display = "block";
-            var offsets = this.img_dom.getBoundingClientRect();
+            const offsets = this.img_dom.getBoundingClientRect();
 
             switch(this.orientation_info){
                 case(ORIENTATION_INFO.TOP):
@@ -148,21 +155,7 @@ export abstract class ElementSideBar{
             }
         });
 
-        // this.img_dom.addEventListener("mouseleave", () => {
-        //     div_recap.style.display = "none";
-        // });
-
-        // this.img_dom.addEventListener("mousemove", (e) => {
-           
-
-        //     // div_recap.style.left = (e.clientX + 10) + "px";
-        //     // div_recap.style.top = (e.clientY - 50) + "px";
-        // })
-
-        // this.img_dom.addEventListener("mouseenter", () => {
-        //     div_recap.style.display = "block";
-        //     // div_recap.hidden = false;
-        // });
+        
 
         this.img_dom.addEventListener("mouseleave", () => {
             // div_recap.hidden = true;
@@ -173,6 +166,8 @@ export abstract class ElementSideBar{
     unselect(b:boolean) {
         throw new Error("Method not implemented.");
     }
+
+    abstract setRootSideBar(rootSideBar: SideBar);
 
 
 }

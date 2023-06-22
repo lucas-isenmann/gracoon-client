@@ -8,12 +8,20 @@ import { SideBar } from "./side_bar";
  */
 export class SideBarLauncher extends ItemSideBar {
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, f: (mouse_pos: CanvasCoord) => void, my_sidebar? : SideBar)
+    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, f: (mouse_pos: CanvasCoord) => void, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar);
+        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
         this.trigger = f;
     }
 
-    common_trigger(){ }
+    common_trigger(){ 
+        if ( typeof this.rootSidebar !== "undefined"){
+            this.rootSidebar.unselect_all_elements();
+        }
+    }
+
+    setRootSideBar(rootSideBar: SideBar) {
+        this.rootSidebar = rootSideBar;
+    }
 
 }

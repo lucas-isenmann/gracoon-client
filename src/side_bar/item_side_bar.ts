@@ -8,8 +8,8 @@ import { SideBar } from "./side_bar";
 export abstract class ItemSideBar extends ElementSideBar {
     trigger: (mouse_pos:CanvasCoord) => void; 
     
-    constructor(id:string, info: string,  shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar? : SideBar) {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar); 
+    constructor(id:string, info: string,  shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSideBar?: SideBar) {
+        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSideBar); 
         this.trigger = () => { };
     }
     

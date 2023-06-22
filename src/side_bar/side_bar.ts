@@ -60,20 +60,20 @@ export class SideBar {
      * Add the elements, create their HTML and insert them in the HTML of the sidebar
      * @param args Arbitrary list of elements.
      */
-    add_elements(...args: ElementSideBar[]){
-        for (const arg of args){ 
-            this.elements.push(arg);
+    add_elements(...elements: ElementSideBar[]){
+        for (const element of elements){ 
+            this.elements.push(element);
 
             // We check if the element is not already in the sidebar
-            if(arg.my_sidebar != this){
-                arg.render(this);
+            if(element.my_sidebar != this){
+                element.render(this);
             }
         }
 
     }
     
     /**
-     * Close recursively all the folders the sidebar may contain
+     * Close recursively all the folders the sidebar may contain.
      * @param reset boolean set to true if we want to reset the default image. Set at true by default.
      */
     unselect_all_elements(reset?:boolean){
@@ -82,6 +82,29 @@ export class SideBar {
             // element.reset_img();
         }
     }
+
+    /**
+     * Collapse recursively all the folders the sidebar may contain.
+     */
+    collapse_all_except(id: string){
+        for(const element of this.elements){
+            if ( element.id !== id){
+                element.unselect(false);
+            }
+        }
+    }
+
+    /**
+     * Recursively set the rootSidebar of all elements.
+     */
+    setRootSideBar(rootSideBar: SideBar){
+        console.log("SideBar: ", this.id, " setRootSideBar");
+        for(const element of this.elements){
+            console.log(element.id);
+            element.setRootSideBar(rootSideBar);
+        }
+    }
+
 
     /**
      *  Close recursively all the folders the sidebar may contain but the one in parameter

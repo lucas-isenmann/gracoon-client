@@ -111,7 +111,13 @@ export function init_parametor_div(param:Parametor, area_id: number, board: Clie
             svg_reload_parametor.id = "img_reload_" + html_id;
             svg_reload_parametor.title = "Recompute parameter";
             svg_reload_parametor.src = svgParamIcons["reload"];
-            svg_reload_parametor.addEventListener('click', ()=>{update_parametor(g,param_to_load)});
+            svg_reload_parametor.addEventListener('click', ()=>{
+                update_parametor(g,param_to_load);
+                const canvas = document.getElementById('main') as HTMLCanvasElement;
+                const ctx = canvas.getContext('2d');
+                requestAnimationFrame(function () { draw(canvas, ctx, g) });
+
+            });
             svg_reload_parametor.classList.add("reload_img");
             div_hidden_buttons.appendChild(div_button);
         }

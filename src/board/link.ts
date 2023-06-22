@@ -1,4 +1,4 @@
-import { Coord, Link, ORIENTATION } from "gramoloss";
+import { Coord, Link, ORIENTATION, Vect } from "gramoloss";
 import katex from "katex";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { interactor_loaded } from "../interactors/interactor_manager";
@@ -11,7 +11,7 @@ import { CanvasCoord, ClientVertex } from "./vertex";
 
 
 
-export class ClientLink extends Link {
+export class ClientLink extends Link<ClientLink> {
     cp_canvas_pos: CanvasCoord | string;
     is_selected: boolean;
     weight_position: Coord = new Coord(0,0);
@@ -121,5 +121,27 @@ export class ClientLink extends Link {
             this.weight_div.innerHTML = katex.renderToString(value);
         }
     }
+
+    clone(): ClientLink {
+        if (typeof this.cp === "string"){
+            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
+            return newLink; // TODO I think there are things to clone with the div
+        } else {
+            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
+            return newLink; // TODO I think there are things to clone with the div
+        }
+    }
+
+
+    translateByServerVect(shift: Vect, view: View) {
+        if (typeof this.cp !== "string" && typeof this.cp_canvas_pos !== "string"){
+            const canvas_shift = view.create_canvas_vect(shift);
+            this.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);
+            this.cp.x += shift.x;
+            this.cp.y += shift.y;
+            // TODO: something with the weight_div
+        }
+    }
+
 
 }
