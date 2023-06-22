@@ -1,9 +1,13 @@
-import { ClientArea, AREA_CORNER, AREA_SIDE } from "./area";
 import { INDEX_TYPE, View } from "./camera";
-import { CanvasCoord, ClientVertex } from "./vertex";
+import { ClientVertex } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 import { ClientLink } from "./link";
-import { Coord, Graph, Link, middle, ORIENTATION, Vect } from "gramoloss";
+import { Coord, Graph, ORIENTATION, Vect } from "gramoloss";
 import { CanvasVect } from "./vect";
+import { draw_circle, draw_head, real_color } from "../draw_basics";
+import { local_board } from "../setup";
+import { DOWN_TYPE } from "../interactors/interactor";
+import { interactor_loaded } from "../interactors/interactor_manager";
 
 
 
@@ -13,6 +17,81 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
     constructor() {
         super();
     }
+
+    /**
+     * Draw the graph on the context.
+     */
+    draw(ctx: CanvasRenderingContext2D){
+        this.drawLinks(ctx);
+        this.drawVertices(ctx);
+    }
+
+    /**
+     * Draw the vertices of the graph.
+     */
+    drawVertices(ctx: CanvasRenderingContext2D){
+        for (const v of this.vertices.values()) {
+            v.draw(ctx);
+        }
+    }
+
+    /**
+     * Draw the links of the graph.
+     */
+    drawLinks(ctx: CanvasRenderingContext2D) {
+        for (let link of this.links.values()) {
+            let u = this.vertices.get(link.start_vertex);
+            let v = this.vertices.get(link.end_vertex);
+
+            const posu = u.canvas_pos; 
+            const posv = v.canvas_pos; 
+            const poscp = link.cp_canvas_pos;
+            const color = real_color(link.color, local_board.view.dark_mode);
+
+            if (link.is_selected) {
+                ctx.strokeStyle = color;
+
+                ctx.beginPath();
+                ctx.moveTo(posu.x, posu.y);
+                ctx.lineWidth = 8;
+
+                if ( typeof poscp == "string"){
+                    ctx.lineTo(posv.x, posv.y);
+                }else {
+                    ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
+                    //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
+                }
+                ctx.stroke();
+        }
+
+            ctx.beginPath();
+            ctx.moveTo(posu.x, posu.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            if ( typeof poscp == "string"){
+                ctx.lineTo(posv.x, posv.y);
+            }else {
+                ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
+                //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
+            }
+            ctx.stroke();
+
+            
+        if (typeof poscp != "string"){
+                if ( interactor_loaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
+                    draw_circle(poscp, "grey", 4, 1, ctx);
+                }
+            }
+            if (link.orientation == ORIENTATION.DIRECTED) {
+                let cp = posu.middle(posv);
+                if (typeof poscp != "string"){
+                    cp = poscp
+                }
+                draw_head(ctx, cp, posv);
+            }
+        }
+    }
+
 
 
     translate_by_canvas_vect(shift: CanvasVect, view: View){

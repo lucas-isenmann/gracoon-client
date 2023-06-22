@@ -1,7 +1,7 @@
 import { Coord } from "gramoloss";
 import { ClientGraph } from "../../board/graph";
 import { ClientRectangle } from "../../board/rectangle";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { last_down } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";

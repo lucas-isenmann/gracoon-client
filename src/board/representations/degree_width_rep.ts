@@ -5,7 +5,9 @@ import { View } from "../camera";
 import { ClientGraph } from "../graph";
 import { ClientLink } from "../link";
 import { CanvasVect } from "../vect";
-import { CanvasCoord, ClientVertex } from "../vertex";
+import { ClientVertex } from "../vertex";
+import { CanvasCoord } from "../canvas_coord";
+
 
 export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLink> {
     canvas_corner_top_left : CanvasCoord;

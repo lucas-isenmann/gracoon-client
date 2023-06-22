@@ -2,7 +2,7 @@ import { Coord, Rectangle } from "gramoloss";
 import { BasicColorName, real_color2 } from "../basic_colors";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
-import { CanvasCoord } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 
 export class ClientRectangle extends Rectangle {
     canvas_corner_top_left : CanvasCoord;

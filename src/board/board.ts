@@ -13,7 +13,9 @@ import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./r
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./vect";
-import { CanvasCoord, ClientVertex } from "./vertex";
+import { ClientVertex } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
+
 
 export enum BoardElementType {
     Vertex = "Vertex",

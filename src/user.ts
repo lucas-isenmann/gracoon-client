@@ -1,6 +1,6 @@
 import { Coord } from "gramoloss";
 import { View } from "./board/camera";
-import { CanvasCoord } from "./board/vertex";
+import { CanvasCoord } from "./board/canvas_coord";
 import { COLOR_BACKGROUND, draw, draw_user} from "./draw";
 import { Multicolor } from "./multicolor";
 import { local_board } from "./setup";

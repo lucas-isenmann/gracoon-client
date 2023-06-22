@@ -7,7 +7,8 @@ import { local_board } from "../setup";
 import { BoardElementType } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
-import { CanvasCoord, ClientVertex } from "./vertex";
+import { ClientVertex } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 
 
 

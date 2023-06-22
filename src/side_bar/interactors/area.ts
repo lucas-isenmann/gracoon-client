@@ -3,7 +3,7 @@ import { AREA_CORNER, AREA_SIDE } from '../../board/area';
 import { BoardElementType } from '../../board/board';
 import { ClientGraph } from '../../board/graph';
 import { CanvasVect } from '../../board/vect';
-import { CanvasCoord } from '../../board/vertex';
+import { CanvasCoord } from '../../board/canvas_coord';
 import { DOWN_TYPE, RESIZE_TYPE } from '../../interactors/interactor';
 import { last_down, last_down_index, down_coord } from '../../interactors/interactor_manager';
 import { local_board } from '../../setup';

@@ -1,7 +1,7 @@
 import { TextZone } from "gramoloss";
 import { BoardElementType } from "../../board/board";
 import { ClientGraph } from "../../board/graph";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";

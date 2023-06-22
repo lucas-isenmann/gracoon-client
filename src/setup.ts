@@ -9,7 +9,6 @@ import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
 import { SideBar } from "./side_bar/side_bar";
 import { ORIENTATION_INFO, ORIENTATION_SIDE_BAR } from "./side_bar/element_side_bar";
 import { FolderSideBar, FOLDER_EXPAND_DIRECTION } from "./side_bar/folder_side_bar";
-import { InteractorV2 } from "./side_bar/interactor_side_bar";
 import { SwitchSideBar } from "./side_bar/switch_side_bar";
 import { selectionV2 } from "./side_bar/interactors/selection";
 import { edge_interactorV2 } from "./side_bar/interactors/edge";

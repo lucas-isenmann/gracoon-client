@@ -1,5 +1,5 @@
 import { View } from "./camera";
-import { CanvasCoord, ClientVertex } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./vect";
 

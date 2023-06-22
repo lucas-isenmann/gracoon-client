@@ -1,4 +1,4 @@
-import { CanvasCoord } from "../board/vertex";
+import { CanvasCoord } from "../board/canvas_coord";
 import { ORIENTATION_INFO } from "./element_side_bar";
 import { ItemSideBar } from "./item_side_bar";
 import { SideBar } from "./side_bar";

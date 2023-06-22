@@ -1,6 +1,6 @@
 import { View } from "../board/camera";
 import { ClientGraph } from "../board/graph";
-import { CanvasCoord } from "../board/vertex";
+import { CanvasCoord } from "../board/canvas_coord";
 import { AttributesArray } from "./attribute";
 
 

@@ -1,5 +1,5 @@
 import { ClientGraph } from "../board/graph";
-import { CanvasCoord } from "../board/vertex";
+import { CanvasCoord } from "../board/canvas_coord";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { select_interactorV2 } from "../interactors/interactor_manager";
 import { local_board } from "../setup";

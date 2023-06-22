@@ -1,9 +1,8 @@
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { update_users_canvas_pos } from "../user";
 import { ClientBoard } from "./board";
-import { ClientGraph } from "./graph";
 import { CanvasVect } from "./vect";
-import { CanvasCoord } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 
 export enum INDEX_TYPE {
     NONE,

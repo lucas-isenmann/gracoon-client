@@ -1,6 +1,6 @@
 
-import { draw, draw_vertex } from "./draw";
-import { Self, self_user, update_self_user_div, update_users_canvas_pos, update_user_list_div, User, users } from "./user";
+import { draw } from "./draw";
+import { self_user, update_self_user_div, update_users_canvas_pos, update_user_list_div, User, users } from "./user";
 import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";

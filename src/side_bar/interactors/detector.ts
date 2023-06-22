@@ -1,11 +1,12 @@
 import { Coord } from 'gramoloss';
 import { ClientGraph } from '../../board/graph';
 import { ClientLink } from '../../board/link';
-import { CanvasCoord, ClientVertex } from '../../board/vertex';
+import { CanvasCoord } from '../../board/canvas_coord';
 import { DOWN_TYPE } from '../../interactors/interactor';
 import { local_board } from '../../setup';
 import { ORIENTATION_INFO } from '../element_side_bar';
 import { InteractorV2 } from '../interactor_side_bar';
+import { ClientVertex } from '../../board/vertex';
 
 // INTERACTOR DETECTOR
 

@@ -14,7 +14,7 @@ import { Vect } from "gramoloss";
 import { BoardElementType } from "../../board/board";
 import { ClientGraph } from "../../board/graph";
 import { CanvasVect } from "../../board/vect";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { down_coord, key_states, last_down, last_down_index, mouse_buttons } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";

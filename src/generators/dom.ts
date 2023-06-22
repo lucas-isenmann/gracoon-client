@@ -1,6 +1,6 @@
 import { ClientBoard } from "../board/board";
 import { View } from "../board/camera";
-import { CanvasCoord } from "../board/vertex";
+import { CanvasCoord } from "../board/canvas_coord";
 import { set_clipboard } from "../clipboard";
 import { createPopup } from "../popup";
 import { GraphGenerator } from "./generator";

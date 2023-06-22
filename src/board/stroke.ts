@@ -1,8 +1,8 @@
 import { View } from "./camera";
 import { BasicColorName } from "../basic_colors";
 import { Coord, Stroke } from "gramoloss";
-import { CanvasCoord } from "./vertex";
 import { CanvasVect } from "./vect";
+import { CanvasCoord } from "./canvas_coord";
 
 export class ClientStroke extends Stroke{
     canvas_positions: Array<CanvasCoord>;

@@ -7,7 +7,7 @@ import { eraser_interactorV2 } from "../side_bar/interactors/eraser";
 import { BoardElementType } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
-import { CanvasCoord } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 import { marked } from "marked";
 
 export class ClientTextZone extends TextZone {

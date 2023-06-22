@@ -5,7 +5,7 @@ import { self_user, update_users_canvas_pos } from '../user';
 import { local_board } from '../setup';
 import { regenerate_graph } from '../generators/dom';
 import { clear_clipboard, clipboard_comes_from_generator, graph_clipboard, mouse_position_at_generation, paste_generated_graph, set_clipboard } from '../clipboard';
-import { CanvasCoord } from '../board/vertex';
+import { CanvasCoord } from '../board/canvas_coord';
 import { ClientGraph } from '../board/graph';
 import { CanvasVect } from '../board/vect';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';

@@ -7,7 +7,7 @@ import { BoardElementType } from "../../board/board";
 import { ClientGraph } from "../../board/graph";
 import { resize_corner, resize_side, translate_by_canvas_vect } from "../../board/resizable";
 import { CanvasVect } from "../../board/vect";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { down_coord, down_meta_element, has_moved, key_states, last_down, last_down_index } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";

@@ -1,8 +1,10 @@
 import { ORIENTATION } from "gramoloss";
 import { View } from "../board/camera";
+import { CanvasCoord } from "../board/canvas_coord";
 import { ClientGraph } from "../board/graph";
 import { ClientLink } from "../board/link";
-import { CanvasCoord, ClientVertex } from "../board/vertex";
+import { ClientVertex } from "../board/vertex";
+
 import { AreaIndex, Integer, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";
 

@@ -1,7 +1,8 @@
 import { Representation } from "gramoloss";
 import { View } from "../camera";
 import { CanvasVect } from "../vect";
-import { CanvasCoord } from "../vertex";
+import { CanvasCoord } from "../canvas_coord";
+
 
 
 export interface ClientRepresentation extends Representation {

@@ -1,4 +1,4 @@
-import { CanvasCoord } from "./vertex";
+import { CanvasCoord } from "./canvas_coord";
 
 export class CanvasVect {
     x: number; // integer

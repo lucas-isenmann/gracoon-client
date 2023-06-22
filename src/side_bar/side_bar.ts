@@ -1,5 +1,3 @@
-import { ClientGraph } from "../board/graph";
-import { CanvasCoord } from "../board/vertex";
 import { ElementSideBar, ORIENTATION_SIDE_BAR } from "./element_side_bar";
 import { FolderSideBar } from "./folder_side_bar";
 

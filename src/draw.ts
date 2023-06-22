@@ -7,21 +7,18 @@ export let COLOR_BORDER_VERTEX = "#ffffff";
 export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
 
 
-import { INDEX_TYPE } from './board/camera';
 import { User, users } from './user';
 import { ClientGraph } from './board/graph';
 import { ClientStroke } from './board/stroke';
 import { ClientArea } from './board/area';
 import { interactor_loaded } from './interactors/interactor_manager';
-import { DOWN_TYPE } from './interactors/interactor';
 import { clamp } from './utils';
 import { Multicolor } from './multicolor';
 import { local_board } from './setup';
-import { drawRoundRect, draw_circle, draw_head, draw_line, real_color } from './draw_basics';
+import { drawRoundRect, draw_line} from './draw_basics';
 import { real_color2 } from './basic_colors';
 import { graph_clipboard } from './clipboard';
-import { ORIENTATION } from 'gramoloss';
-import { CanvasCoord } from './board/vertex';
+import { CanvasCoord } from './board/canvas_coord';
 
 export function toggle_dark_mode(enable:boolean){
     const action_DOM = document.getElementById("actions");
@@ -92,47 +89,6 @@ export function draw_background(canvas: HTMLCanvasElement, ctx: CanvasRenderingC
     }
 }
 
-
-export function draw_vertex(index: number, g: ClientGraph, ctx: CanvasRenderingContext2D) {
-    const vertex = g.vertices.get(index);
-    let vertex_radius = VERTEX_RADIUS;
-    if (local_board.view.index_type != INDEX_TYPE.NONE) {
-        vertex_radius = 2 * VERTEX_RADIUS;
-    }
-
-    if (vertex.is_selected) {
-        draw_circle(vertex.canvas_pos, SELECTION_COLOR, vertex_radius+3, 1, ctx);
-    } else {
-        /* DISABLED for new draw of vertices
-        draw_circle(vertex.pos.canvas_pos, COLOR_BORDER_VERTEX, vertex_radius, 1, ctx);
-        */
-    }
-    
-    const color = real_color(vertex.color, local_board.view.dark_mode);
-    draw_circle(vertex.canvas_pos, color, vertex_radius - 2, 1, ctx);
-
-    // DRAW INDEX 
-    if (local_board.view.index_type != INDEX_TYPE.NONE) {
-        ctx.font = "17px Arial";
-        const measure = ctx.measureText(vertex.index_string);
-        if ( local_board.view.dark_mode){
-            ctx.fillStyle = "black";
-        } else {
-            ctx.fillStyle = "white";
-        }
-        const pos = vertex.canvas_pos
-        ctx.fillText(vertex.index_string, pos.x - measure.width / 2, pos.y + 5);
-    }
-
-    // DRAW PARAMETER VALUES
-    for( const pv of vertex.parameter_values.values()){
-        ctx.font = "17px Arial";
-        const measure = ctx.measureText(pv.value);
-        ctx.fillStyle = "white"
-        const pos = vertex.canvas_pos
-        ctx.fillText(pv.value, pos.x - measure.width / 2, pos.y + 25);
-    }
-}
 
 function draw_user_label(x:number, y:number, label:string, multicolor:Multicolor, timer_refresh:number, ctx: CanvasRenderingContext2D){
     
@@ -321,70 +277,6 @@ function draw_following(ctx: CanvasRenderingContext2D){
 }
 
 
-// DRAW VERTICES
-function draw_vertices(ctx: CanvasRenderingContext2D, g: ClientGraph) {
-    for (const index of g.vertices.keys()) {
-        draw_vertex(index, g, ctx);
-    }
-}
-
-// DRAW LINKS
-function draw_links(ctx: CanvasRenderingContext2D, g: ClientGraph) {
-    for (let link of g.links.values()) {
-        let u = g.vertices.get(link.start_vertex);
-        let v = g.vertices.get(link.end_vertex);
-
-        const posu = u.canvas_pos; 
-        const posv = v.canvas_pos; 
-        const poscp = link.cp_canvas_pos;
-
-        if (link.is_selected) {
-            ctx.strokeStyle = SELECTION_COLOR; 
-            ctx.beginPath();
-            ctx.moveTo(posu.x, posu.y);
-            ctx.lineWidth = 7;
-            // TODO: check if bended before using quadraticCurve
-            if ( typeof poscp == "string"){
-                ctx.lineTo(posv.x, posv.y);
-            }else {
-                ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
-                //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
-            }
-            ctx.stroke();
-       }
-
-        ctx.beginPath();
-        ctx.moveTo(posu.x, posu.y);
-        ctx.strokeStyle = real_color(link.color, local_board.view.dark_mode);
-        ctx.lineWidth = 3;
-        // TODO: check if bended before using quadraticCurve
-        if ( typeof poscp == "string"){
-            ctx.lineTo(posv.x, posv.y);
-        }else {
-            ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
-            //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
-        }
-        ctx.stroke();
-
-        
-       if (typeof poscp != "string"){
-            if ( interactor_loaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
-                draw_circle(poscp, "grey", 4, 1, ctx);
-            }
-        }
-        if (link.orientation == ORIENTATION.DIRECTED) {
-            let cp = posu.middle(posv);
-            if (typeof poscp != "string"){
-                cp = poscp
-            }
-            draw_head(ctx, cp, posv);
-        }
-       
-
-
-        // draw weight is automatic as it is a div
-    }
-}
 
 
 
@@ -439,7 +331,7 @@ function draw_stroke(ctx: CanvasRenderingContext2D, s:ClientStroke){
 }
 
 
-function draw_strokes(ctx: CanvasRenderingContext2D, g:ClientGraph){
+function draw_strokes(ctx: CanvasRenderingContext2D){
     local_board.strokes.forEach(s => {
         draw_stroke(ctx, s);
     });
@@ -509,7 +401,7 @@ function draw_area(ctx: CanvasRenderingContext2D, a:ClientArea){
 }
 
 
-function draw_areas(ctx:CanvasRenderingContext2D, g:ClientGraph)
+function draw_areas(ctx:CanvasRenderingContext2D)
 {
     local_board.areas.forEach(a => {
         draw_area(ctx, a);
@@ -525,8 +417,7 @@ function draw_interactor(ctx: CanvasRenderingContext2D)
 
 function draw_graph_generated(ctx: CanvasRenderingContext2D){
     if ( graph_clipboard != null){
-        draw_vertices(ctx, graph_clipboard);
-        draw_links(ctx, graph_clipboard);
+        graph_clipboard.draw(ctx);
     }
 }
 
@@ -535,17 +426,14 @@ export function draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g
     
     local_board.draw(ctx);
 
-    draw_areas(ctx, g);
+    draw_areas(ctx);
     draw_alignements(ctx);
-    draw_strokes(ctx, g);
-    draw_links(ctx, g);
-    draw_vertices(ctx, g);
+    draw_strokes(ctx);
+    g.draw(ctx);
     draw_users(canvas, ctx);
     draw_rectangular_selection(ctx);
     draw_interactor(ctx);
     draw_graph_generated(ctx);
     // draw_following(ctx);
-
-    
 }
 

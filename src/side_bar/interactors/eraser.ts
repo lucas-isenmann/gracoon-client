@@ -1,7 +1,7 @@
 import { BoardElementType } from "../../board/board";
 import { ClientGraph } from "../../board/graph";
 import { is_click_over } from "../../board/resizable";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { VERTEX_RADIUS } from "../../draw";
 import { draw_circle } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";

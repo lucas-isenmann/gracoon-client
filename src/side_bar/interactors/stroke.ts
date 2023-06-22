@@ -2,7 +2,7 @@
 
 import { ClientGraph } from "../../board/graph";
 import { ClientStroke } from "../../board/stroke";
-import { CanvasCoord } from "../../board/vertex";
+import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
