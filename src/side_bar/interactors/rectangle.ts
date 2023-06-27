@@ -13,7 +13,7 @@ import { color_selected } from "./color";
 export const rectangle_interactorV2 = new InteractorV2("rectangle", "Draw rectangle", "", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
 
 let first_corner : Coord;
-let opposite_corner = new CanvasCoord(0,0);
+let opposite_corner: CanvasCoord;
 
 let index_rectangle : number | string = "";
 

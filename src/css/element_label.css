@@ -1,0 +1,10 @@
+.element-label {
+    position: fixed;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.element-label:hover {
+    /* border: 1px solid white; */
+}

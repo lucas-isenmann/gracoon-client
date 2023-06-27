@@ -1,34 +1,32 @@
 import { Coord, Link, ORIENTATION, Vect } from "gramoloss";
-import katex from "katex";
-import { DOWN_TYPE } from "../interactors/interactor";
-import { interactor_loaded } from "../interactors/interactor_manager";
-import { display_weight_input, text_interactorV2, validate_weight } from "../side_bar/interactors/text";
 import { local_board } from "../setup";
 import { BoardElementType } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { ClientVertex } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
+import { initWeightDiv } from "./weightable";
 
 
 
 export class ClientLink extends Link<ClientLink> {
     cp_canvas_pos: CanvasCoord | string;
     is_selected: boolean;
-    weight_position: Coord = new Coord(0,0);
-    weight_div: HTMLDivElement = null; // set to null until a non empty weight is used
+    weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
+    startVertex: ClientVertex;
+    endVertex: ClientVertex;
 
-
-    constructor(i: number, j: number, cp: Coord | string, orientation: ORIENTATION, color: string, weight: string, view: View) {
+    constructor(i: number, j: number, startVertex: ClientVertex, endVertex: ClientVertex, cp: Coord | string, orientation: ORIENTATION, color: string, weight: string, view: View) {
         super(i,j,cp,orientation,color,weight);
+        this.startVertex = startVertex;
+        this.endVertex = endVertex;
         if (typeof cp == "string"){
             this.cp_canvas_pos = "";
         } else {
             this.cp_canvas_pos = view.create_canvas_coord(cp);
         }
         this.is_selected = false;
-        this.weight_div = null;
-        this.weight_position = new Coord(0,0);
+        this.weightDiv = undefined;
     }
 
     set_cp(new_cp: Coord, view: View){
@@ -46,23 +44,42 @@ export class ClientLink extends Link<ClientLink> {
         if ( typeof this.cp != "string"){
             this.cp_canvas_pos = view.create_canvas_coord(this.cp);
         }
-
+        this.setAutoWeightDivPos();
     }
 
+    /**
+     * Sets the div pos according to the element.
+     */
+    setAutoWeightDivPos(){
+        if ( typeof this.weightDiv !== "undefined" ){
+            const posu = this.startVertex.canvas_pos; 
+            const posv = this.endVertex.canvas_pos; 
+            let middle = posu.middle(posv);
+            if (typeof this.cp_canvas_pos != "string"){
+                middle = this.cp_canvas_pos;
+            }
+            let weightPosition = middle.add(posu.sub(posv).normalize().rotate_quarter().scale(14));
 
-    /*
-    transform_control_point(moved_vertex: ClientVertex, fixed_vertex: ClientVertex, view: View) {
-        const w = fixed_vertex.canvas_pos;
-        const u = moved_vertex.old_canvas_pos.sub2(w);
-        const nv = moved_vertex.canvas_pos.sub2(w);
-        const theta = nv.getTheta(u)
-        const rho = u.getRho(nv)
-        const old_cp = this.cp.old_canvas_pos;
-        this.cp.canvas_pos.x = w.x + rho * (Math.cos(theta) * (old_cp.x - w.x) - Math.sin(theta) * (old_cp.y - w.y))
-        this.cp.canvas_pos.y = w.y + rho * (Math.sin(theta) * (old_cp.x - w.x) + Math.cos(theta) * (old_cp.y - w.y))
-        this.cp.update_from_canvas_pos(view);
+            this.weightDiv.style.top = String(weightPosition.y - this.weightDiv.clientHeight/2) + "px";
+            this.weightDiv.style.left = String(weightPosition.x- this.weightDiv.clientWidth/2) + "px";
+        }
     }
-    */
+
+    /**
+     * 
+     */
+    afterSetWeight(){
+        console.log("afterSetWeight");
+        if (typeof this.weightDiv === "undefined"){
+            initWeightDiv(this, BoardElementType.Link);
+        } else {
+            this.weightDiv.innerHTML = this.weight;
+            // this.weightDiv.innerHTML = katex.renderToString(this.weight);
+        }
+        this.setAutoWeightDivPos();
+    }
+
+  
 
 
     translate_cp_by_canvas_vect(shift: CanvasVect, view: View){
@@ -86,49 +103,57 @@ export class ClientLink extends Link<ClientLink> {
         
     }
 
-    init_weight_div(link_index: number){
-        this.weight_div = document.createElement("div");
-        this.weight_div.classList.add("weight_link");
-        document.body.appendChild(this.weight_div);
+    // init_weight_div(link_index: number){
+    //     this.weight_div = document.createElement("div");
+    //     this.weight_div.classList.add("weight_link");
+    //     document.body.appendChild(this.weight_div);
 
-        const link = this;
-        this.weight_div.addEventListener("wheel", function (e) {
-            const weight_value = parseInt(link.weight);
-            if ( isNaN(weight_value) == false){
-                if (e.deltaY < 0) {
-                    local_board.emit_update_element( BoardElementType.Link, link_index, "weight", String(weight_value+1));
-                }else {
-                    local_board.emit_update_element(  BoardElementType.Link, link_index, "weight", String(weight_value-1));
-                }
-            }
-        })
+    //     const link = this;
+    //     this.weight_div.addEventListener("wheel", function (e) {
+    //         const weight_value = parseInt(link.weight);
+    //         if ( isNaN(weight_value) == false){
+    //             if (e.deltaY < 0) {
+    //                 local_board.emit_update_element( BoardElementType.Link, link_index, "weight", String(weight_value+1));
+    //             }else {
+    //                 local_board.emit_update_element(  BoardElementType.Link, link_index, "weight", String(weight_value-1));
+    //             }
+    //         }
+    //     })
 
-        this.weight_div.onclick = (e) => {
-            if( interactor_loaded.id == text_interactorV2.id){
-                validate_weight();
-                display_weight_input(link_index, new CanvasCoord(this.weight_position.x, this.weight_position.y),DOWN_TYPE.LINK);
-            }
-        }
-    }
+    //     this.weight_div.onclick = (e) => {
+    //         if( interactor_loaded.id == text_interactorV2.id){
+    //             validate_weight();
+    //             display_weight_input(link_index, new CanvasCoord(this.weight_position.x, this.weight_position.y),DOWN_TYPE.LINK);
+    //         }
+    //     }
+    // }
 
-    update_weight(value: string, link_index: number){
-        this.weight = value;
-        if ( this.weight_div == null){
-            if ( value != ""){
-                this.init_weight_div(link_index);
-                this.weight_div.innerHTML = katex.renderToString(value);
-            }
-        }else {
-            this.weight_div.innerHTML = katex.renderToString(value);
-        }
+    // update_weight(value: string, link_index: number){
+    //     this.weight = value;
+    //     if ( this.weight_div == null){
+    //         if ( value != ""){
+    //             this.init_weight_div(link_index);
+    //             this.weight_div.innerHTML = katex.renderToString(value);
+    //         }
+    //     }else {
+    //         this.weight_div.innerHTML = katex.renderToString(value);
+    //     }
+    // }
+
+    /**
+     * Sets the weight of the link, then updates the WeightDiv.
+     */
+    setWeight(new_weight: string) {
+        this.weight = new_weight;
+        this.afterSetWeight();
     }
 
     clone(): ClientLink {
         if (typeof this.cp === "string"){
-            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
+            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
             return newLink; // TODO I think there are things to clone with the div
         } else {
-            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
+            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
             return newLink; // TODO I think there are things to clone with the div
         }
     }

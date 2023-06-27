@@ -1,15 +1,16 @@
-import { bezierValue, Coord, Vect, Vertex } from "gramoloss";
+import { bezierValue, Board, Coord, Vect, Vertex } from "gramoloss";
 import katex from "katex";
 import { COLOR_INNER_VERTEX_DEFAULT, VERTEX_RADIUS } from "../draw";
 import { draw_circle, real_color } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
-import { interactor_loaded } from "../interactors/interactor_manager";
+import { interactor_loaded, key_states } from "../interactors/interactor_manager";
 import { local_board } from "../setup";
-import { display_weight_input, text_interactorV2, validate_weight } from "../side_bar/interactors/text";
 import { solutionQuadratic } from "../utils";
 import { INDEX_TYPE, View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
+import { BoardElementType } from "./board";
+import { initWeightDiv } from "./weightable";
 
 export class ParameterValue {
     value: string;
@@ -30,41 +31,86 @@ export class ClientVertex extends Vertex<ClientVertex> {
     is_selected: boolean;
     index_string: string;
     parameter_values: Map<string,ParameterValue>;
-    weight_div: HTMLDivElement = null; // set to null until a non empty weight is used
+    weightDiv: HTMLDivElement | undefined; // set to undefined until a non empty weight is used
 
     constructor(x:number, y:number, weight: string, view: View) {
-        super(x,y,weight);
+        super(x,y,weight,"black");
         this.canvas_pos = view.create_canvas_coord(this.pos );
         this.is_selected = false;
         this.index_string = "";
         this.color = COLOR_INNER_VERTEX_DEFAULT;
         this.parameter_values = new Map();
-
-        if ( weight != "" ){
-            this.weight_div = document.createElement("div");
-            this.weight_div.classList.add("weight_link");
-            document.body.appendChild(this.weight_div);
-            this.weight_div.innerHTML = katex.renderToString(weight);
-            this.auto_weight_div_pos();
-        }
+        this.weightDiv = undefined;
     }
 
-    auto_weight_div_pos(){
-        if ( this.weight != ""){
-            this.weight_div.style.top = String(this.canvas_pos.y + 20 - this.weight_div.clientHeight/2) + "px";
-            this.weight_div.style.left = String(this.canvas_pos.x- this.weight_div.clientWidth/2) + "px";
+    /**
+     * Init the weightDiv
+     */
+    // initWeightDiv(){
+    //     if (typeof this.index !== "undefined"){
+    //         this.weightDiv = document.createElement("div");
+    //         this.weightDiv.contentEditable = "true";    
+    //         this.weightDiv.id = "vertex_weight_" + this.index;
+    //         this.weightDiv.classList.add("element-label", "content_editable");
+    //         document.body.appendChild(this.weightDiv);
+    //         this.weightDiv.innerHTML = this.weight;
+    //         // this.weightDiv.innerHTML = katex.renderToString(this.weight);
+    //         this.setAutoWeightDivPos();
+
+    //         this.weightDiv.onkeyup = (e) => {
+    //             // saveSelection();
+    //             this.weight = this.weightDiv.textContent;
+    //             local_board.emit_update_element(BoardElementType.Vertex, this.index, "weight", this.weight);
+    //             if (e.key == "Enter" && key_states.get("Control")) {
+    //                 this.weightDiv.blur();
+    //                 this.setAutoWeightDivPos();
+    //             }
+    //         }
+
+    //         // Prevent other interactors to click on this div (and launch the editor of the weight).
+    //         this.weightDiv.onmousedown = (e: MouseEvent) => {
+    //             if (interactor_loaded.id != text_interactorV2.id){
+    //                 e.preventDefault();
+    //             }
+    //         }
+
+    //         const element = this;
+    //         this.weightDiv.addEventListener("wheel", function (e) {
+    //             const weightNumberValue = parseInt(element.weight);
+    //             if ( isNaN(weightNumberValue) == false){
+    //                 if (e.deltaY < 0) {
+    //                     local_board.emit_update_element( BoardElementType.Vertex, element.index, "weight", String(weightNumberValue+1));
+    //                 }else {
+    //                     local_board.emit_update_element(  BoardElementType.Vertex, element.index, "weight", String(weightNumberValue-1));
+    //                 }
+    //             }
+    //         })
+
+    //     } else {
+    //         console.log("Error: can't init weightDiv because index undefined");
+    //     }
+    // }
+
+    /**
+     * 
+     */
+    afterSetWeight(){
+        if (typeof this.weightDiv === "undefined"){
+            initWeightDiv(this, BoardElementType.Vertex);
+        } else {
+            this.weightDiv.innerHTML = this.weight;
+            // this.weightDiv.innerHTML = katex.renderToString(this.weight);
         }
+        this.setAutoWeightDivPos();
     }
 
-    // TODO use this method when creating a vertex in graph
-    // TODO same with wheel
-    init_weight_interactors(this_index: number) {
-        // TODO check if null
-        this.weight_div.onclick = (e) => {
-            if( interactor_loaded.id == text_interactorV2.id){
-                validate_weight();
-                display_weight_input(this_index, new CanvasCoord(this.canvas_pos.x , this.canvas_pos.y+20),DOWN_TYPE.VERTEX);
-            }
+    /**
+     * Set the div pos according to the vertex canvas pos.
+     */
+    setAutoWeightDivPos(){
+        if ( typeof this.weightDiv !== "undefined" ){
+            this.weightDiv.style.top = String(this.canvas_pos.y + 20 - this.weightDiv.clientHeight/2) + "px";
+            this.weightDiv.style.left = String(this.canvas_pos.x- this.weightDiv.clientWidth/2) + "px";
         }
     }
 
@@ -74,7 +120,7 @@ export class ClientVertex extends Vertex<ClientVertex> {
 
     update_after_view_modification(view: View){
         this.canvas_pos = view.create_canvas_coord(this.pos);
-        this.auto_weight_div_pos();
+        this.setAutoWeightDivPos();
     }
 
 
@@ -86,7 +132,7 @@ export class ClientVertex extends Vertex<ClientVertex> {
         this.canvas_pos.translate_by_canvas_vect(shift);
         this.pos.x += shift.x/view.zoom;
         this.pos.y += shift.y/view.zoom;
-        this.auto_weight_div_pos();
+        this.setAutoWeightDivPos();
     }
 
     translate_by_server_vect(shift: Vect, view: View){
@@ -94,7 +140,7 @@ export class ClientVertex extends Vertex<ClientVertex> {
         this.canvas_pos.translate_by_canvas_vect(canvas_shift);
         this.pos.x += shift.x;
         this.pos.y += shift.y;
-        this.auto_weight_div_pos();
+        this.setAutoWeightDivPos();
     }
 
     is_in_rect(c1: CanvasCoord, c2: CanvasCoord) {
@@ -132,7 +178,7 @@ export class ClientVertex extends Vertex<ClientVertex> {
         this.pos.x = nx;
         this.pos.y = ny;
         this.canvas_pos = local_board.view.create_canvas_coord(this.pos );
-        this.auto_weight_div_pos();
+        this.setAutoWeightDivPos();
     }
 
     clone(): ClientVertex {
@@ -147,7 +193,9 @@ export class ClientVertex extends Vertex<ClientVertex> {
     }
 
 
-    /// Draw the vertex on the context.
+    /**
+     *  Draw the vertex on the context.
+     */
     draw(ctx: CanvasRenderingContext2D) {
         let vertex_radius = VERTEX_RADIUS;
         if (local_board.view.index_type != INDEX_TYPE.NONE) {

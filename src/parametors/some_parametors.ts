@@ -220,7 +220,11 @@ param_diameter.compute = ((g: ClientGraph) => {
 export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "delaunay", "delaunay", "Resets the edges of the graph", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
 paramDelaunayConstructor.compute = ((g: ClientGraph) => {
-    g.resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+    g.resetDelaunayGraph((i,j) => {
+        const vi = g.vertices.get(i);
+        const vj = g.vertices.get(j);
+        return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+    });
     return String("/");
 });
 
@@ -259,11 +263,15 @@ paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
             for( let j = 0 ; j < graphSize ; j ++){
                 const pos = c1.add(new Coord(Math.random()*w,Math.random()*w));
                 const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.view);
-                g.add_vertex(newVertex);
+                g.addVertex(newVertex);
             }
             local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.view));
             const subgraph = g.getSubgraphFromRectangle(c1,c2);
-            subgraph.resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+            subgraph.resetDelaunayGraph((i,j) => {
+                const vi = subgraph[i].vertices.get(i);
+                const vj = subgraph[j].vertices.get(j);
+                return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+            });
             const stretch = subgraph.stretch();
             if (maxStretch == undefined){
                 maxStretch = stretch;
@@ -271,7 +279,7 @@ paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
                 maxStretch = stretch;
             }
             for (const link of subgraph.links.values()){
-                g.add_link(link);
+                g.addLink(link);
             }
         }
     } else {
@@ -321,7 +329,11 @@ paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
                             v.setPos(nx,ny);
                         }
                     }
-                    newPop[i].resetDelaunayGraph((i,j) => {return new ClientLink(i,j,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)});
+                    newPop[i].resetDelaunayGraph((i,j) => {
+                        const vi = newPop[i].vertices.get(i);
+                        const vj = newPop[j].vertices.get(j);
+                        return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+                    });
 
                     const stretch = newPop[i].stretch();
                     sumStretch += stretch;
@@ -450,7 +462,7 @@ param_wdin2.compute = ((g: ClientGraph) => {
             const debug = new Array();
             for (const [link_index, link] of g.links.entries()) {
                 debug.push(link.weight);
-                link.update_weight(link.weight, link_index);
+                link.setWeight(link.weight);
             }
             console.log("solution: ", debug);
             console.timeEnd("wdin2");

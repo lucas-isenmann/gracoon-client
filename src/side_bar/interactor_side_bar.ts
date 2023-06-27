@@ -31,6 +31,9 @@ export class InteractorV2 extends ItemSideBar {
             console.log(`add shortcut ${shortcut}`);
             const interactor = this;
             window.addEventListener('keydown', function (e) {
+                if ( document.activeElement.classList.contains("content_editable") ){
+                    return;
+                }
                 if (shortcut.toLowerCase() == e.key.toLowerCase()){
                     interactor.common_trigger(undefined);
                 }

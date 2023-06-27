@@ -30,7 +30,7 @@ export class ClientTextZone extends TextZone {
 
             const content = document.createElement("div");
             content.id = "text_zone_content_" + index;
-            content.classList.add("text_zone_content");
+            content.classList.add("text_zone_content", "content_editable");
             content.innerHTML = text;
             content.contentEditable = "true";
             this.div.appendChild(content);

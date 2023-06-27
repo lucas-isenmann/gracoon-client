@@ -24,7 +24,7 @@ import { GraphGenerator } from "./generator";
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
         const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.add_vertex(v);
+        graph.addVertex(v);
     }
     return graph;
 }
@@ -45,10 +45,16 @@ import { GraphGenerator } from "./generator";
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
         const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.add_vertex(v);
+        graph.addVertex(v);
         for ( let j = 0 ; j < i ; j ++ ){
-            const link = new ClientLink(j,i, "", ORIENTATION.UNDIRECTED, "black", "", view);
-            graph.add_link(link);
+            const startVertex = graph.vertices.get(j);
+            const endVertex = graph.vertices.get(i);
+            if (typeof startVertex !== "undefined"){
+                if (typeof endVertex !== "undefined"){
+                    const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
+                    graph.addLink(link);
+                }
+            }
         }
     }
     return graph;
@@ -71,14 +77,26 @@ import { GraphGenerator } from "./generator";
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
         const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.add_vertex(v);
+        graph.addVertex(v);
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < 0.5 ){
-                const link = new ClientLink(j,i, "", ORIENTATION.DIRECTED, "black", "", view);
-                graph.add_link(link);
+                const startVertex = graph.vertices.get(j);
+                const endVertex = graph.vertices.get(i);
+                if (typeof startVertex !== "undefined"){
+                    if (typeof endVertex !== "undefined"){
+                        const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.DIRECTED, "black", "", view);
+                        graph.addLink(link);
+                    }
+                }
             }else {
-                const link = new ClientLink(i,j, "", ORIENTATION.DIRECTED, "black", "", view);
-                graph.add_link(link);
+                const endVertex = graph.vertices.get(j);
+                const startVertex = graph.vertices.get(i);
+                if (typeof startVertex !== "undefined"){
+                    if (typeof endVertex !== "undefined"){
+                        const link =  new ClientLink(i,j, startVertex, endVertex,  "", ORIENTATION.DIRECTED, "black", "", view);
+                        graph.addLink(link);
+                    }
+                }
             }
         }
     }
@@ -102,11 +120,17 @@ import { GraphGenerator } from "./generator";
     const r = 50;
     for ( let i = 0 ; i < n ; i ++){
         const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.add_vertex(v);
+        graph.addVertex(v);
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < p){
-                const link = new ClientLink(j,i, "", ORIENTATION.UNDIRECTED, "black", "", view);
-                graph.add_link(link);
+                const startVertex = graph.vertices.get(j);
+                const endVertex = graph.vertices.get(i);
+                if (typeof startVertex !== "undefined"){
+                    if (typeof endVertex !== "undefined"){
+                        const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
+                        graph.addLink(link);
+                    }
+                }
             }
             
         }
@@ -133,12 +157,19 @@ random_star.generate = (pos: CanvasCoord, view : View) => {
 
     if(n>0){
         const vcenter = new ClientVertex(cx, cy, "", view);
-        graph.add_vertex(vcenter);
+        graph.addVertex(vcenter);
         for ( let i = 0 ; i < n ; i ++){
             const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /(n-1)), cy + r*Math.sin( (2*Math.PI*i) /(n-1)), "", view);
-            graph.add_vertex(v);
-            const link = new ClientLink(0,i, "", ORIENTATION.UNDIRECTED, "black", "", view);
-            graph.add_link(link);
+            graph.addVertex(v);
+
+            const startVertex = graph.vertices.get(0);
+            const endVertex = graph.vertices.get(i);
+            if (typeof startVertex !== "undefined"){
+                if (typeof endVertex !== "undefined"){
+                    const link =  new ClientLink(0,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
+                    graph.addLink(link);
+                }
+            }
         }
     }
 

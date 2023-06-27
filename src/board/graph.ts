@@ -122,7 +122,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
             newGraph.set_vertex(index, vertex);
         }
         for (const [index, link] of g.links){
-            newGraph.set_link(index, link);
+            newGraph.setLink(index, link);
         }
         return newGraph;
     }
@@ -133,7 +133,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
             newGraph.set_vertex(index, vertex.clone());
         }
         for (const [index, link] of this.links){
-            newGraph.set_link(index, link.clone());
+            newGraph.setLink(index, link.clone());
         }
         return newGraph;
     }
@@ -360,7 +360,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
             const u = this.vertices.get(e.start_vertex);
             const v = this.vertices.get(e.end_vertex);
             if(u.is_selected && v.is_selected){
-                const new_link = new ClientLink(e.start_vertex, e.end_vertex, e.cp, e.orientation, e.color, e.weight, view)
+                const new_link = new ClientLink(e.start_vertex, e.end_vertex,u, v, e.cp, e.orientation, e.color, e.weight, view)
                 subgraph.links.set(index, new_link);
             }
         }
@@ -369,42 +369,12 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
     
 
-    automatic_weight_position(link_index: number){
-        const link = this.links.get(link_index);
-        if ( link.weight_div != null){
-            const u = this.vertices.get(link.start_vertex);
-            const v = this.vertices.get(link.end_vertex);
-    
-            const posu = u.canvas_pos; 
-            const posv = v.canvas_pos; 
-            let middle = posu.middle(posv);
-            if (typeof link.cp_canvas_pos != "string"){
-                middle = link.cp_canvas_pos;
-            }
-            link.weight_position = middle.add(posu.sub(posv).normalize().rotate_quarter().scale(14));
-            link.weight_div.style.top = String(link.weight_position.y - link.weight_div.clientHeight/2) + "px";
-            link.weight_div.style.left = String(link.weight_position.x- link.weight_div.clientWidth/2) + "px";
-        }
-    }
 
-    automatic_link_weight_position_from_vertex(vertex_index: number){
-        for( const [link_index, link] of this.links.entries()){
-            if( link.start_vertex == vertex_index || link.end_vertex == vertex_index){
-                this.automatic_weight_position(link_index);
-            }
-        }
-    }
-
-    set_automatic_weight_positions(){
-        for ( const link_index of this.links.keys()){
-            this.automatic_weight_position(link_index);
-        }
-    } 
 
     clear_vertices(){
         for( const vertex of this.vertices.values()){
-            if (vertex.weight_div != null){
-                vertex.weight_div.remove();
+            if (vertex.weightDiv != null){
+                vertex.weightDiv.remove();
             }
         }
         this.vertices.clear();
@@ -412,8 +382,8 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
     clear_links(){
         for( const link of this.links.values()){
-            if (link.weight_div != null){
-                link.weight_div.remove();
+            if (typeof link.weightDiv != "undefined"){
+                link.weightDiv.remove();
             }
         }
         this.links.clear();
@@ -421,12 +391,19 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
     add_default_client_vertex(x: number, y: number, view: View){
         const v = new ClientVertex(x,y,"", view);
-        this.add_vertex(v);
+        this.addVertex(v);
     }
 
     add_edge(index1: number, index2: number, view: View ){
-        const link = new ClientLink(index1, index2, "", ORIENTATION.UNDIRECTED, "black", "", view);
-        this.add_link(link);
+        const startVertex = this.vertices.get(index1);
+        const endVertex = this.vertices.get(index2);
+        if (typeof startVertex !== "undefined"){
+            if (typeof endVertex !== "undefined"){
+                const link = new ClientLink(index1, index2, startVertex, endVertex, "", ORIENTATION.UNDIRECTED, "black", "", view);
+                this.addLink(link);
+            }
+        }
+        
     }
 
     translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, view: View){

@@ -22,7 +22,7 @@ let side_number: AREA_SIDE;
 let corner_number: AREA_CORNER;
 let vertices_contained = new Set<number>();
 let previous_canvas_shift = new CanvasVect(0,0);
-let opposite_corner = new CanvasCoord(0,0);
+let opposite_corner: CanvasCoord;
 let opposite_coord = 0;
 
 

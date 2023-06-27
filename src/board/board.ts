@@ -245,9 +245,6 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
             if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.view)) {
                 return { type: DOWN_TYPE.LINK, index: index };
             }
-            if( interactable_element_type.has(DOWN_TYPE.LINK_WEIGHT) && pos.dist2(link.weight_position) <= 100){
-                return { type: DOWN_TYPE.LINK_WEIGHT, index: index};
-            }
         }
 
         if(interactable_element_type.has(DOWN_TYPE.RESIZE)){
@@ -303,6 +300,7 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
         }
         for (const link of this.graph.links.values()) {
             link.update_after_view_modification(view);
+            
         }
         // for (const area of this.areas.values()){
         //     area.update_canvas_pos(view);
@@ -310,7 +308,6 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
         for( const stroke of this.strokes.values()){
             stroke.update_canvas_pos(view);
         }
-        this.graph.set_automatic_weight_positions();
     }
 
     translate_area(shift: CanvasVect, area_index: number, vertices_contained: Set<number>){

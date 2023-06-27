@@ -1,4 +1,3 @@
-
 import { draw } from "./draw";
 import { self_user, update_self_user_div, update_users_canvas_pos, update_user_list_div, User, users } from "./user";
 import { ClientStroke } from "./board/stroke";
@@ -13,7 +12,6 @@ import {  Coord, ORIENTATION, Vect } from "gramoloss";
 import { ClientLink } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
 import { ClientBoard } from "./board/board";
-import { ClientGraph } from "./board/graph";
 
 import ENV from './.env.json';
 
@@ -30,7 +28,7 @@ export const socket = io(adress);
 
 
 export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, board: ClientBoard) {
-    const g = board.graph as ClientGraph;
+    const g = board.graph;
     
     // USERS
     socket.on('myId', handle_my_id);
@@ -143,11 +141,6 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
     // GRAPH 
     socket.on('graph', update_graph); // ALL
-    socket.on('update_vertex_position', update_vertex_position); // V MOVE
-    socket.on('update_vertex_positions', update_vertex_positions); // V MOVE
-    socket.on('update_control_point', handle_update_control_point); // CP MOVE
-    socket.on('update_control_points', handle_update_control_points); // CP MOVE
-    socket.on('update_control_points2', handle_update_control_points2);
     socket.on('areas', handle_areas); // AREA
     socket.on('strokes', handle_strokes); // STROKES
     socket.on("reset_board", handle_reset_board);
@@ -173,10 +166,18 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 const area = local_board.areas.get(index);
                 const vertices_contained = g.vertices_contained_by_area(area);
                 local_board.translate_area(cshift, index,vertices_contained);
-                g.set_automatic_weight_positions();
+                for (const link of g.links.values()){
+                    if (vertices_contained.has(link.start_vertex) || vertices_contained.has(link.end_vertex)){
+                        link.setAutoWeightDivPos();
+                    }
+                }
             } else if (kind == "Vertex"){
                 g.translate_vertex_by_canvas_vect(index, cshift, local_board.view);
-                g.automatic_link_weight_position_from_vertex(index);
+                for (const link of g.links.values()){
+                    if (link.start_vertex == index || link.end_vertex == index){
+                        link.setAutoWeightDivPos();
+                    }
+                }
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             } else if (kind == "ControlPoint"){
                 const link = g.links.get(index);
@@ -184,7 +185,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     link.cp.translate(shift);
                     link.cp_canvas_pos.translate_by_canvas_vect(cshift);
                 }
-                g.automatic_weight_position(index);
+                link.setAutoWeightDivPos();
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             }
         }
@@ -221,8 +222,12 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 const x = data.element.pos.x as number;
                 const y = data.element.pos.y as number;
                 const weight = data.element.weight as string;
-                const new_vertex = new ClientVertex(x, y, weight, local_board.view );
+                const new_vertex = new ClientVertex(x, y, weight, local_board.view);
+                new_vertex.index = data.index;
                 local_board.graph.vertices.set(data.index, new_vertex);
+                if (new_vertex.weight != ""){
+                    new_vertex.afterSetWeight();
+                }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (data.kind == "Link"){
                 const start_index = data.element.start_vertex as number;
@@ -234,8 +239,15 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 }
                 const color = data.element.color as string;
                 const weight = data.element.weight as string;
-                const new_link = new ClientLink(start_index, end_index, cp, orient, color, weight, local_board.view);
-                local_board.graph.links.set(data.index, new_link);
+
+                const startVertex = local_board.graph.vertices.get(start_index);
+                const endVertex = local_board.graph.vertices.get(end_index);
+
+                const new_link = new ClientLink(start_index, end_index, startVertex, endVertex, cp, orient, color, weight, local_board.view);
+                local_board.graph.setLink(data.index, new_link);
+                if (new_link.weight != ""){
+                    new_link.afterSetWeight();
+                }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
@@ -256,16 +268,16 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 local_board.areas.delete(element[1]);
             } else if (element[0] == "Vertex"){
                 const vertex = local_board.graph.vertices.get(element[1]);
-                if (vertex.weight_div != null){
-                    vertex.weight_div.remove();
+                if (typeof vertex.weightDiv != "undefined"){
+                    vertex.weightDiv.remove();
                 }
                 local_board.graph.delete_vertex(element[1]);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (element[0] == "Link"){
                 if ( local_board.graph.links.has(element[1])){
                     const link = local_board.graph.links.get(element[1]);
-                    if ( link.weight_div != null){
-                        link.weight_div.remove();
+                    if ( typeof link.weightDiv !== "undefined"){
+                        link.weightDiv.remove();
                     }
                     local_board.graph.links.delete(element[1]);
                 }
@@ -286,7 +298,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 text_zone.width = width;
                 text_zone.div.style.width = String(width) + "px";
             }
-            if (data.param == "text"){
+            else if (data.param == "text"){
                 if (document.activeElement.id != ("text_zone_content_" + data.index)){
                     console.log("update text zone : ", data.index);
                     const text = data.value as string;
@@ -298,6 +310,12 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             if(data.param == "color"){
                 const color = data.value as string;
                 vertex.color = color;
+            } else if (data.param == "weight"){
+                if (document.activeElement.id != ("vertex_weight_" + data.index)){
+                    const text = data.value as string;
+                    vertex.weight = text;
+                    vertex.afterSetWeight();
+                }
             }
         }else if (data.kind == "Link"){
             const link = local_board.graph.links.get(data.index);
@@ -306,8 +324,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 link.color = color;
             } else if (data.param == "weight"){
                 const weight = data.value as string;
-                link.update_weight(weight, data.index);
-                local_board.graph.automatic_weight_position(data.index);
+                link.setWeight(weight);
             } else if (data.param == "cp"){
                 if (typeof data.value == "string"){
                     link.cp = "";
@@ -316,7 +333,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     const new_cp = new Coord(data.value.x, data.value.y);
                     link.set_cp(new_cp, local_board.view);
                 }
-                local_board.graph.automatic_weight_position(data.index);
+                link.afterSetWeight();
             }
         }else if (data.kind == "Stroke"){
             const stroke = local_board.strokes.get(data.index);
@@ -416,44 +433,6 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 
 
-    function handle_update_control_points(data) {
-        for (const e of data) {
-            if (g.links.has(e.index)) {
-                const link = g.links.get(e.index);
-                link.cp = new Coord(e.cp.x, e.cp.y);
-                link.cp_canvas_pos = local_board.view.create_canvas_coord(link.cp);
-                g.automatic_weight_position(e.index);
-            }
-        }
-        update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
-    }
-
-    function handle_update_control_points2(cp_entries){
-        console.log("handle_update_control_points2: ", cp_entries);
-        for (const data of cp_entries) {
-            const link_index = data[0];
-            const cp = data[1];
-            if ( g.links.has(link_index)){
-                const link = g.links.get(link_index);
-               link.cp = new Coord(cp.x, cp.y);
-                link.cp_canvas_pos = local_board.view.create_canvas_coord(link.cp);
-                g.automatic_weight_position(link_index);
-            }
-        }
-        update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
-    }
-
-    function handle_update_control_point(index: number, c: Coord) {
-        const link = g.links.get(index);
-        link.cp = new Coord(c.x, c.y);
-        link.cp_canvas_pos = local_board.view.create_canvas_coord(link.cp);
-        g.automatic_weight_position(index);
-        update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]),false);
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
-    }
-
     function update_graph(vertices_entries, links_entries, sensibilities) {
         console.log("I get a new graph");
         console.time('update_graph')
@@ -465,7 +444,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         for (const data of vertices_entries) {
             const new_vertex = new ClientVertex(data[1].pos.x, data[1].pos.y, data[1].weight, local_board.view);
             new_vertex.color = data[1].color;
+            new_vertex.index = data[0];
             g.vertices.set(data[0], new_vertex);
+            if (new_vertex.weight != ""){
+                new_vertex.afterSetWeight();
+            }
         }
 
         g.clear_links();
@@ -480,10 +463,16 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     break;
             }
             const cp = typeof data[1].cp == "string" ? "" : new Coord(data[1].cp.x, data[1].cp.y);
-            const new_link = new ClientLink(data[1].start_vertex, data[1].end_vertex, cp, orient, data[1].color, data[1].weight, local_board.view);
-            new_link.update_weight(data[1].weight, data[0]);
-            g.links.set(data[0], new_link);
-            g.automatic_weight_position(data[0]);            
+            const startVertex = g.vertices.get(data[1].start_vertex);
+            const endVertex = g.vertices.get(data[1].end_vertex);
+            if (typeof startVertex !== "undefined"){
+                if (typeof endVertex !== "undefined"){
+                    const new_link = new ClientLink(data[1].start_vertex, data[1].end_vertex, startVertex, endVertex, cp, orient, data[1].color, data[1].weight, local_board.view);
+                    g.setLink(data[0], new_link);
+                    new_link.setWeight(data[1].weight);
+                }
+            }
+            
         }
 
         /*
@@ -504,41 +493,5 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         console.timeEnd('update_graph')
         requestAnimationFrame(function () { draw(canvas, ctx, g) });
     }
-
-
-
-
-
-    function update_vertex_position(index: number, x: number, y: number) {
-        //console.log("Receive: update_vertex_position");
-        const v = g.vertices.get(index);
-        v.pos.x = x;
-        v.pos.y = y;
-        // v.pos.update_canvas_pos_without_saving(local_board.view);
-        v.canvas_pos = local_board.view.create_canvas_coord(v.pos);
-        g.automatic_link_weight_position_from_vertex(index);
-        update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
-    }
-
-
-
-    function update_vertex_positions(data) {
-        console.log("Receive: update_vertex_positions");
-        for (const e of data) {
-            const v = g.vertices.get(e.index);
-            v.pos.x = e.x;
-            v.pos.y = e.y;
-            // v.pos.update_canvas_pos_without_saving(local_board.view);
-            v.canvas_pos = local_board.view.create_canvas_coord(v.pos);
-            g.automatic_link_weight_position_from_vertex(e.index);
-        }
-        update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
-    }
-
-
-
-
 
 }
