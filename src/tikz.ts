@@ -34,10 +34,10 @@ function TikZ_create_nodes(g: ClientGraph) {
 
 function TikZ_create_links(g: ClientGraph) {
     let edgesString = "\t\t%Drawing the edges/arcs\n";
-    for (let e of g.links.values()) {
-        const start = g.vertices.get(e.start_vertex);
-        const end = g.vertices.get(e.end_vertex);
-        edgesString += ("\t\t" + e.tikzify_link(start, e.start_vertex, end, e.end_vertex) + "\n");
+    for (const link of g.links.values()) {
+        const start = link.startVertex;
+        const end = link.endVertex;
+        edgesString += ("\t\t" + link.tikzify_link(start, start.index, end, end.index) + "\n");
     }
     return edgesString;
 }

@@ -273,16 +273,16 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
     
                         if(g.vertices.size > 1){
                             const v : ClientVertex = g.vertices.values().next().value;
-                            let xMin = v.canvas_pos.x;
-                            let yMin = v.canvas_pos.y;
-                            let xMax = v.canvas_pos.x;
-                            let yMax = v.canvas_pos.y;
+                            let xMin = v.data.canvas_pos.x;
+                            let yMin = v.data.canvas_pos.y;
+                            let xMax = v.data.canvas_pos.x;
+                            let yMax = v.data.canvas_pos.y;
     
                             for(const u of g.vertices.values()){
-                                xMin = Math.min(xMin, u.canvas_pos.x);
-                                yMin = Math.min(yMin, u.canvas_pos.y);
-                                xMax = Math.max(xMax, u.canvas_pos.x);
-                                yMax = Math.max(yMax, u.canvas_pos.y);
+                                xMin = Math.min(xMin, u.data.canvas_pos.x);
+                                yMin = Math.min(yMin, u.data.canvas_pos.y);
+                                xMax = Math.max(xMax, u.data.canvas_pos.x);
+                                yMax = Math.max(yMax, u.data.canvas_pos.y);
                             }
     
                             top_left_corner = new CanvasCoord(xMin, yMin);

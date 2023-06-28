@@ -1,7 +1,6 @@
+import { CanvasCoord } from "./board/canvas_coord";
 import { ClientGraph } from "./board/graph";
-import { CanvasCoord } from "./board/vertex";
 import { local_board } from "./setup";
-import { socket } from "./socket";
 
 export let graph_clipboard: ClientGraph = null;
 export let mouse_position_at_generation: CanvasCoord = null;

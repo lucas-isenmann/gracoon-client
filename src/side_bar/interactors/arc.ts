@@ -7,8 +7,8 @@ import { last_down, last_down_index } from "../../interactors/interactor_manager
 import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
-import { ClientVertex } from "../../board/vertex";
-import { ClientLink } from "../../board/link";
+import { ClientVertex, ClientVertexData } from "../../board/vertex";
+import { ClientLink, LinkPreData } from "../../board/link";
 
 export var arc_interactorV2 = new InteractorV2("arc", "Arc creating", "a", ORIENTATION_INFO.RIGHT, "arc", "default", new Set([DOWN_TYPE.VERTEX]));
 
@@ -24,12 +24,12 @@ arc_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoord) => 
         local_board.view.link_creating_start = pos;
         local_board.view.link_creating_type = ORIENTATION.DIRECTED;
         const server_pos = local_board.view.create_server_coord(pos);
-        local_board.emit_add_element(new ClientVertex(server_pos.x, server_pos.y, "", local_board.view), (response) => { index_last_created_vertex = response } );
+        local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view), (response) => { index_last_created_vertex = response } );
     }
     if (last_down === DOWN_TYPE.VERTEX) {
         let vertex = g.vertices.get(last_down_index);
         local_board.view.is_link_creating = true;
-        local_board.view.link_creating_start = vertex.canvas_pos;
+        local_board.view.link_creating_start = vertex.data.canvas_pos;
     }
 })
 
@@ -43,7 +43,7 @@ arc_interactorV2.mouseup = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
     if (last_down == DOWN_TYPE.VERTEX) {
         let index = g.get_vertex_index_nearby(e);
         if (index !== null && last_down_index != index) { // there is a vertex nearby and it is not the previous one
-            local_board.emit_add_element(new ClientLink(last_down_index, index, "", ORIENTATION.DIRECTED, "black", "", local_board.view), (response: number) => {});
+            local_board.emit_add_element(new LinkPreData(last_down_index, index, ORIENTATION.DIRECTED), (response: number) => {});
         } else {
 
             if (last_down_index !== index) { // We check if we are not creating a vertex on another one
@@ -55,21 +55,21 @@ arc_interactorV2.mouseup = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
                 //     // we cant do socket.emit("add_edge", interactor_edge.last_down_index, response);
                 //     // because before the callback, interactor_edge.last_down_index will changed (and set to null)
                 // });
-                local_board.emit_add_element(new ClientVertex(server_pos.x, server_pos.y, "", local_board.view), (response) => { 
-                    local_board.emit_add_element( new ClientLink(save_last_down_index, response, "", ORIENTATION.DIRECTED, "black", "", local_board.view), () => {} )
+                local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view), (response) => { 
+                    local_board.emit_add_element( new LinkPreData(save_last_down_index, response,  ORIENTATION.DIRECTED), () => {} )
                 });
             }
         }
     } else if (last_down === DOWN_TYPE.EMPTY) {
         let index = g.get_vertex_index_nearby(g.align_position(e, new Set(), canvas, local_board.view));
         if (index !== null && index != index_last_created_vertex) {
-            local_board.emit_add_element( new ClientLink( index_last_created_vertex, index, "", ORIENTATION.DIRECTED, "black", "", local_board.view), (response: number) => {});
+            local_board.emit_add_element( new LinkPreData( index_last_created_vertex, index, ORIENTATION.DIRECTED), (response: number) => {});
         } else {
             if (index_last_created_vertex !== index) { // We check if we are not creating another vertex where we created the one with the mousedown 
                 const aligned_mouse_pos = g.align_position(e, new Set(), canvas, local_board.view);
                 const server_pos = local_board.view.create_server_coord(aligned_mouse_pos);
-                local_board.emit_add_element(new ClientVertex(server_pos.x, server_pos.y, "", local_board.view), (response) => { 
-                    local_board.emit_add_element( new ClientLink(index_last_created_vertex, response, "", ORIENTATION.DIRECTED, "black", "", local_board.view), () => {} )
+                local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view), (response) => { 
+                    local_board.emit_add_element( new LinkPreData(index_last_created_vertex, response,  ORIENTATION.DIRECTED), () => {} )
                 });
             }
         }

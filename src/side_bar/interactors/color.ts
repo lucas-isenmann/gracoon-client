@@ -142,14 +142,14 @@ color_interactorV2.onleave = () => {
 
 color_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
     if (last_down == DOWN_TYPE.VERTEX) {
-        if ( g.vertices.has(last_down_index) && g.vertices.get(last_down_index).color != color_selected){
+        if ( g.vertices.has(last_down_index) && g.vertices.get(last_down_index).data.color != color_selected){
             // const data_socket = new Array();
             // data_socket.push({ type: "vertex", index: last_down_index, color: color_selected });
             local_board.emit_update_element( BoardElementType.Vertex, last_down_index, "color", color_selected);
         }
     }
     else if (last_down == DOWN_TYPE.LINK){
-        if ( g.links.has(last_down_index) && g.links.get(last_down_index).color != color_selected){
+        if ( g.links.has(last_down_index) && g.links.get(last_down_index).data.color != color_selected){
             local_board.emit_update_element( BoardElementType.Link,last_down_index, "color", color_selected);
         }
     }
@@ -165,14 +165,14 @@ color_interactorV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) =>
     if (last_down != null) {
         const elt = local_board.get_element_nearby(e, color_interactorV2.interactable_element_type);
         if (elt.type == DOWN_TYPE.VERTEX) {
-            if ( g.vertices.has(elt.index) && g.vertices.get(elt.index).color != color_selected){
+            if ( g.vertices.has(elt.index) && g.vertices.get(elt.index).data.color != color_selected){
                 local_board.emit_update_element( BoardElementType.Vertex, elt.index, "color", color_selected);
 
             }
             return true;
         }
         else if (elt.type == DOWN_TYPE.LINK) {
-            if ( g.links.has(elt.index) && g.links.get(elt.index).color != color_selected){
+            if ( g.links.has(elt.index) && g.links.get(elt.index).data.color != color_selected){
                 local_board.emit_update_element( BoardElementType.Link, elt.index, "color", color_selected);
             }
             return true;

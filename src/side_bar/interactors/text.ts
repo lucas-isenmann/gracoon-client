@@ -24,9 +24,9 @@ text_interactorV2.mousedown = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => 
             link.afterSetWeight();
 
             // A timeout is needed I dont know why.
-            if (typeof link.weightDiv !== "undefined"){
+            if (typeof link.data.weightDiv !== "undefined"){
                 setTimeout(() => {
-                    link.weightDiv.focus();
+                    link.data.weightDiv.focus();
                 }, 50);
             }
         }
@@ -37,9 +37,9 @@ text_interactorV2.mousedown = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => 
             vertex.afterSetWeight();
 
             // A timeout is needed I dont know why.
-            if (typeof vertex.weightDiv !== "undefined"){
+            if (typeof vertex.data.weightDiv !== "undefined"){
                 setTimeout(() => {
-                    vertex.weightDiv.focus();
+                    vertex.data.weightDiv.focus();
                 }, 50);
             }
         }

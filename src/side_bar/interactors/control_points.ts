@@ -32,10 +32,10 @@ control_point_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: Canvas
     switch (last_down) {
         case DOWN_TYPE.LINK:{
             const link = g.links.get(last_down_index);
-            if (typeof link.cp == "string"){
-                const v1 = g.vertices.get(link.start_vertex);
-                const v2 = g.vertices.get(link.end_vertex);
-                const new_cp = v1.pos.middle(v2.pos);
+            if (typeof link.cp == "undefined"){
+                const v1 = link.startVertex;
+                const v2 = link.endVertex;
+                const new_cp = v1.data.pos.middle(v2.data.pos);
                 local_board.emit_update_element( BoardElementType.Link, last_down_index, "cp", new_cp);
             }
         }
@@ -53,11 +53,11 @@ control_point_interactorV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasC
             if ( g.links.has(last_down_index)){
                 const link = g.links.get(last_down_index);
                 if ( key_states.get("Control") ){
-                    const v1 = g.vertices.get(link.start_vertex);
-                    const v2 = g.vertices.get(link.end_vertex);
+                    const v1 = link.startVertex;
+                    const v2 = link.endVertex;
 
-                    const middle = v1.pos.middle(v2.pos);
-                    const vect = Vect.from_coords(v1.pos, v2.pos);
+                    const middle = v1.data.pos.middle(v2.data.pos);
+                    const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
                     const orthogonal = new Vect(-vect.y, vect.x);
                     const e_coord = local_board.view.create_server_coord(e);
                     const projection = e_coord.orthogonal_projection(middle, orthogonal);

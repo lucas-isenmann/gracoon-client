@@ -1,8 +1,8 @@
 import { INDEX_TYPE, View } from "./camera";
-import { ClientVertex } from "./vertex";
+import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
-import { ClientLink } from "./link";
-import { Coord, Graph, ORIENTATION, Vect } from "gramoloss";
+import { ClientLink, ClientLinkData } from "./link";
+import { BasicGraph, Coord, Graph, ORIENTATION, Vect, Option } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { draw_circle, draw_head, real_color } from "../draw_basics";
 import { local_board } from "../setup";
@@ -12,10 +12,46 @@ import { interactor_loaded } from "../interactors/interactor_manager";
 
 
 
-export class ClientGraph extends Graph<ClientVertex, ClientLink> {
- 
+export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
+    vertices: Map<number, ClientVertex>;
+    links: Map<number, ClientLink>;
+
     constructor() {
         super();
+    }
+
+
+    set_vertex(index: number, vertexData: ClientVertexData): ClientVertex {
+        const newVertex = new ClientVertex(index, vertexData);
+        this.vertices.set(index, newVertex);
+        return newVertex;
+    }
+
+    setLink(index: number, startIndex: number, endIndex: number, orientation: ORIENTATION, linkData: ClientLinkData): Option<ClientLink> {
+        const startVertex = this.vertices.get(startIndex);
+        const endVertex = this.vertices.get(endIndex);
+        if (typeof startVertex === "undefined" || typeof endVertex === "undefined"){
+            return undefined;
+        }
+        const newLink = new ClientLink(index, startVertex, endVertex, orientation, linkData);
+        this.links.set(index, newLink);
+        return newLink;
+    }
+
+
+    override delete_vertex(index: number){
+        const vertex = this.vertices.get(index);
+        if (typeof vertex.data.weightDiv != "undefined"){
+            vertex.data.weightDiv.remove();
+        }
+        for (const link of this.links.values()){
+            if (link.startVertex.index == vertex.index || link.endVertex.index == vertex.index){
+                if(typeof link.data.weightDiv != "undefined"){
+                    link.data.weightDiv.remove()
+                }
+            }
+        }
+        super.delete_vertex(index);
     }
 
     /**
@@ -40,15 +76,15 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
      */
     drawLinks(ctx: CanvasRenderingContext2D) {
         for (let link of this.links.values()) {
-            let u = this.vertices.get(link.start_vertex);
-            let v = this.vertices.get(link.end_vertex);
+            let u = link.startVertex
+            let v = link.endVertex;
 
-            const posu = u.canvas_pos; 
-            const posv = v.canvas_pos; 
-            const poscp = link.cp_canvas_pos;
-            const color = real_color(link.color, local_board.view.dark_mode);
+            const posu = u.data.canvas_pos; 
+            const posv = v.data.canvas_pos; 
+            const poscp = link.data.cp_canvas_pos;
+            const color = real_color(link.data.color, local_board.view.dark_mode);
 
-            if (link.is_selected) {
+            if (link.data.is_selected) {
                 ctx.strokeStyle = color;
 
                 ctx.beginPath();
@@ -116,39 +152,39 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
      * Converts the graph into a ClientGraph.
      * It does not clone the elements.
      */
-    static fromGraph(g: Graph<ClientVertex, ClientLink>): ClientGraph{
+    static fromGraph(g: BasicGraph<ClientVertexData, ClientLinkData>): ClientGraph{
         const newGraph = new ClientGraph();
         for( const [index, vertex] of g.vertices){
-            newGraph.set_vertex(index, vertex);
+            newGraph.set_vertex(index, vertex.data);
         }
         for (const [index, link] of g.links){
-            newGraph.setLink(index, link);
+            newGraph.setLink(index, link.startVertex.index, link.endVertex.index, link.orientation, link.data);
         }
         return newGraph;
     }
 
-    clone(): ClientGraph {
-        const newGraph = new ClientGraph();
-        for( const [index, vertex] of this.vertices){
-            newGraph.set_vertex(index, vertex.clone());
-        }
-        for (const [index, link] of this.links){
-            newGraph.setLink(index, link.clone());
-        }
-        return newGraph;
-    }
+    // clone(): ClientGraph {
+    //     const newGraph = new ClientGraph();
+    //     for( const [index, vertex] of this.vertices){
+    //         newGraph.set_vertex(index, vertex.clone());
+    //     }
+    //     for (const [index, link] of this.links){
+    //         newGraph.setLink(index, link.clone());
+    //     }
+    //     return newGraph;
+    // }
 
 
 
     deselect_all_vertices() {
         this.vertices.forEach(vertex => {
-            vertex.is_selected = false;
+            vertex.data.is_selected = false;
         });
     }
 
     deselect_all_links() {
         this.links.forEach(link => {
-            link.is_selected = false;
+            link.data.is_selected = false;
         });
     } 
     
@@ -172,7 +208,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
     select_vertices_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
         for (const vertex of this.vertices.values()) {
             if (vertex.is_in_rect(corner1, corner2)) {
-                vertex.is_selected = true;
+                vertex.data.is_selected = true;
             }
         }
     }
@@ -181,18 +217,18 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
         for (const index of this.links.keys()) {
             const link = this.links.get(index);
             if (link.is_in_rect(corner1, corner2)) {
-                link.is_selected = true;
+                link.data.is_selected = true;
             }
         }
     }
 
     is_click_over_link(link_index: number, e: CanvasCoord, view: View) {
         const link = this.links.get(link_index);
-        const v = this.vertices.get(link.start_vertex)
-        const w = this.vertices.get(link.end_vertex)
-        const linkcp_canvas = link.cp_canvas_pos;
-        const v_canvas_pos = v.canvas_pos;
-        const w_canvas_pos = w.canvas_pos
+        const v = link.startVertex;
+        const w = link.endVertex;
+        const linkcp_canvas = link.data.cp_canvas_pos;
+        const v_canvas_pos = v.data.canvas_pos;
+        const w_canvas_pos = w.data.canvas_pos
         if (typeof linkcp_canvas != "string"){
             return e.is_nearby_beziers_1cp(v_canvas_pos, linkcp_canvas, w_canvas_pos);
         }
@@ -207,11 +243,11 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
         const letters = "abcdefghijklmnopqrstuvwxyz";
         this.vertices.forEach((vertex, index) => {
             if (view.index_type == INDEX_TYPE.NONE) {
-                vertex.index_string = "";
+                vertex.data.index_string = "";
             } else if (view.index_type == INDEX_TYPE.NUMBER_STABLE) {
-                vertex.index_string = "v" + String(index)
+                vertex.data.index_string = "v" + String(index)
             } else if (view.index_type == INDEX_TYPE.ALPHA_STABLE) {
-                vertex.index_string = letters.charAt(index % letters.length);
+                vertex.data.index_string = letters.charAt(index % letters.length);
             }
             else if (view.index_type == INDEX_TYPE.NUMBER_UNSTABLE) {
                 let counter = 0;
@@ -220,7 +256,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
                         counter++;
                     }
                 }
-                vertex.index_string = "v" + String(counter)
+                vertex.data.index_string = "v" + String(counter)
             }
             else if (view.index_type == INDEX_TYPE.ALPHA_UNSTABLE) {
                 let counter = 0;
@@ -229,7 +265,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
                         counter++;
                     }
                 }
-                vertex.index_string = letters.charAt(counter % letters.length);
+                vertex.data.index_string = letters.charAt(counter % letters.length);
             }
         })
     }
@@ -243,16 +279,16 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
             view.alignement_vertical = false;
             this.vertices.forEach((vertex: ClientVertex, index) => {
                 if (excluded_indices.has(index) == false) {
-                    if (Math.abs(vertex.canvas_pos.y - pos_to_align.y) <= 15) {
-                        aligned_pos.y = vertex.canvas_pos.y;
+                    if (Math.abs(vertex.data.canvas_pos.y - pos_to_align.y) <= 15) {
+                        aligned_pos.y = vertex.data.canvas_pos.y;
                         view.alignement_horizontal = true;
-                        view.alignement_horizontal_y = view.canvasCoordY(vertex.pos);
+                        view.alignement_horizontal_y = view.canvasCoordY(vertex.data.pos);
                         return;
                     }
-                    if (Math.abs(vertex.canvas_pos.x - pos_to_align.x) <= 15) {
-                        aligned_pos.x = vertex.canvas_pos.x;
+                    if (Math.abs(vertex.data.canvas_pos.x - pos_to_align.x) <= 15) {
+                        aligned_pos.x = vertex.data.canvas_pos.x;
                         view.alignement_vertical = true;
-                        view.alignement_vertical_x = view.canvasCoordX(vertex.pos);
+                        view.alignement_vertical_x = view.canvasCoordX(vertex.data.pos);
                         return;
                     }
                 }
@@ -337,7 +373,7 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
     get_selected_vertices(): Set<number> {
         const set = new Set<number>();
         this.vertices.forEach((v, index) => {
-            if (v.is_selected) {
+            if (v.data.is_selected) {
                 set.add(index);
             }
         })
@@ -346,22 +382,23 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
 
 
-
+    /**
+     * Est ce qu'on veut pas un AbstractGraph ?
+     * Ah non peut être ça sert pour la copie d'un sous-graphe induit.
+     */
     get_induced_subgraph_from_selection(view: View): ClientGraph{
         const subgraph = new ClientGraph();
         for (const [index, v] of this.vertices.entries()) {
-            if(v.is_selected){
-                const new_vertex = new ClientVertex(v.pos.x, v.pos.y, v.weight, view);
-                subgraph.vertices.set(index, new_vertex);
+            if(v.data.is_selected){
+                subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, view))
             }
         }
 
         for (const [index, e] of this.links.entries()){
-            const u = this.vertices.get(e.start_vertex);
-            const v = this.vertices.get(e.end_vertex);
-            if(u.is_selected && v.is_selected){
-                const new_link = new ClientLink(e.start_vertex, e.end_vertex,u, v, e.cp, e.orientation, e.color, e.weight, view)
-                subgraph.links.set(index, new_link);
+            const u = e.startVertex;
+            const v = e.endVertex;
+            if(u.data.is_selected && v.data.is_selected){
+                subgraph.setLink(index, e.startVertex.index, e.endVertex.index, e.orientation, new ClientLinkData(e.cp, e.data.color, e.data.weight, view ) );
             }
         }
         return subgraph;
@@ -373,8 +410,8 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
     clear_vertices(){
         for( const vertex of this.vertices.values()){
-            if (vertex.weightDiv != null){
-                vertex.weightDiv.remove();
+            if (vertex.data.weightDiv != null){
+                vertex.data.weightDiv.remove();
             }
         }
         this.vertices.clear();
@@ -382,47 +419,44 @@ export class ClientGraph extends Graph<ClientVertex, ClientLink> {
 
     clear_links(){
         for( const link of this.links.values()){
-            if (typeof link.weightDiv != "undefined"){
-                link.weightDiv.remove();
+            if (typeof link.data.weightDiv != "undefined"){
+                link.data.weightDiv.remove();
             }
         }
         this.links.clear();
     }
 
-    add_default_client_vertex(x: number, y: number, view: View){
-        const v = new ClientVertex(x,y,"", view);
-        this.addVertex(v);
-    }
+    // add_default_client_vertex(x: number, y: number, view: View){
+    //     const v = new ClientVertex(x,y,"", view);
+    //     this.addVertex(v);
+    // }
 
-    add_edge(index1: number, index2: number, view: View ){
-        const startVertex = this.vertices.get(index1);
-        const endVertex = this.vertices.get(index2);
-        if (typeof startVertex !== "undefined"){
-            if (typeof endVertex !== "undefined"){
-                const link = new ClientLink(index1, index2, startVertex, endVertex, "", ORIENTATION.UNDIRECTED, "black", "", view);
-                this.addLink(link);
-            }
-        }
-        
-    }
+    // add_edge(index1: number, index2: number, view: View ){
+    //     const startVertex = this.vertices.get(index1);
+    //     const endVertex = this.vertices.get(index2);
+    //     if (typeof startVertex !== "undefined"){
+    //         if (typeof endVertex !== "undefined"){
+    //             const link = new ClientLink(index1, index2, startVertex, endVertex, "", ORIENTATION.UNDIRECTED, "black", "", view);
+    //             this.addLink(link);
+    //         }
+    //     }
+    // }
 
     translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, view: View){
         if (this.vertices.has(index)) {
             const vertex = this.vertices.get(index);
-            const previous_pos = vertex.pos.copy();
+            const previous_pos = vertex.data.pos.copy();
             vertex.translate_by_canvas_vect(cshift, view);
-            const new_pos = vertex.pos.copy();
+            const new_pos = vertex.data.pos.copy();
 
             for (const [link_index, link] of this.links.entries()) {
-                if ( typeof link.cp != "string"){
-                    if (link.start_vertex == index) {
-                        const end_vertex_pos = this.vertices.get(link.end_vertex).pos;
-                        link.transform_cp(new_pos, previous_pos, end_vertex_pos);
-                        link.cp_canvas_pos = view.create_canvas_coord(link.cp);
-                    } else if (link.end_vertex == index) {
-                        const start_vertex_pos = this.vertices.get(link.start_vertex).pos;
-                        link.transform_cp(new_pos, previous_pos, start_vertex_pos);
-                        link.cp_canvas_pos = view.create_canvas_coord(link.cp);
+                if ( typeof link.cp != "undefined"){
+                    if (link.startVertex.index == index) {
+                        link.transform_cp(new_pos, previous_pos, link.endVertex.data.pos);
+                        link.data.cp_canvas_pos = view.create_canvas_coord(link.cp);
+                    } else if (link.endVertex.index == index) {
+                        link.transform_cp(new_pos, previous_pos, link.startVertex.data.pos);
+                        link.data.cp_canvas_pos = view.create_canvas_coord(link.cp);
                     }
                 }
             }

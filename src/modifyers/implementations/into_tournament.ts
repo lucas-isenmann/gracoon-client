@@ -1,6 +1,5 @@
-import { Coord, ORIENTATION } from "gramoloss";
-import { ClientLink } from "../../board/link";
-import { AreaIndex, Integer } from "../../generators/attribute";
+import { ClientLinkData } from "../../board/link";
+import { AreaIndex } from "../../generators/attribute";
 import { local_board } from "../../setup";
 import { GraphModifyer } from "../modifyer";
 
@@ -12,10 +11,10 @@ modifyer_into_tournament.modify = () => {
         for (const index of local_board.graph.vertices.keys()){
             all_vertices_indices.push(index);
         }
-        local_board.graph.complete_subgraph_into_tournament(all_vertices_indices, (x,y) => { return new ClientLink(x,y, "", ORIENTATION.DIRECTED,"black", "", local_board.view)} )
+        local_board.graph.complete_subgraph_into_tournament(all_vertices_indices, (x,y) => { return new ClientLinkData(undefined, "black", "", local_board.view)} )
     }else {
         const area = local_board.areas.get(area_index);
         const vertices_indices = local_board.graph.vertices_contained_by_area(area);
-        local_board.graph.complete_subgraph_into_tournament(vertices_indices, (x,y) => { return new ClientLink(x,y, "", ORIENTATION.DIRECTED,"black", "", local_board.view)});
+        local_board.graph.complete_subgraph_into_tournament(vertices_indices, (x,y) => { return new ClientLinkData(undefined, "black", "", local_board.view)});
     }
 }

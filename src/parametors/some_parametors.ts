@@ -2,7 +2,7 @@
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
 import { Coord, Graph, ORIENTATION, Vect } from 'gramoloss';
-import { ClientLink } from '../board/link';
+import { ClientLink, ClientLinkData } from '../board/link';
 import { local_board } from '../setup';
 import { ClientVertex } from '../board/vertex';
 import { ClientRectangle } from '../board/rectangle';
@@ -92,7 +92,7 @@ export let param_number_colors = new Parametor("Number vertex colors", "nb_verte
 param_number_colors.compute = ((g: ClientGraph) => {
     let colors_set = new Set<string>();
     for (const v of g.vertices.values()) {
-        colors_set.add(v.color);
+        colors_set.add(v.data.color);
     }
     return String(colors_set.size);
 
@@ -119,10 +119,10 @@ param_min_degree.compute = ((g: ClientGraph, verbose) => {
     if (verbose) {
         for (const vertex_index of data.min_vertices) {
             const vertex = g.vertices.get(vertex_index);
-            vertex.color = "red";
+            vertex.data.color = "red";
         }
         g.vertices.forEach((vertex, vertex_index) => {
-            vertex.update_param(param_min_degree.id, String(g.get_neighbors_list(vertex_index).length));
+            vertex.data.update_param(param_min_degree.id, String(g.get_neighbors_list(vertex_index).length));
         })
     }
     return String(data.min_value);
@@ -182,7 +182,7 @@ param_has_proper_coloring.compute = ((g: ClientGraph) => {
             const neighbors = g.get_neighbors_list(v_index);
             for (const u_index of neighbors) {
                 const u = g.vertices.get(u_index);
-                if (u.color === v.color) {
+                if (u.data.color === v.data.color) {
                     return "false";
                 }
                 S.push(u_index);
@@ -221,9 +221,7 @@ export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "d
 
 paramDelaunayConstructor.compute = ((g: ClientGraph) => {
     g.resetDelaunayGraph((i,j) => {
-        const vi = g.vertices.get(i);
-        const vj = g.vertices.get(j);
-        return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+        return new ClientLinkData(undefined, "black", "", local_board.view);
     });
     return String("/");
 });
@@ -238,131 +236,131 @@ paramStretch.compute = ((g: ClientGraph) => {
 
 
 
-// -----------------
-export const paramStretchGeneticMaximizer = new Parametor("Stretch Genetic Maximizer", "stretchG", "stretchG", "Computes the stretch", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
+// // -----------------
+// export const paramStretchGeneticMaximizer = new Parametor("Stretch Genetic Maximizer", "stretchG", "stretchG", "Computes the stretch", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
-paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
-    const popSize = 36;
-    const graphSize = 20;
-    const nbRows = 6;
-    const w = 70;
-    const margin = 20;
-    const mutRange = 4;
+// paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
+//     const popSize = 36;
+//     const graphSize = 20;
+//     const nbRows = 6;
+//     const w = 70;
+//     const margin = 20;
+//     const mutRange = 4;
 
-    let maxStretch: number | undefined = undefined;
-    const topLeftCorners = new Array<Coord>();
+//     let maxStretch: number | undefined = undefined;
+//     const topLeftCorners = new Array<Coord>();
 
-    for (let i = 0 ; i < popSize ; i ++){
-        topLeftCorners.push(new Coord( 100 + (i % nbRows)*(w+margin), 100+ Math.floor(i/ nbRows)*(w+margin)));
-    }
+//     for (let i = 0 ; i < popSize ; i ++){
+//         topLeftCorners.push(new Coord( 100 + (i % nbRows)*(w+margin), 100+ Math.floor(i/ nbRows)*(w+margin)));
+//     }
 
-    if( g.vertices.size == 0){
-        for ( let i = 0 ; i < popSize ; i ++){
-            const c1 = topLeftCorners[i];
-            const c2 = c1.add(new Coord(w,w));
-            for( let j = 0 ; j < graphSize ; j ++){
-                const pos = c1.add(new Coord(Math.random()*w,Math.random()*w));
-                const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.view);
-                g.addVertex(newVertex);
-            }
-            local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.view));
-            const subgraph = g.getSubgraphFromRectangle(c1,c2);
-            subgraph.resetDelaunayGraph((i,j) => {
-                const vi = subgraph[i].vertices.get(i);
-                const vj = subgraph[j].vertices.get(j);
-                return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
-            });
-            const stretch = subgraph.stretch();
-            if (maxStretch == undefined){
-                maxStretch = stretch;
-            } else if (stretch > maxStretch){
-                maxStretch = stretch;
-            }
-            for (const link of subgraph.links.values()){
-                g.addLink(link);
-            }
-        }
-    } else {
-        const population = new Array<ClientGraph>();
-        const fitness = new Array();
-        let totalFitness = 0;
-        for ( let i = 0 ; i < popSize ; i ++){
-            const c1 = topLeftCorners[i];
-            const c2 = c1.add(new Coord(w,w));
-            const subgraph = g.getSubgraphFromRectangle(c1,c2);
-            population.push(ClientGraph.fromGraph(subgraph));
-            const stretch = subgraph.stretch()
-            fitness.push(Math.pow(stretch,3))
-            totalFitness += Math.pow(stretch,3);
-        }
-        // Normalize fitness array
-        let minFitness = 100;
-        let maxFitness = 0;
-        for (let i = 0 ; i < popSize ; i ++){
-            fitness[i] = fitness[i]/totalFitness;
-            minFitness = Math.min(minFitness, fitness[i]);
-            maxFitness = Math.max(maxFitness, fitness[i]);
-            // console.log((100*fitness[i]).toFixed(2));
-        }
+//     if( g.vertices.size == 0){
+//         for ( let i = 0 ; i < popSize ; i ++){
+//             const c1 = topLeftCorners[i];
+//             const c2 = c1.add(new Coord(w,w));
+//             for( let j = 0 ; j < graphSize ; j ++){
+//                 const pos = c1.add(new Coord(Math.random()*w,Math.random()*w));
+//                 const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.view);
+//                 g.addVertex(newVertex);
+//             }
+//             local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.view));
+//             const subgraph = g.getSubgraphFromRectangle(c1,c2);
+//             subgraph.resetDelaunayGraph((i,j) => {
+//                 const vi = subgraph[i].vertices.get(i);
+//                 const vj = subgraph[j].vertices.get(j);
+//                 return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+//             });
+//             const stretch = subgraph.stretch();
+//             if (maxStretch == undefined){
+//                 maxStretch = stretch;
+//             } else if (stretch > maxStretch){
+//                 maxStretch = stretch;
+//             }
+//             for (const link of subgraph.links.values()){
+//                 g.addLink(link);
+//             }
+//         }
+//     } else {
+//         const population = new Array<ClientGraph>();
+//         const fitness = new Array();
+//         let totalFitness = 0;
+//         for ( let i = 0 ; i < popSize ; i ++){
+//             const c1 = topLeftCorners[i];
+//             const c2 = c1.add(new Coord(w,w));
+//             const subgraph = g.getSubgraphFromRectangle(c1,c2);
+//             population.push(ClientGraph.fromGraph(subgraph));
+//             const stretch = subgraph.stretch()
+//             fitness.push(Math.pow(stretch,3))
+//             totalFitness += Math.pow(stretch,3);
+//         }
+//         // Normalize fitness array
+//         let minFitness = 100;
+//         let maxFitness = 0;
+//         for (let i = 0 ; i < popSize ; i ++){
+//             fitness[i] = fitness[i]/totalFitness;
+//             minFitness = Math.min(minFitness, fitness[i]);
+//             maxFitness = Math.max(maxFitness, fitness[i]);
+//             // console.log((100*fitness[i]).toFixed(2));
+//         }
 
-        // Selection and mutate
-        g.clear();
-        const newPop = new Array<ClientGraph>();
-        let sumStretch = 0;
-        for( let i = 0 ; i < popSize ; i ++){
-            const c1 = topLeftCorners[i];
-            const r = Math.random();
-            let s = 0;
-            for ( let j = 0 ; j < popSize ; j ++ ){
-                if ( r <= s + fitness[j]){
-                    newPop.push(population[j].clone());
-                    newPop[i].translateByServerVect(new Vect(((i%nbRows)-(j%nbRows))*(w+margin),((Math.floor(i/nbRows))-(Math.floor(j/nbRows)))*(w+margin)), local_board.view);
+//         // Selection and mutate
+//         g.clear();
+//         const newPop = new Array<ClientGraph>();
+//         let sumStretch = 0;
+//         for( let i = 0 ; i < popSize ; i ++){
+//             const c1 = topLeftCorners[i];
+//             const r = Math.random();
+//             let s = 0;
+//             for ( let j = 0 ; j < popSize ; j ++ ){
+//                 if ( r <= s + fitness[j]){
+//                     newPop.push(population[j].clone());
+//                     newPop[i].translateByServerVect(new Vect(((i%nbRows)-(j%nbRows))*(w+margin),((Math.floor(i/nbRows))-(Math.floor(j/nbRows)))*(w+margin)), local_board.view);
 
-                    // mutate
-                    const r2 = Math.floor(Math.random()* graphSize);
-                    const indices = Array.from(newPop[i].vertices.keys());
-                    const v = newPop[i].vertices.get(indices[r2]);
-                    if (typeof v != "undefined"){
-                        const nx = v.pos.x + Math.random()*mutRange -mutRange/2;
-                        const ny = v.pos.y + Math.random()*mutRange -mutRange/2;
-                        if ( c1.x <= nx && nx <= c1.x + w && c1.y <= ny && ny <= c1.y + w ){
-                            v.setPos(nx,ny);
-                        }
-                    }
-                    newPop[i].resetDelaunayGraph((i,j) => {
-                        const vi = newPop[i].vertices.get(i);
-                        const vj = newPop[j].vertices.get(j);
-                        return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
-                    });
+//                     // mutate
+//                     const r2 = Math.floor(Math.random()* graphSize);
+//                     const indices = Array.from(newPop[i].vertices.keys());
+//                     const v = newPop[i].vertices.get(indices[r2]);
+//                     if (typeof v != "undefined"){
+//                         const nx = v.pos.x + Math.random()*mutRange -mutRange/2;
+//                         const ny = v.pos.y + Math.random()*mutRange -mutRange/2;
+//                         if ( c1.x <= nx && nx <= c1.x + w && c1.y <= ny && ny <= c1.y + w ){
+//                             v.setPos(nx,ny);
+//                         }
+//                     }
+//                     newPop[i].resetDelaunayGraph((i,j) => {
+//                         const vi = newPop[i].vertices.get(i);
+//                         const vj = newPop[j].vertices.get(j);
+//                         return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+//                     });
 
-                    const stretch = newPop[i].stretch();
-                    sumStretch += stretch;
-                    if (maxStretch == undefined){
-                        maxStretch = stretch;
-                    } else if (stretch > maxStretch){
-                        maxStretch = stretch;
-                    }
+//                     const stretch = newPop[i].stretch();
+//                     sumStretch += stretch;
+//                     if (maxStretch == undefined){
+//                         maxStretch = stretch;
+//                     } else if (stretch > maxStretch){
+//                         maxStretch = stretch;
+//                     }
 
-                    g.pasteGraph(newPop[i]);
-                    break;
-                } 
-                s += fitness[j];
-            }
-        }
-        console.log((100*minFitness).toFixed(2),(100*maxFitness).toFixed(2), (sumStretch/popSize).toFixed(3), maxStretch.toFixed(3));
+//                     g.pasteGraph(newPop[i]);
+//                     break;
+//                 } 
+//                 s += fitness[j];
+//             }
+//         }
+//         console.log((100*minFitness).toFixed(2),(100*maxFitness).toFixed(2), (sumStretch/popSize).toFixed(3), maxStretch.toFixed(3));
 
 
 
-    }
+//     }
 
-    paramStretchGeneticMaximizer.compute(g, false);
+//     paramStretchGeneticMaximizer.compute(g, false);
 
-    if (maxStretch){
-        return String(maxStretch.toFixed(3));
-    } else {
-        return "/"
-    }
-});
+//     if (maxStretch){
+//         return String(maxStretch.toFixed(3));
+//     } else {
+//         return "/"
+//     }
+// });
 
 
 
@@ -381,9 +379,9 @@ param_is_good_weight.compute = ((g: ClientGraph) => {
                 for (const w_index of g.vertices.keys()) {
                     if (w_index != u_index && w_index != v_index) {
                         if (FW.distances.get(u_index).get(v_index) == FW.distances.get(v_index).get(w_index)) {
-                            g.vertices.get(v_index).color = "red";
-                            g.vertices.get(u_index).color = "purple";
-                            g.vertices.get(w_index).color = "purple";
+                            g.vertices.get(v_index).data.color = "red";
+                            g.vertices.get(u_index).data.color = "purple";
+                            g.vertices.get(w_index).data.color = "purple";
                             return "false";
                         }
                     }
@@ -413,14 +411,14 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
         const heap = new Array<ClientLink>();
         for (const link of g.links.values()) {
             heap.push(link);
-            link.weight = String(1);
+            link.data.weight = String(1);
         }
 
         while (true) {
             if (test(g)) {
                 const debug = new Array();
                 for (const link of g.links.values()) {
-                    debug.push(link.weight);
+                    debug.push(link.data.weight);
                 }
                 console.log("try ", debug);
                 console.timeEnd('wdi')
@@ -431,15 +429,15 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
 
             let b = 0;
             let done = false;
-            while (b < heap.length && heap[b].weight == String(k)) {
-                heap[b].weight = String(1);
+            while (b < heap.length && heap[b].data.weight == String(k)) {
+                heap[b].data.weight = String(1);
                 b += 1;
             }
             if (b == heap.length) {
                 done = true; k++;
                 break;
             } else {
-                heap[b].weight = String(parseInt(heap[b].weight) + 1);
+                heap[b].data.weight = String(parseInt(heap[b].data.weight) + 1);
             }
         }
     }
@@ -461,8 +459,8 @@ param_wdin2.compute = ((g: ClientGraph) => {
         if ( wdin2_search(g, k)){
             const debug = new Array();
             for (const [link_index, link] of g.links.entries()) {
-                debug.push(link.weight);
-                link.setWeight(link.weight);
+                debug.push(link.data.weight);
+                link.setWeight(link.data.weight);
             }
             console.log("solution: ", debug);
             console.timeEnd("wdin2");
@@ -488,8 +486,8 @@ function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: 
     const bridge_index = g.max_cut_edge();
     const bridge = g.links.get(bridge_index);
     g.links.delete(bridge_index);
-    const g1 = g.get_connected_component_of(bridge.start_vertex) as ClientGraph;
-    const g2 = g.get_connected_component_of(bridge.end_vertex) as ClientGraph;
+    const g1 = g.get_connected_component_of(bridge.startVertex.index) as ClientGraph;
+    const g2 = g.get_connected_component_of(bridge.endVertex.index) as ClientGraph;
     wdin2_order(g1, ordered_links, association);
     wdin2_order(g2, ordered_links, association);
     g.links.set(bridge_index, bridge);
@@ -517,11 +515,12 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
         const newg = new ClientGraph();
         for ( let j = association[i]; j <= i ; j ++){
             const link = g.links.get(ordered_links[j]);
-            const start_vertex = g.vertices.get(link.start_vertex);
-            newg.vertices.set(link.start_vertex, start_vertex);
-            const end_vertex = g.vertices.get(link.end_vertex);
-            newg.vertices.set(link.end_vertex, end_vertex);
+            const start_vertex = link.startVertex;
+            newg.set_vertex(link.startVertex.index, start_vertex.data);
+            const end_vertex = link.endVertex;
+            newg.set_vertex(link.endVertex.index, end_vertex.data)
             newg.links.set(ordered_links[j], link);
+            newg.setLink(ordered_links[j], link.startVertex.index, link.endVertex.index, link.orientation, link.data);
         } 
         subgraph.push(newg);
         constraints.push(make_constraints(newg, ordered_links[i]));
@@ -565,7 +564,7 @@ function test2(g: ClientGraph, constraints: Array<Array<[number,boolean]>>): boo
     for (const constraint of constraints){
         let sum = 0;
         for (const [link_index, b] of constraint){
-            const weight = parseInt(g.links.get(link_index).weight);
+            const weight = parseInt(g.links.get(link_index).data.weight);
             if ( b ){
                 sum += weight;
             } else {
@@ -593,9 +592,9 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
             const u_index = stack.pop();
             for ( const [link_index, link] of g.links.entries() ){
                 if (link.orientation == ORIENTATION.UNDIRECTED){
-                    if ( (link.start_vertex == u_index && visited.has(link.end_vertex) == false) || (link.end_vertex == u_index && visited.has(link.start_vertex) == false) ){
-                        let n_index = link.end_vertex;
-                        if ( link.end_vertex == u_index) { n_index = link.start_vertex} 
+                    if ( (link.startVertex.index == u_index && visited.has(link.endVertex.index) == false) || (link.endVertex.index == u_index && visited.has(link.startVertex.index) == false) ){
+                        let n_index = link.endVertex.index;
+                        if ( link.endVertex.index == u_index) { n_index = link.startVertex.index} 
                         stack.push(n_index);
                         visited.add(n_index);
                         const new_path = new Array<number>();

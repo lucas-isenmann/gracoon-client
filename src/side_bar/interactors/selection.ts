@@ -37,7 +37,7 @@ selectionV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
     }else if (last_down == DOWN_TYPE.VERTEX){
         if (g.vertices.has(last_down_index)){
             const v = g.vertices.get(last_down_index);
-            vertex_center_shift = CanvasVect.from_canvas_coords(e, v.canvas_pos);
+            vertex_center_shift = CanvasVect.from_canvas_coords(e, v.data.canvas_pos);
         }
     } else if (last_down === DOWN_TYPE.RESIZE){
         const element = down_meta_element.element;
@@ -97,7 +97,7 @@ selectionV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
             const v = g.vertices.get(last_down_index)
             let indices = new Array<[BoardElementType,number]>();
             
-            if (g.vertices.get(last_down_index).is_selected) {
+            if (g.vertices.get(last_down_index).data.is_selected) {
                 const selected_vertices = g.get_selected_vertices();
                 for( const index of selected_vertices){
                     indices.push([BoardElementType.Vertex, index]);
@@ -160,7 +160,7 @@ selectionV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
 
                 if (stroke.is_selected){
                     for (const vertex of local_board.graph.vertices.values()){
-                        if (vertex.is_selected){
+                        if (vertex.data.is_selected){
                             vertex.translate_by_canvas_vect(mini_shift, local_board.view);
                         }
                     }
@@ -227,25 +227,25 @@ selectionV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
 selectionV2.mouseup = ((canvas, ctx, g, e) => {
     if (last_down === DOWN_TYPE.VERTEX) {
         if (has_moved === false) {
-            if (g.vertices.get(last_down_index).is_selected) {
+            if (g.vertices.get(last_down_index).data.is_selected) {
                 if (key_states.get("Control")) { 
-                    g.vertices.get(last_down_index).is_selected = false;
+                    g.vertices.get(last_down_index).data.is_selected = false;
                 }
             }
             else {
                 if (key_states.get("Control")) {
-                    g.vertices.get(last_down_index).is_selected = true;
+                    g.vertices.get(last_down_index).data.is_selected = true;
                 }
                 else {
                     local_board.clear_all_selections();
-                    g.vertices.get(last_down_index).is_selected = true;
+                    g.vertices.get(last_down_index).data.is_selected = true;
                 }
             }
         }
         else {
             const vertex_moved = g.vertices.get(last_down_index);
             for( const [index,v] of g.vertices.entries()){
-                if( index != last_down_index && vertex_moved.is_nearby(v.canvas_pos, 100)){
+                if( index != last_down_index && vertex_moved.is_nearby(v.data.canvas_pos, 100)){
                     local_board.emit_vertices_merge(index, last_down_index);
                     break;
                 }
@@ -254,18 +254,18 @@ selectionV2.mouseup = ((canvas, ctx, g, e) => {
 
     } else if (last_down === DOWN_TYPE.LINK) {
         if (has_moved === false) {
-            if (g.links.get(last_down_index).is_selected) {
+            if (g.links.get(last_down_index).data.is_selected) {
                 if (key_states.get("Control")) { 
-                    g.links.get(last_down_index).is_selected = false;
+                    g.links.get(last_down_index).data.is_selected = false;
                 }
             }
             else {
                 if (key_states.get("Control")) { 
-                    g.links.get(last_down_index).is_selected = true;
+                    g.links.get(last_down_index).data.is_selected = true;
                 }
                 else {
                     local_board.clear_all_selections();
-                    g.links.get(last_down_index).is_selected = true;
+                    g.links.get(last_down_index).data.is_selected = true;
                 }
             }
         }
@@ -294,7 +294,7 @@ selectionV2.mouseup = ((canvas, ctx, g, e) => {
             
             if (local_board.strokes.get(last_down_index).is_selected) {
                 for (const [vertex_index, vertex] of local_board.graph.vertices.entries()){
-                    if (vertex.is_selected){
+                    if (vertex.data.is_selected){
                         indices.push([BoardElementType.Vertex, vertex_index]);
                         elements_to_translate.push(vertex);
                     }

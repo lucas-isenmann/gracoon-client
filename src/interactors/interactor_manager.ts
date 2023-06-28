@@ -73,12 +73,12 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
                 const data_socket = new Array();
                 for (const index of g.vertices.keys()) {
                     const v = g.vertices.get(index);
-                    if (v.is_selected) {
+                    if (v.data.is_selected) {
                         data_socket.push([BoardElementType.Vertex, index]);
                     }
                 }
                 g.links.forEach((link, index) => {
-                    if (link.is_selected) {
+                    if (link.data.is_selected) {
                         data_socket.push([ BoardElementType.Link, index]);
                     }
                 })

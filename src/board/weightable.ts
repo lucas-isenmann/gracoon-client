@@ -4,9 +4,11 @@ import { text_interactorV2 } from "../side_bar/interactors/text";
 import { BoardElementType } from "./board";
 
 export interface Weightable {
-    index: number | undefined;
-    weight: string;
-    weightDiv: HTMLDivElement | undefined;
+    getIndex(): number | undefined;
+    getWeight(): string;
+    setWeight(newWeight: string): void;
+    getWeightDiv(): HTMLDivElement | undefined;
+    setWeightDiv(div: HTMLDivElement): void;
     setAutoWeightDivPos(): void;
 }
 
@@ -14,41 +16,40 @@ export interface Weightable {
  * Init the weightDiv
  */
 export function initWeightDiv<R extends Weightable>(element: R, type: BoardElementType){
-    if (typeof element.index !== "undefined"){
-        element.weightDiv = document.createElement("div");
-        element.weightDiv.contentEditable = "true";    
-        element.weightDiv.id = type + "_weight_" + element.index;
-        console.log(element.weightDiv.id);
-        element.weightDiv.classList.add("element-label", "content_editable");
-        document.body.appendChild(element.weightDiv);
-        element.weightDiv.innerHTML = element.weight;
+    if (typeof element.getIndex() !== "undefined"){
+        element.setWeightDiv(document.createElement("div"));
+        element.getWeightDiv().contentEditable = "true";    
+        element.getWeightDiv().id = type + "_weight_" + element.getIndex();
+        element.getWeightDiv().classList.add("element-label", "content_editable");
+        document.body.appendChild(element.getWeightDiv());
+        element.getWeightDiv().innerHTML = element.getWeight();
         // element.weightDiv.innerHTML = katex.renderToString(element.weight);
         element.setAutoWeightDivPos();
 
-        element.weightDiv.onkeyup = (e) => {
+        element.getWeightDiv().onkeyup = (e) => {
             // saveSelection();
-            element.weight = element.weightDiv.textContent;
-            local_board.emit_update_element(type, element.index, "weight", element.weight);
+            element.setWeight(element.getWeightDiv().textContent);
+            local_board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
             if (e.key == "Enter" && key_states.get("Control")) {
-                element.weightDiv.blur();
+                element.getWeightDiv().blur();
                 element.setAutoWeightDivPos();
             }
         }
 
         // Prevent other interactors to click on this div (and launch the editor of the weight).
-        element.weightDiv.onmousedown = (e: MouseEvent) => {
+        element.getWeightDiv().onmousedown = (e: MouseEvent) => {
             if (interactor_loaded.id != text_interactorV2.id){
                 e.preventDefault();
             }
         }
 
-        element.weightDiv.addEventListener("wheel", function (e) {
-            const weightNumberValue = parseInt(element.weight);
+        element.getWeightDiv().addEventListener("wheel", function (e) {
+            const weightNumberValue = parseInt(element.getWeight());
             if ( isNaN(weightNumberValue) == false){
                 if (e.deltaY < 0) {
-                    local_board.emit_update_element( type, element.index, "weight", String(weightNumberValue+1));
+                    local_board.emit_update_element( type, element.getIndex(), "weight", String(weightNumberValue+1));
                 }else {
-                    local_board.emit_update_element(  type, element.index, "weight", String(weightNumberValue-1));
+                    local_board.emit_update_element(  type, element.getIndex(), "weight", String(weightNumberValue-1));
                 }
             }
         })

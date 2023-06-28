@@ -29,11 +29,11 @@ function set_vertex_infobox(index: number, vertex: ClientVertex, pos: Coord){
     set_element_infobox(pos);
     infobox.innerHTML = 
     "Vertex index: " + index + "<br>" +
-    "x: " + vertex.pos.x + "<br>" +
-    "y: " + vertex.pos.y + "<br>"+
-    "color: " + vertex.color + "<br>" +
-    "canvas_x: " + Math.floor(vertex.canvas_pos.x) + "<br>" +
-    "canvas_y: " + Math.floor(vertex.canvas_pos.y);
+    "x: " + vertex.data.pos.x + "<br>" +
+    "y: " + vertex.data.pos.y + "<br>"+
+    "color: " + vertex.data.color + "<br>" +
+    "canvas_x: " + Math.floor(vertex.data.canvas_pos.x) + "<br>" +
+    "canvas_y: " + Math.floor(vertex.data.canvas_pos.y);
 }
 
 function set_link_infobox(link: ClientLink, pos: Coord){
@@ -55,7 +55,7 @@ detector_interactorV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord)
         case DOWN_TYPE.VERTEX:
             const vertex = g.vertices.get(element.index);
             set_vertex_infobox(element.index, vertex, e);
-            vertex.is_selected = true;
+            vertex.data.is_selected = true;
             return true;
         case DOWN_TYPE.STROKE:
             const stroke = local_board.strokes.get(element.index);
@@ -64,7 +64,7 @@ detector_interactorV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord)
         case DOWN_TYPE.LINK:
             const link = g.links.get(element.index);
             set_link_infobox(link, e);
-            link.is_selected = true;
+            link.data.is_selected = true;
             return true;
     }
     turn_off_infobox();

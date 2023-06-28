@@ -1,26 +1,33 @@
-import { Coord, Link, ORIENTATION, Vect } from "gramoloss";
-import { local_board } from "../setup";
+import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect, Vertex } from "gramoloss";
 import { BoardElementType } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
-import { ClientVertex } from "./vertex";
+import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { initWeightDiv } from "./weightable";
 
 
+export class LinkPreData extends BasicLinkData {
+    startIndex: number;
+    endIndex: number;
+    orientation: ORIENTATION;
 
-export class ClientLink extends Link<ClientLink> {
+    constructor(startIndex: number, endIndex: number, orientation: ORIENTATION){
+        super("", "black");
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+        this.orientation = orientation;
+    }
+}
+
+export class ClientLinkData extends BasicLinkData {
     cp_canvas_pos: CanvasCoord | string;
     is_selected: boolean;
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
-    startVertex: ClientVertex;
-    endVertex: ClientVertex;
 
-    constructor(i: number, j: number, startVertex: ClientVertex, endVertex: ClientVertex, cp: Coord | string, orientation: ORIENTATION, color: string, weight: string, view: View) {
-        super(i,j,cp,orientation,color,weight);
-        this.startVertex = startVertex;
-        this.endVertex = endVertex;
-        if (typeof cp == "string"){
+    constructor(cp: Option<Coord>,  color: string, weight: string, view: View) {
+        super(weight, color);
+        if (typeof cp == "undefined"){
             this.cp_canvas_pos = "";
         } else {
             this.cp_canvas_pos = view.create_canvas_coord(cp);
@@ -28,21 +35,31 @@ export class ClientLink extends Link<ClientLink> {
         this.is_selected = false;
         this.weightDiv = undefined;
     }
+}
+
+
+
+
+export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
+    startVertex: ClientVertex;
+    endVertex: ClientVertex;
+
+   
 
     set_cp(new_cp: Coord, view: View){
         this.cp = new_cp;
-        this.cp_canvas_pos = view.create_canvas_coord(new_cp);
+        this.data.cp_canvas_pos = view.create_canvas_coord(new_cp);
     }
 
     is_in_rect(c1: CanvasCoord, c2: CanvasCoord) {
         //V1: is in rect if one of its extremities is in the rectangle
         //TODO: be more clever and select also when there is an intersection between the edge and the rectangle
-        return local_board.graph.vertices.get(this.start_vertex).is_in_rect(c1, c2) || local_board.graph.vertices.get(this.end_vertex).is_in_rect(c1, c2);
+        return this.startVertex.is_in_rect(c1, c2) || this.endVertex.is_in_rect(c1, c2);
     }
 
     update_after_view_modification(view: View){
-        if ( typeof this.cp != "string"){
-            this.cp_canvas_pos = view.create_canvas_coord(this.cp);
+        if ( typeof this.cp != "undefined"){
+            this.data.cp_canvas_pos = view.create_canvas_coord(this.cp);
         }
         this.setAutoWeightDivPos();
     }
@@ -51,17 +68,17 @@ export class ClientLink extends Link<ClientLink> {
      * Sets the div pos according to the element.
      */
     setAutoWeightDivPos(){
-        if ( typeof this.weightDiv !== "undefined" ){
-            const posu = this.startVertex.canvas_pos; 
-            const posv = this.endVertex.canvas_pos; 
+        if ( typeof this.data.weightDiv !== "undefined" ){
+            const posu = this.startVertex.data.canvas_pos; 
+            const posv = this.endVertex.data.canvas_pos; 
             let middle = posu.middle(posv);
-            if (typeof this.cp_canvas_pos != "string"){
-                middle = this.cp_canvas_pos;
+            if (typeof this.data.cp_canvas_pos != "string"){
+                middle = this.data.cp_canvas_pos;
             }
             let weightPosition = middle.add(posu.sub(posv).normalize().rotate_quarter().scale(14));
 
-            this.weightDiv.style.top = String(weightPosition.y - this.weightDiv.clientHeight/2) + "px";
-            this.weightDiv.style.left = String(weightPosition.x- this.weightDiv.clientWidth/2) + "px";
+            this.data.weightDiv.style.top = String(weightPosition.y - this.data.weightDiv.clientHeight/2) + "px";
+            this.data.weightDiv.style.left = String(weightPosition.x- this.data.weightDiv.clientWidth/2) + "px";
         }
     }
 
@@ -70,10 +87,10 @@ export class ClientLink extends Link<ClientLink> {
      */
     afterSetWeight(){
         console.log("afterSetWeight");
-        if (typeof this.weightDiv === "undefined"){
+        if (typeof this.data.weightDiv === "undefined"){
             initWeightDiv(this, BoardElementType.Link);
         } else {
-            this.weightDiv.innerHTML = this.weight;
+            this.data.weightDiv.innerHTML = this.data.weight;
             // this.weightDiv.innerHTML = katex.renderToString(this.weight);
         }
         this.setAutoWeightDivPos();
@@ -83,8 +100,8 @@ export class ClientLink extends Link<ClientLink> {
 
 
     translate_cp_by_canvas_vect(shift: CanvasVect, view: View){
-            if ( typeof this.cp != "string" && typeof this.cp_canvas_pos != "string"){
-                this.cp_canvas_pos.translate_by_canvas_vect(shift);
+            if ( typeof this.cp != "undefined" && typeof this.data.cp_canvas_pos != "string"){
+                this.data.cp_canvas_pos.translate_by_canvas_vect(shift);
                 this.cp.x += shift.x/view.zoom; 
                 this.cp.y += shift.y/view.zoom;
             }
@@ -95,7 +112,7 @@ export class ClientLink extends Link<ClientLink> {
         let labelCode = "";
         // if (showLabels)
         // labelCode = "node[midway, shift={(" + this.label.getExactLabelOffsetX() / 100 + "," + -this.label.getExactLabelOffsetY() / 100 + ")}, scale = \\scaleE] {" + this.label.text + "}";
-        if (typeof this.cp != "string" ){
+        if (typeof this.cp != "undefined" ){
             return `\\draw[line width = \\scaleE, color = black] (${start.get_tikz_coordinate(start_index)}) .. controls (${Math.round(this.cp.x)/100}, ${Math.round(this.cp.y)/100}) .. (${end.get_tikz_coordinate(end_index)}) ${labelCode};`;
         } else {
             return ``; // TODO
@@ -144,25 +161,42 @@ export class ClientLink extends Link<ClientLink> {
      * Sets the weight of the link, then updates the WeightDiv.
      */
     setWeight(new_weight: string) {
-        this.weight = new_weight;
-        this.afterSetWeight();
+        this.data.weight = new_weight;
+        // this.afterSetWeight();
     }
 
-    clone(): ClientLink {
-        if (typeof this.cp === "string"){
-            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
-            return newLink; // TODO I think there are things to clone with the div
-        } else {
-            const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
-            return newLink; // TODO I think there are things to clone with the div
-        }
+    getIndex(): number{
+        return this.index;
     }
+
+    getWeight(): string{
+        return this.data.weight;
+    }
+
+    getWeightDiv(){
+        return this.data.weightDiv;
+    }
+
+    setWeightDiv(div: HTMLDivElement){
+        this.data.weightDiv = div;
+    }
+
+
+    // clone(): ClientLink {
+    //     if (typeof this.cp === "string"){
+    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
+    //         return newLink; // TODO I think there are things to clone with the div
+    //     } else {
+    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
+    //         return newLink; // TODO I think there are things to clone with the div
+    //     }
+    // }
 
 
     translateByServerVect(shift: Vect, view: View) {
-        if (typeof this.cp !== "string" && typeof this.cp_canvas_pos !== "string"){
+        if (typeof this.cp !== "undefined" && typeof this.data.cp_canvas_pos !== "string"){
             const canvas_shift = view.create_canvas_vect(shift);
-            this.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);
+            this.data.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);
             this.cp.x += shift.x;
             this.cp.y += shift.y;
             // TODO: something with the weight_div

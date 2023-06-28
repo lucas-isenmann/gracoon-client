@@ -6,14 +6,14 @@ import { socket } from "../socket";
 import { ClientArea } from "./area";
 import { View } from "./camera";
 import { ClientGraph } from "./graph";
-import { ClientLink } from "./link";
+import { ClientLink, ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
 import { ClientRepresentation } from "./representations/client_representation";
 import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./vect";
-import { ClientVertex } from "./vertex";
+import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 
 
@@ -47,7 +47,7 @@ export enum SocketMsgType {
 
 
 
-export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
+export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
     view: View;
     graph: ClientGraph;
 
@@ -239,7 +239,7 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
         }
        
         for (const [index, link] of this.graph.links.entries()) {
-            if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.cp_canvas_pos != "string" && link.cp_canvas_pos.is_nearby(pos, 150)) {
+            if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
                 return { type: DOWN_TYPE.CONTROL_POINT, index: index };
             }
             if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.view)) {
@@ -319,24 +319,24 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
                 }
             })
             for( const link of this.graph.links.values()){
-                if ( typeof link.cp != "string"){
-                    const v1 = this.graph.vertices.get(link.start_vertex);
-                    const v2 = this.graph.vertices.get(link.end_vertex);
-                    if(vertices_contained.has(link.start_vertex) && vertices_contained.has(link.end_vertex)){
+                if ( typeof link.cp != "undefined"){
+                    const v1 = link.startVertex;
+                    const v2 = link.endVertex;
+                    if(vertices_contained.has(link.startVertex.index) && vertices_contained.has(link.endVertex.index)){
                         link.translate_cp_by_canvas_vect(shift, this.view);
                     }
-                    else if(vertices_contained.has(link.start_vertex)){ // and thus not v2
-                        const new_pos = v1.pos;
-                        const previous_pos = this.view.create_server_coord_from_subtranslated(v1.canvas_pos, shift);
-                        const fixed_pos = v2.pos;
+                    else if(vertices_contained.has(link.startVertex.index)){ // and thus not v2
+                        const new_pos = v1.data.pos;
+                        const previous_pos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
+                        const fixed_pos = v2.data.pos;
                         link.transform_cp(new_pos, previous_pos, fixed_pos);
-                        link.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
-                    }else if(vertices_contained.has(link.end_vertex)) { // and thus not v1
-                        const new_pos = v2.pos;
-                        const previous_pos = this.view.create_server_coord_from_subtranslated(v2.canvas_pos, shift);
-                        const fixed_pos = v1.pos;
+                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
+                    }else if(vertices_contained.has(link.endVertex.index)) { // and thus not v1
+                        const new_pos = v2.data.pos;
+                        const previous_pos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
+                        const fixed_pos = v1.data.pos;
                         link.transform_cp(new_pos, previous_pos, fixed_pos);
-                        link.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
+                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
                     }
                 }
             }
@@ -388,16 +388,16 @@ export class ClientBoard extends Board<ClientVertex, ClientLink, ClientStroke, C
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emit_add_element(element: ClientVertex | ClientLink | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
+    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
         switch(element.constructor){
-            case ClientVertex: {
-                const vertex = element as ClientVertex;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertex.pos}, callback);
+            case ClientVertexData: {
+                const vertexData = element as ClientVertexData;
+                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertexData.pos}, callback);
                 break;
             }
-            case ClientLink: {
-                const link = element as ClientLink;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: link.start_vertex, end_index: link.end_vertex, orientation: link.orientation}, callback);
+            case LinkPreData: {
+                const data = element as LinkPreData;
+                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation}, callback);
                 break;
             }
             case ClientStroke: {
