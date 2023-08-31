@@ -27,12 +27,21 @@ import BASIC_COLORS from "./basic_colors.json";
 import { TikZ_create_file_data } from "./tikz";
 import { INDEX_TYPE } from "./board/camera";
 import { createPopup } from "./popup";
-
+import PACKAGE from "../package.json";
 
 export const local_board = new ClientBoard();
 
 
+function setupClientVersionDiv(){
+    const clientVersionDiv = document.createElement("div");
+    clientVersionDiv.id = "clientVersion";
+    clientVersionDiv.innerHTML = "client-version: " + PACKAGE.version;
+    document.body.appendChild(clientVersionDiv);
+}
+
 function setup() {
+    setupClientVersionDiv();
+    
 
     const canvas = document.getElementById('main') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');

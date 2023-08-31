@@ -6,6 +6,21 @@ body {
     background-color: var(--background_color_page);
 }
 
+#clientVersion, #serverVersion {
+    position: fixed;
+    right: 10px;
+    color: rgb(108, 108, 108);
+    background-color: #30303000;
+}
+
+#clientVersion {
+    bottom: 10px;
+}
+
+#serverVersion{
+    bottom: 30px;
+}
+
 #actions {
     border-radius: 5px;
     background-color: var(--background_color_div);

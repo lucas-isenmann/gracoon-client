@@ -12,6 +12,7 @@ import {  Coord, ORIENTATION, Vect } from "gramoloss";
 import { ClientLink, ClientLinkData } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
 import { ClientBoard } from "./board/board";
+import { handleServerVersion } from "./handlers/serverVersion";
 
 import ENV from './.env.json';
 
@@ -31,6 +32,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     const g = board.graph;
     
     // USERS
+    socket.on('server-version', handleServerVersion);
     socket.on('myId', handle_my_id);
     socket.on('room_id', handle_room_id);
     socket.on('update_room_id', handle_update_room_id);
