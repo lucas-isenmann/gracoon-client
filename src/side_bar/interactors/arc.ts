@@ -1,7 +1,7 @@
 import { Link, ORIENTATION, Vertex } from "gramoloss";
 import { ClientGraph } from "../../board/graph";
 import { CanvasCoord } from "../../board/canvas_coord";
-import { draw_circle, draw_head, draw_line, real_color } from "../../draw_basics";
+import { draw_circle, draw_head, drawLine, real_color } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { local_board } from "../../setup";
@@ -87,7 +87,7 @@ arc_interactorV2.draw = (ctx: CanvasRenderingContext2D) => {
         draw_circle(local_board.view.creating_vertex_pos, "grey", 10, 0.5, ctx);
     }
     if (local_board.view.is_link_creating) {
-        draw_line(local_board.view.link_creating_start, local_board.view.creating_vertex_pos, ctx, real_color("black", local_board.view.dark_mode));
+        drawLine(local_board.view.link_creating_start, local_board.view.creating_vertex_pos, ctx, real_color("black", local_board.view.dark_mode), 4);
         if (local_board.view.link_creating_type == ORIENTATION.DIRECTED) {
             draw_head(ctx, local_board.view.link_creating_start, local_board.view.creating_vertex_pos);
         }

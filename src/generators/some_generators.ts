@@ -1,20 +1,20 @@
-import { ORIENTATION } from "gramoloss";
+import { Coord, ORIENTATION } from "gramoloss";
 import { View } from "../board/camera";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ClientGraph } from "../board/graph";
-import { ClientLink } from "../board/link";
-import { ClientVertex } from "../board/vertex";
+import { ClientLinkData } from "../board/link";
+import { ClientVertexData } from "../board/vertex";
 
-import { AreaIndex, Integer, Percentage } from "./attribute";
+import { Integer, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";
 
 // ----------------------------
 
- let generate_random_independent = new GraphGenerator("independent", [new Integer("n", 3)])
+ let independentGenerator = new GraphGenerator("independent", [new Integer("n", 3)])
 
- generate_random_independent.generate = (pos: CanvasCoord, view: View) => {
+ independentGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = generate_random_independent.attributes[0].value;
+    const n = independentGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
     }
@@ -23,19 +23,19 @@ import { GraphGenerator } from "./generator";
     const cx = center.x; 
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
-        const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(v);
+        const vertexData = new ClientVertexData(cx + r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
+        graph.set_vertex(i, vertexData);
     }
     return graph;
 }
 
 // ----------------------------
 
- let random_clique = new GraphGenerator("clique", [new Integer("n", 3)])
+ let randomCliqueGenerator = new GraphGenerator("clique", [new Integer("n", 3)])
 
- random_clique.generate = (pos: CanvasCoord, view: View) => {
+ randomCliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = random_clique.attributes[0].value;
+    const n = randomCliqueGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
     }
@@ -44,17 +44,9 @@ import { GraphGenerator } from "./generator";
     const cx = center.x; 
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
-        const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(v);
+        graph.addDefaultVertex(new Coord( cx + r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n) ), view)
         for ( let j = 0 ; j < i ; j ++ ){
-            const startVertex = graph.vertices.get(j);
-            const endVertex = graph.vertices.get(i);
-            if (typeof startVertex !== "undefined"){
-                if (typeof endVertex !== "undefined"){
-                    const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
-                    graph.addLink(link);
-                }
-            }
+            graph.addDefaultEdge(j,i,view);
         }
     }
     return graph;
@@ -63,11 +55,11 @@ import { GraphGenerator } from "./generator";
 
  // ----------------------------
 
- let random_tournament = new GraphGenerator("random_tournament", [new Integer("n", 3)])
+ let randomTournament = new GraphGenerator("random_tournament", [new Integer("n", 3)])
 
- random_tournament.generate = (pos: CanvasCoord, view: View) => {
+ randomTournament.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = random_tournament.attributes[0].value;
+    const n = randomTournament.attributes[0].value;
     if (typeof n == "string"){
         return graph;
     }
@@ -76,27 +68,15 @@ import { GraphGenerator } from "./generator";
     const cx = center.x; 
     const cy = center.y;
     for ( let i = 0 ; i < n ; i ++){
-        const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(v);
+        const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
+        graph.addVertex(vData);
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < 0.5 ){
-                const startVertex = graph.vertices.get(j);
-                const endVertex = graph.vertices.get(i);
-                if (typeof startVertex !== "undefined"){
-                    if (typeof endVertex !== "undefined"){
-                        const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.DIRECTED, "black", "", view);
-                        graph.addLink(link);
-                    }
-                }
+                const linkData =  new ClientLinkData( undefined, "black", "", view);
+                graph.addLink(j,i, ORIENTATION.DIRECTED, linkData);
             }else {
-                const endVertex = graph.vertices.get(j);
-                const startVertex = graph.vertices.get(i);
-                if (typeof startVertex !== "undefined"){
-                    if (typeof endVertex !== "undefined"){
-                        const link =  new ClientLink(i,j, startVertex, endVertex,  "", ORIENTATION.DIRECTED, "black", "", view);
-                        graph.addLink(link);
-                    }
-                }
+                const linkData =  new ClientLinkData( undefined, "black", "", view);
+                graph.addLink(i,j, ORIENTATION.DIRECTED, linkData);
             }
         }
     }
@@ -105,12 +85,12 @@ import { GraphGenerator } from "./generator";
 
  // ----------------------------
 
- let random_GNP = new GraphGenerator("gnp", [new Integer("n", 3), new Percentage("p")]);
+ let randomGNP = new GraphGenerator("gnp", [new Integer("n", 3), new Percentage("p")]);
 
- random_GNP.generate = (pos: CanvasCoord, view: View) => {
+ randomGNP.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = random_GNP.attributes[0].value;
-    const p = random_GNP.attributes[1].value;
+    const n = randomGNP.attributes[0].value;
+    const p = randomGNP.attributes[1].value;
     if (typeof n == "string" || typeof p == "string"){
         return graph;
     }
@@ -119,18 +99,12 @@ import { GraphGenerator } from "./generator";
     const cy = center.y;
     const r = 50;
     for ( let i = 0 ; i < n ; i ++){
-        const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(v);
+        const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
+        graph.addVertex(vData);
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < p){
-                const startVertex = graph.vertices.get(j);
-                const endVertex = graph.vertices.get(i);
-                if (typeof startVertex !== "undefined"){
-                    if (typeof endVertex !== "undefined"){
-                        const link =  new ClientLink(j,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
-                        graph.addLink(link);
-                    }
-                }
+                const linkData =  new ClientLinkData(undefined, "black", "", view);
+                graph.addLink(j,i,ORIENTATION.UNDIRECTED, linkData);
             }
             
         }
@@ -142,11 +116,11 @@ import { GraphGenerator } from "./generator";
 // ----------------------------
 
 
-let random_star = new GraphGenerator("star", [new Integer("n", 3)])
+let randomStar = new GraphGenerator("star", [new Integer("n", 3)])
 
-random_star.generate = (pos: CanvasCoord, view : View) => {
+randomStar.generate = (pos: CanvasCoord, view : View) => {
    const graph = new ClientGraph();
-   const n = random_star.attributes[0].value;
+   const n = randomStar.attributes[0].value;
    if (typeof n == "string"){
     return graph;
 }
@@ -156,20 +130,14 @@ random_star.generate = (pos: CanvasCoord, view : View) => {
    const cy = center.y;
 
     if(n>0){
-        const vcenter = new ClientVertex(cx, cy, "", view);
-        graph.addVertex(vcenter);
+        const vcenterData = new ClientVertexData(cx, cy, "", view);
+        graph.addVertex(vcenterData);
         for ( let i = 0 ; i < n ; i ++){
-            const v = new ClientVertex(cx +  r*Math.cos( (2*Math.PI*i) /(n-1)), cy + r*Math.sin( (2*Math.PI*i) /(n-1)), "", view);
-            graph.addVertex(v);
-
-            const startVertex = graph.vertices.get(0);
-            const endVertex = graph.vertices.get(i);
-            if (typeof startVertex !== "undefined"){
-                if (typeof endVertex !== "undefined"){
-                    const link =  new ClientLink(0,i, startVertex, endVertex,  "", ORIENTATION.UNDIRECTED, "black", "", view);
-                    graph.addLink(link);
-                }
-            }
+            const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /(n-1)), cy + r*Math.sin( (2*Math.PI*i) /(n-1)), "", view);
+            graph.addVertex(vData);
+            graph.addDefaultEdge(0,i, view);
+            // const linkData =  new ClientLinkData( undefined, "black", "", view);
+            // graph.addLink(0,i,ORIENTATION.UNDIRECTED, linkData);
         }
     }
 
@@ -178,27 +146,27 @@ random_star.generate = (pos: CanvasCoord, view : View) => {
 
 // ----------------------------
 
-let complete_bipartite = new GraphGenerator("complete_bipartite", [new Integer("n",1),new Integer("m",1)]);
+let completeBipartite = new GraphGenerator("complete_bipartite", [new Integer("n",1),new Integer("m",1)]);
 
-complete_bipartite.generate = (pos: CanvasCoord, view: View) => {
+completeBipartite.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = complete_bipartite.attributes[0].value;
-    const m = complete_bipartite.attributes[1].value;
+    const n = completeBipartite.attributes[0].value;
+    const m = completeBipartite.attributes[1].value;
     if (typeof n == "string"){
         return graph;
     }
     const center = view.create_canvas_coord(pos);
 
     for ( let i = 0 ; i < n ; i ++){
-        graph.add_default_client_vertex(center.x + i*30 , center.y, view);
+        graph.addDefaultVertex(new Coord(center.x + i*30 , center.y), view);
     }
     for ( let j = 0 ; j < m ; j ++){
-        graph.add_default_client_vertex(center.x + j*30 , center.y+100, view);
+        graph.addDefaultVertex(new Coord(center.x + j*30 , center.y+100), view);
     }
 
     for ( let i = 0 ; i < n ; i ++){
         for ( let j = 0 ; j < m ; j ++){
-            graph.add_edge(i,n+j,view);
+            graph.addDefaultEdge(i,n+j,view);
         }
     }
     return graph;
@@ -210,32 +178,34 @@ complete_bipartite.generate = (pos: CanvasCoord, view: View) => {
 
 // ----------------------------
 
-let grid = new GraphGenerator("grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
+let gridGenerator = new GraphGenerator("grid", [new Integer("n (column)",1),new Integer("m (row)",1), new Percentage("proba")]);
 
-grid.generate = (pos: CanvasCoord, view: View) => {
+gridGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = grid.attributes[0].value;
-    const m = grid.attributes[1].value;
-    if (typeof n == "string" || typeof m == "string"){
+    const n = gridGenerator.attributes[0].value;
+    const m = gridGenerator.attributes[1].value;
+    const p = gridGenerator.attributes[2].value;
+    if (typeof n == "string" || typeof m == "string" || typeof p == "string"){
         return graph;
     }
     const center = view.create_canvas_coord(pos);
     
     for ( let i = 0 ; i < n ; i++){
         for ( let j = 0 ; j < m ; j ++){
-            graph.add_default_client_vertex(center.x + i*30 , center.y+j*30, view);
+            graph.addDefaultVertex(new Coord(center.x + i*30 , center.y+j*30), view);
         }
     }
-   
 
     for ( let i = 0 ; i < n ; i ++){
         for ( let j = 0 ; j < m ; j ++){
             let current_index = i*m + j;
-            if(j < m - 1){
-                graph.add_edge(current_index, current_index + 1, view);
+            if( j < m - 1){
+                if (Math.random() < p) 
+                graph.addDefaultEdge(current_index, current_index + 1, view);
             }
-            if(i<n-1){
-                graph.add_edge(current_index, current_index+m, view);
+            if( i < n-1 ){
+                if (Math.random() < p )
+                graph.addDefaultEdge(current_index, current_index+m, view);
             }
         }
     }
@@ -243,16 +213,66 @@ grid.generate = (pos: CanvasCoord, view: View) => {
 }
 
 
+// ---------
+
+
+let aztecDiamondGenerator = new GraphGenerator("aztecDiamond", [new Integer("n",1), new Percentage("proba", 1)]);
+
+aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
+    const graph = new ClientGraph();
+    const n = aztecDiamondGenerator.attributes[0].value;
+    const p = aztecDiamondGenerator.attributes[1].value;
+    if (typeof n == "string" || typeof p == "string"){
+        return graph;
+    }
+    const center = view.create_canvas_coord(pos);
+    
+    function check(i,j,n): boolean {
+        return (i+j >= n-1 && i+j <= 3*n+1 && j-i <= n+1 && i-j <= n+1);
+    }
+
+    const indices = new Array();
+
+    for ( let i = 0 ; i < 2*n+1 ; i++){
+        indices.push(new Array());
+        for ( let j = 0 ; j < 2*n+1 ; j ++){
+            indices[i].push(-1);
+            if ( check(i,j,n) ){
+                const v = graph.addDefaultVertex(new Coord(center.x + i*30 - n*30 , center.y+j*30 - n*30), view);
+                indices[i][j] = v.index;
+            }
+        }
+    }
+
+    for ( let i = 0 ; i < 2*n+1 ; i++){
+        for (let j = 0 ; j < 2*n+1 ; j ++){
+            if (indices[i][j] != -1){
+                if (check(i+1, j, n) && i+1 < 2*n+1){
+                    graph.addDefaultEdge(indices[i][j], indices[i+1][j], view);
+                }
+                if (check(i,j+1,n) && j+1 < 2*n+1){
+                    graph.addDefaultEdge(indices[i][j], indices[i][j+1], view);
+
+                }
+            }
+        }
+    }
+
+   
+    return graph;
+}
+
 // ----------------------------
 
 
 
 export let generators_available = new Array<GraphGenerator>();
-generators_available.push(generate_random_independent);
-generators_available.push(random_clique);
-generators_available.push(random_GNP);
-generators_available.push(random_star);
-generators_available.push(complete_bipartite);
-generators_available.push(grid);
-generators_available.push(random_tournament);
+generators_available.push(independentGenerator);
+generators_available.push(randomCliqueGenerator);
+generators_available.push(randomGNP);
+generators_available.push(randomStar);
+generators_available.push(completeBipartite);
+generators_available.push(gridGenerator);
+generators_available.push(randomTournament);
+generators_available.push(aztecDiamondGenerator);
 

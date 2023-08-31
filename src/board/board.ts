@@ -1,20 +1,22 @@
-import { Area, Board, Coord, TextZone, Vect } from "gramoloss";
-import { GRID_COLOR } from "../draw";
+import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
+import { draw, GRID_COLOR } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
 import { View } from "./camera";
 import { ClientGraph } from "./graph";
-import { ClientLink, ClientLinkData, LinkPreData } from "./link";
+import { ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
 import { ClientRepresentation } from "./representations/client_representation";
 import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./vect";
-import { ClientVertex, ClientVertexData } from "./vertex";
+import { ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
+import { Var, VariableNumber, VariableBoolean } from "./variable";
+import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 
 
 export enum BoardElementType {
@@ -42,7 +44,8 @@ export enum SocketMsgType {
     UNDO = "undo",
     REDO = "redo",
     LOAD_JSON = "load_json",
-    GET_JSON = "get_json"
+    GET_JSON = "get_json",
+    SUBDIVIDE_LINK = "subdivide_link"
 }
 
 
@@ -50,12 +53,124 @@ export enum SocketMsgType {
 export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
     view: View;
     graph: ClientGraph;
+    variables: Map<string, Var>;
+    variablesDiv: HTMLDivElement;
 
     constructor(){
         super();
         this.graph = new ClientGraph();
         this.view = new View();
+        this.variables = new Map();
+
+        this.variablesDiv = document.createElement("div");
+        this.variablesDiv.id = "variablesDiv";
+        document.body.appendChild(this.variablesDiv);
+
+        // this.addVariable("h", 0, 20, 50, 0.1, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariable("h2", 0, 20, 50, 0.1, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariableBoolean("adaptToEdgeLength", false, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariableBoolean("middleOfEdge", false, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariable("ratio", 0, 0.5, 1, 0.01, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariable("durete", 0, 10, 100, 0.1, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariable("crossRatio", 0, 0.4, 0.5, 0.01, () => {
+        //     this.afterVariableChange()
+        // });
+        // this.addVariable("width", 0, 3, 50, 0.1, () => {
+        //     this.afterVariableChange();
+        // })
+
     }
+
+    afterVariableChange(){
+        // const canvas = document.getElementById('main') as HTMLCanvasElement;
+        // const ctx = canvas.getContext('2d');
+        // const h = this.getVariableValue("h");
+        // const h2 = this.getVariableValue("h2");
+        // const adaptToEdgeLength = this.getVariableValue("adaptToEdgeLength");
+        // const ratio = this.getVariableValue("ratio");
+        // const durete = this.getVariableValue("durete");
+        // const crossRatio = this.getVariableValue("crossRatio");
+        // const width = this.getVariableValue("width");
+
+        // draw(canvas, ctx, this.graph);
+        // if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
+        //     this.graph.drawCombinatorialMap(undefined, ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
+        // }
+    }
+
+    addVariable(id: string, min: number, value: number, max: number, step: number, onchangeHandler: () => void ){
+        const variable = new VariableNumber(id, min, value, max, step, onchangeHandler);
+        this.variablesDiv.appendChild(variable.div);
+        this.variables.set(id, variable);
+    }
+
+    addVariableBoolean(id: string, value: boolean, onchangeHandler: () => void ){
+        const variable = new VariableBoolean(id, value, onchangeHandler);
+        this.variablesDiv.appendChild(variable.div);
+        this.variables.set(id, variable);
+    }
+
+    getVariableValue(id: string): Option<number | boolean>{
+        const v = this.variables.get(id);
+        if (v){
+            return v.getValue();
+        } else {
+            return undefined
+        }
+    }
+
+    /**
+     * Draw a Bezier Curve with 2 control points (therefore it is a cubic curve).
+     */
+    drawBezierCurve(ctx: CanvasRenderingContext2D, p1: Coord, c1: Coord, c2: Coord, p2: Coord, color: string, width: number){
+        const canvasp1 = this.view.create_canvas_coord(p1);
+        const canvasc1 = this.view.create_canvas_coord(c1);
+        const canvasc2 = this.view.create_canvas_coord(c2);
+        const canvasp2 = this.view.create_canvas_coord(p2);
+        const scaledWidth = width*this.view.zoom;
+        drawBezierCurve(ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
+    }
+
+    drawLine(ctx: CanvasRenderingContext2D, p1: Coord, p2: Coord, color: string, width: number){
+        const canvasP1 = this.view.create_canvas_coord(p1);
+        const canvasP2 = this.view.create_canvas_coord(p2);
+        const scaledWidth = width*this.view.zoom;
+        drawLine(canvasP1, canvasP2, ctx, color, scaledWidth);
+    }
+
+    drawCircle(ctx: CanvasRenderingContext2D, center: Coord, radius: number, color: string){
+        const canvasCenter = this.view.create_canvas_coord(center);
+        draw_circle(canvasCenter, color, radius, 1, ctx)
+    }
+    
+
+    /**
+     * For the moment only everything in the graph.
+     * TODO: select also all the other elements?
+     * TODO: select only the vertices or only the links?
+     * (depending on a board variable)
+     */
+    selectEverything() {
+        for (const vertex of this.graph.vertices.values()){
+            vertex.data.is_selected = true;
+        } 
+        for (const link of this.graph.links.values()){
+            link.data.is_selected = true;
+        }
+    }
+
 
     /**
      * Draw a triangular grid. 
@@ -345,6 +460,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
+    emitSubdivideLink(linkIndex: number, pos: Coord, callback: (response: number) => void) {
+        socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, callback);
+    }
+
     emit_redo() {
         socket.emit(SocketMsgType.REDO);
     }
@@ -370,6 +489,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emit_paste_graph(graph: ClientGraph){
+        console.log([...graph.links.entries()]);
         socket.emit(SocketMsgType.PASTE_GRAPH, [...graph.vertices.entries()], [...graph.links.entries()]);
     }
 

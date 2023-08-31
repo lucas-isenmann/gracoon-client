@@ -6,7 +6,7 @@ import { CanvasCoord } from "./board/canvas_coord";
 
 const ARC_ARROW_LENGTH = 12
 
-function draw_triangle(ctx: CanvasRenderingContext2D, a: CanvasCoord, b: CanvasCoord, c: CanvasCoord){
+function drawTriangle(ctx: CanvasRenderingContext2D, a: CanvasCoord, b: CanvasCoord, c: CanvasCoord){
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
@@ -16,11 +16,21 @@ function draw_triangle(ctx: CanvasRenderingContext2D, a: CanvasCoord, b: CanvasC
 }
 
 
-export function draw_line(start: CanvasCoord, end: CanvasCoord, ctx: CanvasRenderingContext2D, color: string) {
+export function drawLine(start: CanvasCoord, end: CanvasCoord, ctx: CanvasRenderingContext2D, color: string, width: number) {
     ctx.beginPath();
     ctx.strokeStyle = color;
+    ctx.lineWidth = width;
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+}
+
+export function drawBezierCurve(ctx: CanvasRenderingContext2D,  p1: CanvasCoord, c1: CanvasCoord, c2: CanvasCoord, p2: CanvasCoord, color: string, width: number){
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, p2.x, p2.y);
     ctx.stroke();
 }
 

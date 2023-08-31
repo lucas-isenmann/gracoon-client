@@ -1,0 +1,8 @@
+#variablesDiv{
+    color: white;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    background-color: rgb(24, 24, 24);
+    width: 300px;
+}

@@ -1,13 +1,14 @@
 import { View } from "../board/camera";
 import { createPopup } from "../popup";
 import { local_board } from "../setup";
-import { socket } from "../socket";
-import { modifyer_into_tournament } from "./implementations/into_tournament";
+import { removeRandomLinks, intoTournament } from "./implementations/into_tournament";
 import { GraphModifyer } from "./modifyer";
 
 // --- Modifyers available ---
-let modifyers_available = new Array<GraphModifyer>();
-modifyers_available.push(modifyer_into_tournament)
+let modifyers_available = new Array<GraphModifyer>(
+    intoTournament,
+    removeRandomLinks
+    );
 
 
 
@@ -18,15 +19,17 @@ export function setup_modifyers_div(canvas: HTMLCanvasElement, view: View) {
     popup_content.style.display = "flex";
     popup_content.classList.add("scrolling_y","non_scrolling_bar");
 
+    // List of the modifyers on the left
     const modifyers_list = document.createElement("div");
     modifyers_list.id = "modifyers_list";
     popup_content.appendChild(modifyers_list);
     
+    // Search input
     const search_input = document.createElement("input");
     search_input.classList.add("search_filter");
     search_input.type = "text";
     search_input.id = "modifyer_search_input";
-    search_input.onkeyup = handle_search_onkeyup;
+    search_input.onkeyup = filterList;
     search_input.placeholder = "Search for names..";
     modifyers_list.appendChild(search_input);
     
@@ -39,7 +42,7 @@ export function setup_modifyers_div(canvas: HTMLCanvasElement, view: View) {
     for (const mod of modifyers_available) {
         const text = document.createElement("div");
         text.classList.add("modifyer_item");
-        text.innerHTML = mod.name;
+        text.innerHTML = mod.humanName;
         text.onclick = () => {
             activate_modifyer_div(canvas, mod, view);
         }
@@ -59,10 +62,17 @@ function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, vi
     const div = document.getElementById("modifyer_configuration");
     div.innerHTML = ""; // TODO clear better ??
 
+    // Title
     const title = document.createElement("h2");
-    title.innerText = mod.name;
+    title.innerText = mod.humanName;
     div.appendChild(title);
 
+    // Description
+    const description = document.createElement("p");
+    description.innerText = mod.description;
+    div.appendChild(description);
+
+    // Attributes
     for (const attribute of mod.attributes) {
         attribute.reset_inputs(local_board);
         const attribute_div = document.createElement("div");
@@ -73,15 +83,15 @@ function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, vi
         div.appendChild(attribute_div);
     }
 
+    // Button
     const modify_button = document.createElement("button");
-    modify_button.textContent = "modify";
+    modify_button.textContent = "Apply";
     modify_button.onclick = (e) => {
         for( const attribute of mod.attributes.values() ){
             if( attribute.div.classList.contains("invalid")){
                 return;
             }
         }
-        // mod.modify();
         local_board.emit_apply_modifyer(mod);
         turn_off_modifyers_div();
     }
@@ -90,18 +100,18 @@ function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, vi
 
 
 
-function handle_search_onkeyup() {
+function filterList() {
     const input = <HTMLInputElement>document.getElementById('modifyer_search_input');
     const filter = input.value.toUpperCase();
-    const div_content = document.getElementById("modifyers_div_content");
-    const param_list = <HTMLCollectionOf<HTMLDivElement>>div_content.getElementsByClassName('modifyer_item');
+    const contentDiv = document.getElementById("modifyers_div_content");
+    const elementsList = <HTMLCollectionOf<HTMLDivElement>>contentDiv.getElementsByClassName('modifyer_item');
 
-    for (let i = 0; i < param_list.length; i++) {
-        const txtValue = param_list[i].innerHTML;
+    for (let i = 0; i < elementsList.length; i++) {
+        const txtValue = elementsList[i].innerHTML;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            param_list[i].style.display = "";
+            elementsList[i].style.display = "";
         } else {
-            param_list[i].style.display = "none";
+            elementsList[i].style.display = "none";
         }
     }
 }

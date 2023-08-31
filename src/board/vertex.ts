@@ -1,4 +1,4 @@
-import { BasicVertex, BasicVertexData, bezierValue, Board, Coord, Vect, Vertex } from "gramoloss";
+import { BasicVertex, BasicVertexData, bezierValue, Board, Coord, Vect, Vertex, Weighted } from "gramoloss";
 import katex from "katex";
 import { COLOR_INNER_VERTEX_DEFAULT, VERTEX_RADIUS } from "../draw";
 import { draw_circle, real_color } from "../draw_basics";

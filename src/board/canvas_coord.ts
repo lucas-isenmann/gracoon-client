@@ -1,5 +1,6 @@
 import { bezierValue, Coord } from "gramoloss";
 import { solutionQuadratic } from "../utils";
+import { View } from "./camera";
 import { CanvasVect } from "./vect";
 
 /**
@@ -36,6 +37,14 @@ export class CanvasCoord extends Coord {
 
     is_nearby(pos: CanvasCoord, rsquared: number) {
         return this.dist2(pos) <= rsquared;
+    }
+
+
+    /**
+     * Return the Server coordinates of the Canvas coordinates.
+     */
+    toCoord(view: View): Coord {
+        return new Coord( (this.x - view.camera.x)/ view.zoom, (this.y - view.camera.y)/ view.zoom);
     }
 
     // return boolean

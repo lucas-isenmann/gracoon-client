@@ -68,6 +68,35 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
                 local_board.representations.set(0, dw_rep);
                 requestAnimationFrame(function () { draw(canvas, ctx, g) });
             }
+            // if (e.key == "u"){
+            //     console.log("generate moebius stanchions SVG");
+            //     const h = local_board.getVariableValue("h");
+            //     const h2 = local_board.getVariableValue("h2");
+            //     const adaptToEdgeLength = local_board.getVariableValue("adaptToEdgeLength");
+            //     const ratio = local_board.getVariableValue("ratio");
+            //     const durete = local_board.getVariableValue("durete");
+            //     const crossRatio = local_board.getVariableValue("crossRatio");
+            //     const width = local_board.getVariableValue("width");
+
+            //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
+            //         local_board.graph.drawCombinatorialMap("", ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
+            //     }
+            // }
+            // if (e.key == "v"){
+            //     console.log("generate moebius stanchions SVG");
+            //     const h = local_board.getVariableValue("h");
+            //     const h2 = local_board.getVariableValue("h2");
+            //     const adaptToEdgeLength = local_board.getVariableValue("adaptToEdgeLength");
+            //     const ratio = local_board.getVariableValue("ratio");
+            //     const durete = local_board.getVariableValue("durete");
+            //     const crossRatio = local_board.getVariableValue("crossRatio");
+            //     const width = local_board.getVariableValue("width");
+            //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
+            //         // local_board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
+            //         local_board.graph.drawCombinatorialMap(undefined, ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width)
+            //     }
+
+            // }
             
             if (e.key == "Delete") {
                 const data_socket = new Array();
@@ -106,6 +135,9 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
                 console.log("Request: redo");
                 local_board.emit_redo();
             }
+            if (key_states.get("Control") && e.key.toLowerCase() == "a") {
+                local_board.selectEverything();
+            }
         }
     });
 
@@ -138,7 +170,8 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
     });
 
     canvas.addEventListener('mouseup', function (e) {
-        const click_pos = new CanvasCoord(e.pageX, e.pageY);
+        let click_pos = new CanvasCoord(e.pageX, e.pageY);
+        click_pos = g.align_position(click_pos, new Set(), canvas, local_board.view);
         interactor_loaded.mouseup(canvas, ctx, g, click_pos);
         down_coord = null;
         last_down = null;
@@ -181,6 +214,7 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
         previous_canvas_shift = new CanvasVect(0,0);
         mouse_buttons = e.buttons;
         down_coord = new CanvasCoord(e.pageX, e.pageY);
+        down_coord = g.align_position(down_coord, new Set(), canvas, local_board.view);
         has_moved = false;
 
         if (graph_clipboard != null) {

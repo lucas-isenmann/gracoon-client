@@ -2,7 +2,7 @@ const SELECTION_COLOR = 'green' // avant c'était '#00ffff'
 export let COLOR_BACKGROUND = "#1e1e1e";
 export const GRID_COLOR = '#777777';
 export const VERTEX_RADIUS = 8;
-const COLOR_ALIGNEMENT_LINE = "#555555";
+const COLOR_ALIGNEMENT_LINE = "#444444";
 export let COLOR_BORDER_VERTEX = "#ffffff";
 export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
 
@@ -15,7 +15,7 @@ import { interactor_loaded } from './interactors/interactor_manager';
 import { clamp } from './utils';
 import { Multicolor } from './multicolor';
 import { local_board } from './setup';
-import { drawRoundRect, draw_line} from './draw_basics';
+import { drawRoundRect, drawLine} from './draw_basics';
 import { real_color2 } from './basic_colors';
 import { graph_clipboard } from './clipboard';
 import { CanvasCoord } from './board/canvas_coord';
@@ -284,10 +284,10 @@ function draw_following(ctx: CanvasRenderingContext2D){
 
 function draw_alignements(ctx: CanvasRenderingContext2D) {
     if (local_board.view.alignement_horizontal) {
-        draw_line(new CanvasCoord(0, local_board.view.alignement_horizontal_y), new CanvasCoord(window.innerWidth, local_board.view.alignement_horizontal_y), ctx, COLOR_ALIGNEMENT_LINE);
+        drawLine(new CanvasCoord(0, local_board.view.alignement_horizontal_y), new CanvasCoord(window.innerWidth, local_board.view.alignement_horizontal_y), ctx, COLOR_ALIGNEMENT_LINE, 3);
     }
     if (local_board.view.alignement_vertical) {
-        draw_line(new CanvasCoord(local_board.view.alignement_vertical_x, 0), new CanvasCoord(local_board.view.alignement_vertical_x, window.innerHeight), ctx, COLOR_ALIGNEMENT_LINE);
+        drawLine(new CanvasCoord(local_board.view.alignement_vertical_x, 0), new CanvasCoord(local_board.view.alignement_vertical_x, window.innerHeight), ctx, COLOR_ALIGNEMENT_LINE, 3);
     }
 
 }

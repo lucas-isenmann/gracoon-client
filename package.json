@@ -1,6 +1,6 @@
 {
   "name": "gracoon-client",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "dependencies": {
     "@types/marked": "^5.0.0",
     "@types/socket.io-client": "^3.0.0",
-    "gramoloss": "^1.5.3",
+    "gramoloss": "^1.5.9",
     "katex": "^0.16.7",
     "marked": "^5.0.4",
     "parcel": "^2.9.1",

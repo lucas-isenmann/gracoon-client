@@ -45,6 +45,23 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     endVertex: ClientVertex;
 
    
+    /**
+     * Return true if the position is at distance <= 10 (?) from the curve
+     */
+    isPosNear(pos: CanvasCoord): boolean {
+        const linkCpCanvas = this.data.cp_canvas_pos;
+        const vCanvasPos = this.startVertex.data.canvas_pos;
+        const wCanvasPos = this.endVertex.data.canvas_pos
+        if (typeof linkCpCanvas != "string"){
+            return pos.is_nearby_beziers_1cp(vCanvasPos, linkCpCanvas, wCanvasPos);
+        }
+        else {
+            // OPT dont need beziers as it is a straight line
+            const middle = vCanvasPos.middle(wCanvasPos);
+            return pos.is_nearby_beziers_1cp(vCanvasPos, middle, wCanvasPos);
+        }
+    }
+
 
     set_cp(new_cp: Coord, view: View){
         this.cp = new_cp;

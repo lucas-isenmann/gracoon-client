@@ -61,8 +61,11 @@ export class Percentage {
     value: number = 0.5;
     div: HTMLDivElement;
 
-    constructor(name: string) {
+    constructor(name: string, value?: number) {
         this.name = name;
+        if (value){
+            this.value = value;
+        }
         this.div = document.createElement("div");
 
         const label = document.createElement("label");
