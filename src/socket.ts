@@ -148,7 +148,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     socket.on("strokes", handle_strokes); // STROKES
     socket.on("reset_board", handle_reset_board);
 
-    // META
+    // Generic
     socket.on("update_element", handle_update_element);
     socket.on("add_elements", handle_add_elements);
     socket.on("delete_elements", handle_delete_elements);
@@ -156,10 +156,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 
     function handle_translate_elements(data, sensibilities){
-        // console.log("handle_translate_elements");
+        console.log("handle_translate_elements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = local_board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
+            console.log(kind, index);
             if ( kind == "TextZone"){
                 const text_zone = local_board.text_zones.get(index);
                 text_zone.translate(cshift, local_board.view);
@@ -184,13 +185,19 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             } else if (kind == "ControlPoint"){
+                console.log("hello");
                 const link = g.links.get(index);
-                if ( typeof link.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
-                    link.cp.translate(shift);
+                console.log (link);
+                console.log(link.data.cp);
+                if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
+                    console.log("translate", shift, cshift);
+                    link.data.cp.translate(shift);
                     link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
                 }
                 link.setAutoWeightDivPos();
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
+            } else {
+                console.log(`translate element: kind ${kind} not supported`);
             }
         }
         
@@ -322,7 +329,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 link.setWeight(weight);
             } else if (data.param == "cp"){
                 if (typeof data.value == "string"){
-                    link.cp = undefined;
+                    link.data.cp = undefined;
                     link.data.cp_canvas_pos = "";
                 } else {
                     const new_cp = new Coord(data.value.x, data.value.y);
@@ -458,7 +465,9 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             }
             const cp = typeof data[1].cp == "string" ? undefined : new Coord(data[1].cp.x, data[1].cp.y);
             const newLinkData = new ClientLinkData(cp, data[1].color, data[1].weight, local_board.view);
+            console.log("update_graph, cp ", newLinkData.cp);
             const newLink = g.setLink(data[0], data[1].start_vertex, data[1].end_vertex, orient, newLinkData);
+            console.log("update_graph, cp ", newLink.data.cp);
             if (newLinkData.weight != ""){
                 newLink.afterSetWeight();
             }

@@ -400,7 +400,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const u = e.startVertex;
             const v = e.endVertex;
             if(u.data.is_selected && v.data.is_selected){
-                subgraph.setLink(index, e.startVertex.index, e.endVertex.index, e.orientation, new ClientLinkData(e.cp, e.data.color, e.data.weight, view ) );
+                subgraph.setLink(index, e.startVertex.index, e.endVertex.index, e.orientation, new ClientLinkData(e.data.cp, e.data.color, e.data.weight, view ) );
             }
         }
         return subgraph;
@@ -480,13 +480,13 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const new_pos = vertex.data.pos.copy();
 
             for (const [link_index, link] of this.links.entries()) {
-                if ( typeof link.cp != "undefined"){
+                if ( typeof link.data.cp != "undefined"){
                     if (link.startVertex.index == index) {
-                        link.transform_cp(new_pos, previous_pos, link.endVertex.data.pos);
-                        link.data.cp_canvas_pos = view.create_canvas_coord(link.cp);
+                        link.transformCP(new_pos, previous_pos, link.endVertex.data.pos);
+                        link.data.cp_canvas_pos = view.create_canvas_coord(link.data.cp);
                     } else if (link.endVertex.index == index) {
-                        link.transform_cp(new_pos, previous_pos, link.startVertex.data.pos);
-                        link.data.cp_canvas_pos = view.create_canvas_coord(link.cp);
+                        link.transformCP(new_pos, previous_pos, link.startVertex.data.pos);
+                        link.data.cp_canvas_pos = view.create_canvas_coord(link.data.cp);
                     }
                 }
             }

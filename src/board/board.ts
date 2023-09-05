@@ -434,7 +434,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 }
             })
             for( const link of this.graph.links.values()){
-                if ( typeof link.cp != "undefined"){
+                if ( typeof link.data.cp != "undefined"){
                     const v1 = link.startVertex;
                     const v2 = link.endVertex;
                     if(vertices_contained.has(link.startVertex.index) && vertices_contained.has(link.endVertex.index)){
@@ -444,14 +444,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                         const new_pos = v1.data.pos;
                         const previous_pos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
                         const fixed_pos = v2.data.pos;
-                        link.transform_cp(new_pos, previous_pos, fixed_pos);
-                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
+                        link.transformCP(new_pos, previous_pos, fixed_pos);
+                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
                     }else if(vertices_contained.has(link.endVertex.index)) { // and thus not v1
                         const new_pos = v2.data.pos;
                         const previous_pos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
                         const fixed_pos = v1.data.pos;
-                        link.transform_cp(new_pos, previous_pos, fixed_pos);
-                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.cp);
+                        link.transformCP(new_pos, previous_pos, fixed_pos);
+                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
                     }
                 }
             }

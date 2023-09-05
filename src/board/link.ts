@@ -13,7 +13,7 @@ export class LinkPreData extends BasicLinkData {
     orientation: ORIENTATION;
 
     constructor(startIndex: number, endIndex: number, orientation: ORIENTATION){
-        super("", "black");
+        super(undefined, "", "black");
         this.startIndex = startIndex;
         this.endIndex = endIndex;
         this.orientation = orientation;
@@ -26,7 +26,7 @@ export class ClientLinkData extends BasicLinkData {
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
 
     constructor(cp: Option<Coord>,  color: string, weight: string, view: View) {
-        super(weight, color);
+        super(cp, weight, color);
         if (typeof cp == "undefined"){
             this.cp_canvas_pos = "";
         } else {
@@ -43,6 +43,11 @@ export class ClientLinkData extends BasicLinkData {
 export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     startVertex: ClientVertex;
     endVertex: ClientVertex;
+
+
+    constructor(index, startVertex, endVertex, orientation, linkData){
+        super(index, startVertex, endVertex, orientation, linkData);
+    }
 
    
     /**
@@ -64,7 +69,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
 
     set_cp(new_cp: Coord, view: View){
-        this.cp = new_cp;
+        this.data.cp = new_cp;
         this.data.cp_canvas_pos = view.create_canvas_coord(new_cp);
     }
 
@@ -75,8 +80,8 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     }
 
     update_after_view_modification(view: View){
-        if ( typeof this.cp != "undefined"){
-            this.data.cp_canvas_pos = view.create_canvas_coord(this.cp);
+        if ( typeof this.data.cp != "undefined"){
+            this.data.cp_canvas_pos = view.create_canvas_coord(this.data.cp);
         }
         this.setAutoWeightDivPos();
     }
@@ -117,10 +122,10 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
 
     translate_cp_by_canvas_vect(shift: CanvasVect, view: View){
-            if ( typeof this.cp != "undefined" && typeof this.data.cp_canvas_pos != "string"){
+            if ( typeof this.data.cp != "undefined" && typeof this.data.cp_canvas_pos != "string"){
                 this.data.cp_canvas_pos.translate_by_canvas_vect(shift);
-                this.cp.x += shift.x/view.zoom; 
-                this.cp.y += shift.y/view.zoom;
+                this.data.cp.x += shift.x/view.zoom; 
+                this.data.cp.y += shift.y/view.zoom;
             }
     }
 
@@ -129,8 +134,8 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         let labelCode = "";
         // if (showLabels)
         // labelCode = "node[midway, shift={(" + this.label.getExactLabelOffsetX() / 100 + "," + -this.label.getExactLabelOffsetY() / 100 + ")}, scale = \\scaleE] {" + this.label.text + "}";
-        if (typeof this.cp != "undefined" ){
-            return `\\draw[line width = \\scaleE, color = black] (${start.get_tikz_coordinate(start_index)}) .. controls (${Math.round(this.cp.x)/100}, ${Math.round(this.cp.y)/100}) .. (${end.get_tikz_coordinate(end_index)}) ${labelCode};`;
+        if (typeof this.data.cp != "undefined" ){
+            return `\\draw[line width = \\scaleE, color = black] (${start.get_tikz_coordinate(start_index)}) .. controls (${Math.round(this.data.cp.x)/100}, ${Math.round(this.data.cp.y)/100}) .. (${end.get_tikz_coordinate(end_index)}) ${labelCode};`;
         } else {
             return ``; // TODO
         }
@@ -211,11 +216,11 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
 
     translateByServerVect(shift: Vect, view: View) {
-        if (typeof this.cp !== "undefined" && typeof this.data.cp_canvas_pos !== "string"){
+        if (typeof this.data.cp !== "undefined" && typeof this.data.cp_canvas_pos !== "string"){
             const canvas_shift = view.create_canvas_vect(shift);
             this.data.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);
-            this.cp.x += shift.x;
-            this.cp.y += shift.y;
+            this.data.cp.x += shift.x;
+            this.data.cp.y += shift.y;
             // TODO: something with the weight_div
         }
     }

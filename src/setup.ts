@@ -11,9 +11,7 @@ import { ORIENTATION_INFO, ORIENTATION_SIDE_BAR } from "./side_bar/element_side_
 import { FolderSideBar, FOLDER_EXPAND_DIRECTION } from "./side_bar/folder_side_bar";
 import { SwitchSideBar } from "./side_bar/switch_side_bar";
 import { selectionV2 } from "./side_bar/interactors/selection";
-import { edge_interactorV2 } from "./side_bar/interactors/edge";
 import { detector_interactorV2 } from "./side_bar/interactors/detector";
-import { arc_interactorV2 } from "./side_bar/interactors/arc";
 import { control_point_interactorV2 } from "./side_bar/interactors/control_points";
 import { stroke_interactorV2 } from "./side_bar/interactors/stroke";
 import { rectangle_interactorV2 } from "./side_bar/interactors/rectangle";
@@ -28,6 +26,8 @@ import { TikZ_create_file_data } from "./tikz";
 import { INDEX_TYPE } from "./board/camera";
 import { createPopup } from "./popup";
 import PACKAGE from "../package.json";
+import { createLinkInteractor } from "./side_bar/interactors/link";
+import { ORIENTATION } from "gramoloss";
 
 export const local_board = new ClientBoard();
 
@@ -66,7 +66,6 @@ function setup() {
     document.addEventListener('contextmenu', event => event.preventDefault());
     setup_interactions(canvas, ctx, local_board.graph);
     setup_interactors_div(canvas, ctx, local_board.graph);
-    select_interactor(edge_interactorV2, canvas, ctx, local_board.graph, null);
 
     setup_generators_div(canvas, local_board);
     setup_modifyers_div(canvas, local_board.view);
@@ -288,7 +287,12 @@ function setup() {
 
     const edge_folder = new FolderSideBar("edge_folder", "Link interactors", "", ORIENTATION_INFO.RIGHT, "edition", "default", edge_side_bar, FOLDER_EXPAND_DIRECTION.RIGHT);
 
-    edge_side_bar.add_elements(edge_interactorV2, arc_interactorV2, control_point_interactorV2);
+    const edgeInteractorV3 = createLinkInteractor(ORIENTATION.UNDIRECTED);
+    const arcInteractorV3 = createLinkInteractor(ORIENTATION.DIRECTED);
+    edge_side_bar.add_elements(edgeInteractorV3, arcInteractorV3, control_point_interactorV2);
+
+    select_interactor(edgeInteractorV3, canvas, ctx, local_board.graph, null);
+
 
     if (ENV.mode == "dev"){
         left_side_bar.add_elements(detector_interactorV2);

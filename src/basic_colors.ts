@@ -11,3 +11,9 @@ export function real_color2(color_name: BasicColorName, dark_mode: boolean) : st
         return BASIC_COLORS[color_name].light
     }
 }
+
+
+// TODO ça a l'air mieux ça
+export enum Color {
+    Neutral = "black"
+}

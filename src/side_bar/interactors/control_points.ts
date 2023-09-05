@@ -32,7 +32,7 @@ control_point_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: Canvas
     switch (last_down) {
         case DOWN_TYPE.LINK:{
             const link = g.links.get(last_down_index);
-            if (typeof link.cp == "undefined"){
+            if (typeof link.data.cp == "undefined"){
                 const v1 = link.startVertex;
                 const v2 = link.endVertex;
                 const new_cp = v1.data.pos.middle(v2.data.pos);

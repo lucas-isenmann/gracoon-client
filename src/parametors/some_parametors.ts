@@ -6,6 +6,7 @@ import { ClientLink, ClientLinkData } from '../board/link';
 import { local_board } from '../setup';
 import { ClientVertex } from '../board/vertex';
 import { ClientRectangle } from '../board/rectangle';
+import { shuffle } from '../utils';
 
 export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
@@ -661,3 +662,137 @@ function test(g: ClientGraph): boolean {
 
 // --------------------
 
+
+
+export const paramIsQuasiKernel = new Parametor("Is Quasi Kernel", "is_quasi_kernel", "isQK", "Is Quasi Kernel", false, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
+
+paramIsQuasiKernel.compute = ((g: ClientGraph) => {
+
+    for (const v of g.vertices.values()){
+        if (v.data.color != "black"){
+            for ( const neighborId of g.get_out_neighbors_list(v.index)){
+                const neighbor = g.vertices.get(neighborId);
+                if (neighbor.data.color != "black"){
+                    return "false";
+                }
+            }
+            continue;
+        }
+        let covered = false;
+        for ( const neighborId of g.get_out_neighbors_list(v.index)){
+            const neighbor = g.vertices.get(neighborId);
+            if (neighbor.data.color != "black"){
+                covered = true;
+                break;
+            }
+            for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
+                const neighbor2 = g.vertices.get(neighbor2Id);
+                if (neighbor2.data.color != "black"){
+                    covered = true;
+                    break;
+                }
+            }
+            if (covered){
+                break;
+            }
+        }
+        if (covered == false){
+            return "false";
+        }
+    }
+
+    return "true";
+
+})
+
+
+// --------
+
+
+
+function getUncoveredVertex(g: ClientGraph): ClientVertex | undefined{
+    let l = [...g.vertices.values()];
+    l = shuffle(l);
+    
+    for (const v of l){
+        if (v.data.color != "black"){
+            continue;
+        }
+        let covered = false;
+        for ( const neighborId of g.get_out_neighbors_list(v.index)){
+            const neighbor = g.vertices.get(neighborId);
+            if (neighbor.data.color != "black"){
+                covered = true;
+                break;
+            }
+            for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
+                const neighbor2 = g.vertices.get(neighbor2Id);
+                if (neighbor2.data.color != "black"){
+                    covered = true;
+                    break;
+                }
+            }
+            if (covered){
+                break;
+            }
+        }
+        if (covered == false){
+            return v;
+        }
+    }
+    return undefined;
+}
+
+
+
+
+export const paramIsQKAlgoOK = new Parametor("Is Algo OK", "paramIsQKAlgoOK", "isQK", "Is Quasi Kernel", false, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
+
+paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
+    console.log("compute");
+    for (const v of g.vertices.values()){
+        v.data.color = "black";
+    }
+
+    let treated = new Set<number>();
+    let v = getUncoveredVertex(g);
+    while (typeof v != "undefined"){
+        console.log(v.index);
+        if (treated.has(v.index)){
+            console.log("was treated");
+            v.data.color = "blue";
+            for (const neighborId of g.get_out_neighbors_list(v.index)){
+                g.vertices.get(neighborId).data.color = "black";
+            }
+            for (const neighborId of g.get_in_neighbors_list(v.index)){
+                g.vertices.get(neighborId).data.color = "black";
+            }
+        } else {
+            treated.add(v.index);
+            for (const outNeighborId of shuffle(g.get_out_neighbors_list(v.index)) ){
+                const outNeighbor = g.vertices.get(outNeighborId);
+                outNeighbor.data.color = "blue";
+                for (const n2Id of g.get_out_neighbors_list(outNeighbor.index)){
+                    g.vertices.get(n2Id).data.color = "black";
+                }
+                for (const n2Id of g.get_in_neighbors_list(outNeighbor.index)){
+                    g.vertices.get(n2Id).data.color = "black";
+                }
+                break;
+            }
+        }
+
+        v = getUncoveredVertex(g);
+    }
+
+    let colored = [];
+    let counter = 0;
+    for (const v of g.vertices.values()){
+        if (v.data.color != "black"){
+            counter ++;
+            colored.push(v.index);
+        }
+    }
+    return 2*counter <= g.vertices.size ? "true": "false";
+
+})
