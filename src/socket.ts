@@ -156,7 +156,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 
     function handle_translate_elements(data, sensibilities){
-        console.log("handle_translate_elements", data);
+        // console.log("handle_translate_elements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = local_board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
@@ -205,7 +205,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     }
 
     function handle_add_elements( datas, sensibilities){
-        console.log("handle_add_elements", datas);
+        // console.log("handle_add_elements", datas);
         for(const data of datas){
             if (data.kind == "Stroke"){
                 const positions = new Array<Coord>();
@@ -262,7 +262,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     }
 
     function handle_delete_elements(data, sensibilities){
-        console.log("handle_delete_elements", data);
+        // console.log("handle_delete_elements", data);
         for ( const element of data){
             if (element[0] == "Stroke"){
                 local_board.strokes.delete(element[1]);

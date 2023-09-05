@@ -182,6 +182,16 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
         mouse_buttons = "";
     })
 
+    canvas.addEventListener("mouseout", function(e){
+        down_coord = null;
+        last_down = null;
+        last_down_index = null;
+        local_board.view.alignement_horizontal = false;
+        local_board.view.alignement_vertical = false;
+        requestAnimationFrame(function () { draw(canvas, ctx, g) });
+        mouse_buttons = "";
+    })
+
     canvas.addEventListener('mousemove', function (e) {
         const click_pos = new CanvasCoord(e.pageX, e.pageY);
         mouse_pos = new CanvasCoord(e.pageX, e.pageY);

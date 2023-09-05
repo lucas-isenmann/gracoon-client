@@ -33,6 +33,7 @@ export class ClientTextZone extends TextZone {
             content.classList.add("text_zone_content", "content_editable");
             content.innerHTML = text;
             content.contentEditable = "true";
+            content.spellcheck = false;
             this.div.appendChild(content);
             this.content_div = content;
             
@@ -72,6 +73,7 @@ export class ClientTextZone extends TextZone {
                 this.last_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
                 if (interactor_loaded.id == selectionV2.id){
                     function move_div(e: MouseEvent){
+                        console.log("moveDiv");
                         const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
                         const cshift = CanvasVect.from_canvas_coords(text_zone.last_mouse_pos, new_mouse_pos);
                         const shift = local_board.view.server_vect(cshift);

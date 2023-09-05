@@ -4,11 +4,13 @@
 
 - [ ] invert arc on right click
 - [ ] move vertex on link -> subdivide
+- [ ] deleteInteractor: has a radius, change it with wheel
 
 ## Refacto
 
+- [ ] interactor manager : event on window, not on canvas
 - [ ] colors : no more strings
 
 ## Issues
 
-- [ ] fix textarea
+- [X] fix textarea
