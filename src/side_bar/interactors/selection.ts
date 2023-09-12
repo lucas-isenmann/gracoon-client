@@ -92,8 +92,6 @@ selectionV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
 })
 
 selectionV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
-    console.log("debug");
-    console.log(local_board.view.camera);
     switch (last_down) {
         case DOWN_TYPE.VERTEX:
             const v = g.vertices.get(last_down_index)

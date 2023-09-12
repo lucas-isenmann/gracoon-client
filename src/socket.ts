@@ -143,7 +143,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     // GRAP API
 
     // GRAPH 
-    socket.on("graph", update_graph); // ALL
+    socket.on("graph", handleResetGraph); // ALL
     socket.on("areas", handle_areas); // AREA
     socket.on("strokes", handle_strokes); // STROKES
     socket.on("reset_board", handle_reset_board);
@@ -160,7 +160,6 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = local_board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
-            console.log(kind, index);
             if ( kind == "TextZone"){
                 const text_zone = local_board.text_zones.get(index);
                 text_zone.translate(cshift, local_board.view);
@@ -185,12 +184,8 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             } else if (kind == "ControlPoint"){
-                console.log("hello");
                 const link = g.links.get(index);
-                console.log (link);
-                console.log(link.data.cp);
                 if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
-                    console.log("translate", shift, cshift);
                     link.data.cp.translate(shift);
                     link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
                 }
@@ -230,24 +225,24 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 update_options_graphs(canvas, ctx, g);
        
             } else if (data.kind == "Vertex"){
-                const x = data.element.pos.x as number;
-                const y = data.element.pos.y as number;
-                const weight = data.element.weight as string;
+                const x = data.element.data.pos.x as number;
+                const y = data.element.data.pos.y as number;
+                const weight = data.element.data.weight as string;
                 const newVertex = local_board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, local_board.view));
                 if (weight != ""){
                     newVertex.afterSetWeight();
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (data.kind == "Link"){
-                const startIndex = data.element.start_vertex as number;
-                const endIndex = data.element.end_vertex as number;
-                const cp = typeof data.element.cp == "string" ? undefined : new Coord(data.element.cp.x, data.element.cp.y);
+                const startIndex = data.element.startVertex.index as number;
+                const endIndex = data.element.endVertex.index as number;
+                const cp = typeof data.element.data.cp == "undefined" ? undefined : new Coord(data.element.data.cp.x, data.element.data.cp.y);
                 let orient = ORIENTATION.UNDIRECTED;
                 if (data.element.orientation == "DIRECTED"){
                     orient = ORIENTATION.DIRECTED;
                 }
-                const color = data.element.color as string;
-                const weight = data.element.weight as string;
+                const color = data.element.data.color as string;
+                const weight = data.element.data.weight as string;
 
                 const newLinkData = new ClientLinkData(cp, color, weight, local_board.view);
                 const newLink = local_board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
@@ -292,7 +287,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 
     function handle_update_element(data){
-        // console.log("handle_update_element", data);
+        console.log("handle_update_element", data);
         if (data.kind == "TextZone"){
             const text_zone = local_board.text_zones.get(data.index);
             if (data.param == "width"){
@@ -328,7 +323,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 const weight = data.value as string;
                 link.setWeight(weight);
             } else if (data.param == "cp"){
-                if (typeof data.value == "string"){
+                if (typeof data.value == "undefined"){
                     link.data.cp = undefined;
                     link.data.cp_canvas_pos = "";
                 } else {
@@ -435,17 +430,17 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 
 
-    function update_graph(vertices_entries, links_entries, sensibilities) {
-        console.log("Request: resetGraph");
-        console.time('update_graph')
+    function handleResetGraph(vertices_entries, links_entries, sensibilities) {
+        console.log("Handle: resetGraph");
+        console.time("resetGraph")
 
         // pour les vertices_entries c'est parce que on peut pas envoyer des Map par socket ...
         // edges = new_graph.edges marche pas car bizarrement ça ne copie pas les méthodes ...
 
         g.clear_vertices();
         for (const data of vertices_entries) {
-            const vertexData = new ClientVertexData(data[1].pos.x, data[1].pos.y, data[1].weight, local_board.view);
-            vertexData.color = data[1].color;
+            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, local_board.view);
+            vertexData.color = data[1].data.color;
             const newVertex = g.set_vertex(data[0], vertexData);
             if (vertexData.weight != ""){
                 newVertex.afterSetWeight();
@@ -454,8 +449,9 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
         g.clear_links();
         for (const data of links_entries) {
+            const rawLink = data[1];
             let orient = ORIENTATION.UNDIRECTED;
-            switch (data[1].orientation) {
+            switch (rawLink.orientation) {
                 case "UNDIRECTED":
                     orient = ORIENTATION.UNDIRECTED
                     break;
@@ -463,16 +459,14 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     orient = ORIENTATION.DIRECTED
                     break;
             }
-            const cp = typeof data[1].cp == "string" ? undefined : new Coord(data[1].cp.x, data[1].cp.y);
-            const newLinkData = new ClientLinkData(cp, data[1].color, data[1].weight, local_board.view);
-            console.log("update_graph, cp ", newLinkData.cp);
-            const newLink = g.setLink(data[0], data[1].start_vertex, data[1].end_vertex, orient, newLinkData);
-            console.log("update_graph, cp ", newLink.data.cp);
+            const cp = typeof rawLink.data.cp == "undefined" ? undefined : new Coord(rawLink.data.cp.x, rawLink.data.cp.y);
+            const newLinkData = new ClientLinkData(cp, rawLink.data.color, rawLink.data.weight, local_board.view);
+            // console.log("update_graph, cp ", newLinkData.cp);
+            const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
+            // console.log("update_graph, cp ", newLink.data.cp);
             if (newLinkData.weight != ""){
                 newLink.afterSetWeight();
             }
-            
-            
         }
 
         /*
@@ -490,7 +484,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
         const sensi = get_sensibilities(sensibilities);
         update_params_loaded(g, sensi, false);
-        console.timeEnd('update_graph')
+        console.timeEnd('resetGraph')
         requestAnimationFrame(function () { draw(canvas, ctx, g) });
     }
 
