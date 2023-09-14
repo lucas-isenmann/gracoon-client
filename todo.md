@@ -5,6 +5,7 @@
 - [ ] invert arc on right click
 - [ ] move vertex on link -> subdivide
 - [ ] deleteInteractor: has a radius, change it with wheel
+- [ ] ApplyModifyer on the selection
 
 ## Refacto
 
@@ -14,3 +15,4 @@
 ## Issues
 
 - [X] fix textarea
+- [ ] undo delete the weights of the links

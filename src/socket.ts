@@ -4,12 +4,12 @@ import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
-import { init_list_parametors_for_area, make_list_areas } from "./board/area_div";
+import { init_list_parametors_for_area } from "./board/area_div";
 import { get_sensibilities, SENSIBILITY } from "./parametors/parametor";
 import { local_board } from "./setup";
-import { ClientVertex, ClientVertexData } from "./board/vertex";
-import {  Coord, ORIENTATION, Vect } from "gramoloss";
-import { ClientLink, ClientLinkData } from "./board/link";
+import { ClientVertexData } from "./board/vertex";
+import { Coord, ORIENTATION, Vect } from "gramoloss";
+import { ClientLinkData } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
 import { ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
@@ -104,14 +104,21 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         update_self_user_div();
     }
 
-    function update_user(id: string, label: string, color: string, x: number, y: number) {
-        if (users.has(id)) {
-            users.get(id).set_pos(x,y,local_board.view);
+    function update_user(id: string, label: string, color: string, rawPos: undefined | {x: number, y: number}) {
+        console.log("Handle: update_user ", id, rawPos);
+        const newPos: undefined | Coord = typeof rawPos == "undefined" ? undefined : new Coord(rawPos.x, rawPos.y);
+        console.log(newPos);
+        if (self_user.id == null || id == self_user.id){
+            return;
+        }
+        const user =  users.get(id);
+        if (typeof user != "undefined") {
+            user.label = label;
+           user.set_pos(newPos,local_board.view);
         }
         else {
-            users.set(id, new User(id, label, color, local_board.view,  new Coord(x, y)));
+            users.set(id, new User(id, label, color, local_board.view,  newPos));
             update_user_list_div();
-            // console.log("NEW USER !! ");
         }
         requestAnimationFrame(function () { draw(canvas, ctx, g) });
     }
@@ -127,7 +134,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     }
 
     
-    function handle_clients(users_entries){
+    function handle_clients(users_entries: Array<[string, {label: string, color: string}]>){
         users.clear();
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 

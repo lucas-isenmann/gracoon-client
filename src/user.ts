@@ -1,4 +1,4 @@
-import { Coord } from "gramoloss";
+import { Coord, Option } from "gramoloss";
 import { View } from "./board/camera";
 import { CanvasCoord } from "./board/canvas_coord";
 import { COLOR_BACKGROUND, draw, draw_user} from "./draw";
@@ -11,8 +11,8 @@ export class User {
     id: string;
     label: string;
     multicolor: Multicolor;
-    pos: Coord;
-    canvas_pos: CanvasCoord;
+    pos: Option<Coord>;
+    canvas_pos: Option<CanvasCoord>;
     timer_refresh : number; // Date since the last change of position
     id_timeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
 
@@ -26,41 +26,48 @@ export class User {
             this.canvas_pos = view.create_canvas_coord(this.pos);
         }
         else{
-            this.pos = null;
-            this.canvas_pos = null;
+            this.pos = undefined;
+            this.canvas_pos = undefined;
         }
         this.timer_refresh = Date.now();
         this.id_timeout = undefined;
     }
 
-    set_pos(x: number, y: number, view: View) {
-        if(this.pos.x != x || this.pos.y != y){ // If the user position is updated
-            this.timer_refresh = Date.now();
-            if(this.id_timeout !== undefined){
-                clearTimeout(this.id_timeout); // We clear the current timeout 
-                this.id_timeout = undefined;
-            }
-            // We set a new timeout that starts after 2 seconds. 
-            this.id_timeout = setTimeout(() => {
-                // We draw the canvas every 100ms
-                const interval_id = setInterval(()=>{
-                    const canvas = document.getElementById('main') as HTMLCanvasElement;
-                    const ctx = canvas.getContext('2d');
-                    requestAnimationFrame(function () { draw(canvas, ctx, local_board.graph) });
+    set_pos(newPos: Option<Coord>, view: View) {
 
-                    if(Date.now() - this.timer_refresh > 4000){
-                        // THe interval kill itself after the user does not move for 4secs 
-                        clearInterval(interval_id); 
-                    }
-                }, 100);
-            }, 2000);
+        if (typeof newPos != "undefined"){
+            if( typeof this.pos == "undefined" || ( this.pos.x != newPos.x || this.pos.y != newPos.y ) ){ // If the user position is updated
+                this.timer_refresh = Date.now();
+                if( typeof this.id_timeout !== "undefined"){
+                    clearTimeout(this.id_timeout); // We clear the current timeout 
+                    this.id_timeout = undefined;
+                }
+                // We set a new timeout that starts after 2 seconds. 
+                this.id_timeout = setTimeout(() => {
+                    // We draw the canvas every 100ms
+                    const interval_id = setInterval(()=>{
+                        const canvas = document.getElementById('main') as HTMLCanvasElement;
+                        const ctx = canvas.getContext('2d');
+                        requestAnimationFrame(function () { draw(canvas, ctx, local_board.graph) });
+    
+                        if(Date.now() - this.timer_refresh > 4000){
+                            // The interval kill itself after the user does not move for 4secs 
+                            clearInterval(interval_id); 
+                        }
+                    }, 100);
+                }, 2000);
+            }
         }
-        this.pos.x = x;
-        this.pos.y = y;
-        this.canvas_pos = view.create_canvas_coord(this.pos);
+        
+        this.pos = newPos;
+        if (typeof this.pos != "undefined"){
+            this.canvas_pos = view.create_canvas_coord(this.pos);
+        } else {
+            this.canvas_pos = undefined;
+        }
     }
 
-    set_color(color:string){
+    set_color(color: string){
         this.multicolor.set_color(color);
     }
     
@@ -108,7 +115,9 @@ export function update_user_list_div() {
 
 export function update_users_canvas_pos(view: View) {
     for (const user of users.values()){
-        user.canvas_pos = view.create_canvas_coord(user.pos);
+        if ( typeof user.pos != "undefined"){
+            user.canvas_pos = view.create_canvas_coord(user.pos);
+        }
     }
 }
 

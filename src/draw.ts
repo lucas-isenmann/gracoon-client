@@ -118,6 +118,8 @@ function draw_user_label(x:number, y:number, label:string, multicolor:Multicolor
 
 
 function draw_user_arrow(user: User, ctx: CanvasRenderingContext2D){
+    if ( typeof user.canvas_pos == "undefined") return;
+    
     // Background
     ctx.beginPath();
     ctx.lineWidth = 4;
@@ -151,7 +153,8 @@ function draw_user_arrow(user: User, ctx: CanvasRenderingContext2D){
 
 
 export function draw_user(user: User, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-
+    if ( typeof user.canvas_pos == "undefined") return;
+    
     if(user.canvas_pos.x > canvas.width || user.canvas_pos.x < 0 || user.canvas_pos.y > canvas.height  || user.canvas_pos.y < 0 ){
         const x = clamp(user.canvas_pos.x, 0, canvas.width);
         const y = clamp(user.canvas_pos.y, 0, canvas.height);
@@ -200,7 +203,7 @@ export function draw_user(user: User, canvas: HTMLCanvasElement, ctx: CanvasRend
         // Date.now() is to prevent the label to fade when shown on the side of the screen
         // TODO: Change this.
         draw_user_label(x + shift_x, y + shift_y, user.label, user.multicolor, Date.now(), ctx);
-
+        
 
     }
     else{
@@ -211,6 +214,7 @@ export function draw_user(user: User, canvas: HTMLCanvasElement, ctx: CanvasRend
         // DRAW ARROW
         draw_user_arrow(user, ctx);
     }
+    
 }
 
 
