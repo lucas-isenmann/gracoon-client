@@ -10,9 +10,12 @@
 ## Refacto
 
 - [ ] interactor manager : event on window, not on canvas
-- [ ] colors : no more strings
 
 ## Issues
 
-- [X] fix textarea
 - [ ] undo delete the weights of the links
+
+## Done
+
+- [X] colors : no more strings
+- [X] fix textarea

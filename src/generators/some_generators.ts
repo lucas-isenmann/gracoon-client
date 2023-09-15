@@ -1,9 +1,9 @@
-import { Coord, ORIENTATION } from "gramoloss";
+import { ORIENTATION } from "gramoloss";
 import { View } from "../board/camera";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ClientGraph } from "../board/graph";
 import { ClientLinkData } from "../board/link";
-import { ClientVertexData } from "../board/vertex";
+import { Color } from "../colors_v2";
 
 import { Integer, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";
@@ -19,12 +19,9 @@ import { GraphGenerator } from "./generator";
         return graph;
     }
     const r = 50;
-    const center = view.create_canvas_coord(pos);
-    const cx = center.x; 
-    const cy = center.y;
+    const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        const vertexData = new ClientVertexData(cx + r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.set_vertex(i, vertexData);
+        graph.addDefaultVertex(new CanvasCoord(center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n)), view)
     }
     return graph;
 }
@@ -40,11 +37,9 @@ import { GraphGenerator } from "./generator";
         return graph;
     }
     const r = 50;
-    const center = view.create_canvas_coord(pos);
-    const cx = center.x; 
-    const cy = center.y;
+    const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new Coord( cx + r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n) ), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
         for ( let j = 0 ; j < i ; j ++ ){
             graph.addDefaultEdge(j,i,view);
         }
@@ -64,19 +59,14 @@ import { GraphGenerator } from "./generator";
         return graph;
     }
     const r = 50;
-    const center = view.create_canvas_coord(pos);
-    const cx = center.x; 
-    const cy = center.y;
+    const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(vData);
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < 0.5 ){
-                const linkData =  new ClientLinkData( undefined, "black", "", view);
-                graph.addLink(j,i, ORIENTATION.DIRECTED, linkData);
+                graph.addDefaultArc(j,i,view);
             }else {
-                const linkData =  new ClientLinkData( undefined, "black", "", view);
-                graph.addLink(i,j, ORIENTATION.DIRECTED, linkData);
+                graph.addDefaultArc(i,j,view);
             }
         }
     }
@@ -94,16 +84,13 @@ import { GraphGenerator } from "./generator";
     if (typeof n == "string" || typeof p == "string"){
         return graph;
     }
-    const center = view.create_canvas_coord(pos);
-    const cx = center.x; 
-    const cy = center.y;
+    const center = pos;
     const r = 50;
     for ( let i = 0 ; i < n ; i ++){
-        const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /n), cy + r*Math.sin( (2*Math.PI*i) /n), "", view);
-        graph.addVertex(vData);
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < p){
-                const linkData =  new ClientLinkData(undefined, "black", "", view);
+                const linkData =  new ClientLinkData(undefined, Color.Neutral, "", view);
                 graph.addLink(j,i,ORIENTATION.UNDIRECTED, linkData);
             }
             
@@ -122,22 +109,15 @@ randomStar.generate = (pos: CanvasCoord, view : View) => {
    const graph = new ClientGraph();
    const n = randomStar.attributes[0].value;
    if (typeof n == "string"){
-    return graph;
-}
-   const r = 50;
-   const center = view.create_canvas_coord(pos);
-   const cx = center.x; 
-   const cy = center.y;
-
+        return graph;
+    }
+    const r = 50;
+    const center = pos;
     if(n>0){
-        const vcenterData = new ClientVertexData(cx, cy, "", view);
-        graph.addVertex(vcenterData);
-        for ( let i = 0 ; i < n ; i ++){
-            const vData = new ClientVertexData(cx +  r*Math.cos( (2*Math.PI*i) /(n-1)), cy + r*Math.sin( (2*Math.PI*i) /(n-1)), "", view);
-            graph.addVertex(vData);
+        graph.addDefaultVertex(new CanvasCoord( center.x, center.y), view)
+        for ( let i = 1 ; i <= n ; i ++){
+            graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
             graph.addDefaultEdge(0,i, view);
-            // const linkData =  new ClientLinkData( undefined, "black", "", view);
-            // graph.addLink(0,i,ORIENTATION.UNDIRECTED, linkData);
         }
     }
 
@@ -155,13 +135,13 @@ completeBipartite.generate = (pos: CanvasCoord, view: View) => {
     if (typeof n == "string"){
         return graph;
     }
-    const center = view.create_canvas_coord(pos);
+    const center = pos;
 
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new Coord(center.x + i*30 , center.y), view);
+        graph.addDefaultVertex(new CanvasCoord( center.x + i*30 , center.y), view)
     }
     for ( let j = 0 ; j < m ; j ++){
-        graph.addDefaultVertex(new Coord(center.x + j*30 , center.y+100), view);
+        graph.addDefaultVertex(new CanvasCoord( center.x + j*30 , center.y+100), view)
     }
 
     for ( let i = 0 ; i < n ; i ++){
@@ -188,11 +168,11 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
     if (typeof n == "string" || typeof m == "string" || typeof p == "string"){
         return graph;
     }
-    const center = view.create_canvas_coord(pos);
+    const center = pos;
     
     for ( let i = 0 ; i < n ; i++){
         for ( let j = 0 ; j < m ; j ++){
-            graph.addDefaultVertex(new Coord(center.x + i*30 , center.y+j*30), view);
+            graph.addDefaultVertex(new CanvasCoord(center.x + i*30 , center.y+j*30), view);
         }
     }
 
@@ -225,7 +205,7 @@ aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
     if (typeof n == "string" || typeof p == "string"){
         return graph;
     }
-    const center = view.create_canvas_coord(pos);
+    const center = pos;
     
     function check(i,j,n): boolean {
         return (i+j >= n-1 && i+j <= 3*n+1 && j-i <= n+1 && i-j <= n+1);
@@ -238,7 +218,7 @@ aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
         for ( let j = 0 ; j < 2*n+1 ; j ++){
             indices[i].push(-1);
             if ( check(i,j,n) ){
-                const v = graph.addDefaultVertex(new Coord(center.x + i*30 - n*30 , center.y+j*30 - n*30), view);
+                const v = graph.addDefaultVertex(new CanvasCoord(center.x + i*30 - n*30 , center.y+j*30 - n*30), view);
                 indices[i][j] = v.index;
             }
         }

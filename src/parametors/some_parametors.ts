@@ -7,6 +7,7 @@ import { local_board } from '../setup';
 import { ClientVertex } from '../board/vertex';
 import { ClientRectangle } from '../board/rectangle';
 import { shuffle } from '../utils';
+import { Color } from '../colors_v2';
 
 export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
@@ -120,7 +121,7 @@ param_min_degree.compute = ((g: ClientGraph, verbose) => {
     if (verbose) {
         for (const vertex_index of data.min_vertices) {
             const vertex = g.vertices.get(vertex_index);
-            vertex.data.color = "red";
+            vertex.data.color = Color.Red;
         }
         g.vertices.forEach((vertex, vertex_index) => {
             vertex.data.update_param(param_min_degree.id, String(g.get_neighbors_list(vertex_index).length));
@@ -222,7 +223,7 @@ export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "d
 
 paramDelaunayConstructor.compute = ((g: ClientGraph) => {
     g.resetDelaunayGraph((i,j) => {
-        return new ClientLinkData(undefined, "black", "", local_board.view);
+        return new ClientLinkData(undefined, Color.Neutral, "", local_board.view);
     });
     return String("/");
 });
@@ -380,9 +381,9 @@ param_is_good_weight.compute = ((g: ClientGraph) => {
                 for (const w_index of g.vertices.keys()) {
                     if (w_index != u_index && w_index != v_index) {
                         if (FW.distances.get(u_index).get(v_index) == FW.distances.get(v_index).get(w_index)) {
-                            g.vertices.get(v_index).data.color = "red";
-                            g.vertices.get(u_index).data.color = "purple";
-                            g.vertices.get(w_index).data.color = "purple";
+                            g.vertices.get(v_index).data.color = Color.Red;
+                            g.vertices.get(u_index).data.color = Color.Purple;
+                            g.vertices.get(w_index).data.color = Color.Purple;
                             return "false";
                         }
                     }
@@ -669,10 +670,10 @@ export const paramIsQuasiKernel = new Parametor("Is Quasi Kernel", "is_quasi_ker
 paramIsQuasiKernel.compute = ((g: ClientGraph) => {
 
     for (const v of g.vertices.values()){
-        if (v.data.color != "black"){
+        if (v.data.color != Color.Neutral){
             for ( const neighborId of g.get_out_neighbors_list(v.index)){
                 const neighbor = g.vertices.get(neighborId);
-                if (neighbor.data.color != "black"){
+                if (neighbor.data.color != Color.Neutral){
                     return "false";
                 }
             }
@@ -681,13 +682,13 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
         let covered = false;
         for ( const neighborId of g.get_out_neighbors_list(v.index)){
             const neighbor = g.vertices.get(neighborId);
-            if (neighbor.data.color != "black"){
+            if (neighbor.data.color != Color.Neutral){
                 covered = true;
                 break;
             }
             for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
                 const neighbor2 = g.vertices.get(neighbor2Id);
-                if (neighbor2.data.color != "black"){
+                if (neighbor2.data.color != Color.Neutral){
                     covered = true;
                     break;
                 }
@@ -715,19 +716,19 @@ function getUncoveredVertex(g: ClientGraph): ClientVertex | undefined{
     l = shuffle(l);
     
     for (const v of l){
-        if (v.data.color != "black"){
+        if (v.data.color != Color.Neutral){
             continue;
         }
         let covered = false;
         for ( const neighborId of g.get_out_neighbors_list(v.index)){
             const neighbor = g.vertices.get(neighborId);
-            if (neighbor.data.color != "black"){
+            if (neighbor.data.color != Color.Neutral){
                 covered = true;
                 break;
             }
             for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
                 const neighbor2 = g.vertices.get(neighbor2Id);
-                if (neighbor2.data.color != "black"){
+                if (neighbor2.data.color != Color.Neutral){
                     covered = true;
                     break;
                 }
@@ -751,7 +752,7 @@ export const paramIsQKAlgoOK = new Parametor("Is Algo OK", "paramIsQKAlgoOK", "i
 paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
     console.log("compute");
     for (const v of g.vertices.values()){
-        v.data.color = "black";
+        v.data.color = Color.Neutral;
     }
 
     let treated = new Set<number>();
@@ -760,23 +761,23 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
         console.log(v.index);
         if (treated.has(v.index)){
             console.log("was treated");
-            v.data.color = "blue";
+            v.data.color = Color.Green;
             for (const neighborId of g.get_out_neighbors_list(v.index)){
-                g.vertices.get(neighborId).data.color = "black";
+                g.vertices.get(neighborId).data.color = Color.Neutral;
             }
             for (const neighborId of g.get_in_neighbors_list(v.index)){
-                g.vertices.get(neighborId).data.color = "black";
+                g.vertices.get(neighborId).data.color = Color.Neutral;
             }
         } else {
             treated.add(v.index);
             for (const outNeighborId of shuffle(g.get_out_neighbors_list(v.index)) ){
                 const outNeighbor = g.vertices.get(outNeighborId);
-                outNeighbor.data.color = "blue";
+                outNeighbor.data.color = Color.Green;
                 for (const n2Id of g.get_out_neighbors_list(outNeighbor.index)){
-                    g.vertices.get(n2Id).data.color = "black";
+                    g.vertices.get(n2Id).data.color = Color.Neutral;
                 }
                 for (const n2Id of g.get_in_neighbors_list(outNeighbor.index)){
-                    g.vertices.get(n2Id).data.color = "black";
+                    g.vertices.get(n2Id).data.color = Color.Neutral;
                 }
                 break;
             }
@@ -788,7 +789,7 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
     let colored = [];
     let counter = 0;
     for (const v of g.vertices.values()){
-        if (v.data.color != "black"){
+        if (v.data.color != Color.Neutral){
             counter ++;
             colored.push(v.index);
         }

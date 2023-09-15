@@ -436,8 +436,18 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         return v2;
     }
 
-    addDefaultVertex(pos: Coord, view: View): ClientVertex{
+    addDefaultVertexFromCoord(pos: Coord, view: View): ClientVertex{
         const vData = new ClientVertexData( pos.x, pos.y, "", view, Color.Neutral);
+        const v = this.addVertex(vData);
+        return v;
+    }
+
+    /**
+     * Add a default vertex positioned at a position on the Canvas (e.g. the center of the screen)
+     */
+    addDefaultVertex(pos: CanvasCoord, view: View): ClientVertex{
+        const p = pos.toCoord(view);
+        const vData = new ClientVertexData( p.x, p.y, "", view, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
     }

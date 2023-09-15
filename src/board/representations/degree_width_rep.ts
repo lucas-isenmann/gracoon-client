@@ -3,13 +3,13 @@ import { draw_circle } from "../../draw_basics";
 import { local_board } from "../../setup";
 import { View } from "../camera";
 import { ClientGraph } from "../graph";
-import { ClientLink } from "../link";
+import { ClientLink, ClientLinkData } from "../link";
 import { CanvasVect } from "../vect";
 import { ClientVertex } from "../vertex";
 import { CanvasCoord } from "../canvas_coord";
 
 
-export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLink> {
+export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLinkData> {
     canvas_corner_top_left : CanvasCoord;
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
@@ -31,15 +31,15 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let maxY = NaN;
             for (const vertex of g.vertices.values()){
                 if ( isNaN(minX)){
-                    minX = vertex.pos.x;
-                    maxX = vertex.pos.x;
-                    minY = vertex.pos.y;
-                    maxY = vertex.pos.y;
+                    minX = vertex.data.pos.x;
+                    maxX = vertex.data.pos.x;
+                    minY = vertex.data.pos.y;
+                    maxY = vertex.data.pos.y;
                 }else {
-                    minX = Math.min(minX, vertex.pos.x );
-                    maxX = Math.max(maxX, vertex.pos.x );
-                    minY = Math.min(minY, vertex.pos.y );
-                    maxY = Math.max(maxY, vertex.pos.y );
+                    minX = Math.min(minX, vertex.data.pos.x );
+                    maxX = Math.max(maxX, vertex.data.pos.x );
+                    minY = Math.min(minY, vertex.data.pos.y );
+                    maxY = Math.max(maxY, vertex.data.pos.y );
                 }
             }
             const w = 20 + maxX - minX;

@@ -1,9 +1,8 @@
 import { AttributesArray } from "../generators/attribute";
 
-/// modify function : index is either "" either the index of an area
-/// If index is "" then it refers to the whole graph
+
 export class GraphModifyer {
-    name: string;
+    name: string; // id
     humanName: string;
     description: string;
     attributes: AttributesArray;
