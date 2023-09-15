@@ -67,7 +67,7 @@ export function createLinkInteractor(orientation: ORIENTATION): InteractorV2{
             local_board.view.link_creating_start = e;
             local_board.view.link_creating_type = orientation;
             const pos = local_board.view.create_server_coord(e);
-            local_board.emitSubdivideLink( last_down_index, pos, (response) => { linkInteractor.indexLastCreatedVertex = response } );
+            local_board.emitSubdivideLink( last_down_index, pos, "", color_selected, (response) => { linkInteractor.indexLastCreatedVertex = response } );
         } 
         else if (last_down === DOWN_TYPE.VERTEX) {
             const vertex = g.vertices.get(last_down_index);
@@ -129,7 +129,7 @@ export function createLinkInteractor(orientation: ORIENTATION): InteractorV2{
                 });
             }
             else {
-                local_board.emitSubdivideLink(link.index, e.toCoord(local_board.view), (response) => { 
+                local_board.emitSubdivideLink(link.index, e.toCoord(local_board.view), "", color_selected, (response) => { 
                     local_board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", color_selected), () => {} )
                 });
             }

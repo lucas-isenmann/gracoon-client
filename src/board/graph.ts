@@ -10,6 +10,7 @@ import { DOWN_TYPE } from "../interactors/interactor";
 import { interactor_loaded } from "../interactors/interactor_manager";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
 import { Color, getCanvasColor } from "../colors_v2";
+import { ClientBoard } from "./board";
 
 
 
@@ -18,9 +19,13 @@ import { Color, getCanvasColor } from "../colors_v2";
 export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     vertices: Map<number, ClientVertex>;
     links: Map<number, ClientLink>;
+    board: ClientBoard;
 
-    constructor() {
+    constructor(board: ClientBoard) {
         super();
+        this.board = board;
+        this.vertices = new Map<number, ClientVertex>();
+        this.links = new Map<number, ClientLink>()
     }
 
 
@@ -44,6 +49,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
     override delete_vertex(index: number){
         const vertex = this.vertices.get(index);
+        if ( typeof vertex == "undefined") return;
         if (typeof vertex.data.weightDiv != "undefined"){
             vertex.data.weightDiv.remove();
         }
@@ -70,7 +76,14 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      */
     drawVertices(ctx: CanvasRenderingContext2D){
         for (const v of this.vertices.values()) {
-            v.draw(ctx);
+            let isMouseOver = false;
+            
+            if ( this.board.elementOver instanceof ClientVertex){
+                if (this.board.elementOver.index == v.index){
+                    isMouseOver = true;
+                }
+            }
+            v.draw(ctx, isMouseOver);
         }
     }
 
@@ -78,21 +91,28 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Draw the links of the graph.
      */
     drawLinks(ctx: CanvasRenderingContext2D) {
-        for (let link of this.links.values()) {
-            let u = link.startVertex
-            let v = link.endVertex;
+        for (const link of this.links.values()) {
+            const u = link.startVertex;
+            const v = link.endVertex;
 
             const posu = u.data.canvas_pos; 
             const posv = v.data.canvas_pos; 
             const poscp = link.data.cp_canvas_pos;
             const color = getCanvasColor(link.data.color, local_board.view.dark_mode);
 
-            if (link.data.is_selected) {
-                ctx.strokeStyle = color;
+            const isMouseOver = (this.board.elementOver instanceof ClientLink && this.board.elementOver.index == link.index);
 
+            if (link.data.is_selected || isMouseOver) {
+                ctx.strokeStyle = color;
+                if (isMouseOver){
+                    ctx.globalAlpha = 0.5;
+                }
                 ctx.beginPath();
                 ctx.moveTo(posu.x, posu.y);
                 ctx.lineWidth = 8;
+                if (isMouseOver){
+                    ctx.lineWidth = 12;
+                }
 
                 if ( typeof poscp == "string"){
                     ctx.lineTo(posv.x, posv.y);
@@ -101,7 +121,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
                 }
                 ctx.stroke();
-        }
+                ctx.globalAlpha = 1;
+            }
 
             ctx.beginPath();
             ctx.moveTo(posu.x, posu.y);
@@ -155,8 +176,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Converts the graph into a ClientGraph.
      * It does not clone the elements.
      */
-    static fromGraph(g: BasicGraph<ClientVertexData, ClientLinkData>): ClientGraph{
-        const newGraph = new ClientGraph();
+    static fromGraph(g: BasicGraph<ClientVertexData, ClientLinkData>, board: ClientBoard): ClientGraph{
+        const newGraph = new ClientGraph(board);
         for( const [index, vertex] of g.vertices){
             newGraph.set_vertex(index, vertex.data);
         }
@@ -198,8 +219,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     
 
     get_vertex_index_nearby(pos: CanvasCoord) {
-        for (let index of this.vertices.keys()) {
-            let v = this.vertices.get(index);
+        for (const [index, v] of this.vertices.entries()) {
             if (v.is_nearby(pos, 150)) {
                 return index;
             }
@@ -217,8 +237,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
     select_links_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
-        for (const index of this.links.keys()) {
-            const link = this.links.get(index);
+        for (const [index, link] of this.links.entries()) {
             if (link.is_in_rect(corner1, corner2)) {
                 link.data.is_selected = true;
             }
@@ -227,6 +246,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
     is_click_over_link(link_index: number, e: CanvasCoord, view: View) {
         const link = this.links.get(link_index);
+        if (typeof link == "undefined") return;
         const v = link.startVertex;
         const w = link.endVertex;
         const linkcp_canvas = link.data.cp_canvas_pos;
@@ -390,7 +410,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Ah non peut être ça sert pour la copie d'un sous-graphe induit.
      */
     get_induced_subgraph_from_selection(view: View): ClientGraph{
-        const subgraph = new ClientGraph();
+        const subgraph = new ClientGraph(this.board);
         for (const [index, v] of this.vertices.entries()) {
             if(v.data.is_selected){
                 subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, view, v.data.color))
@@ -445,27 +465,30 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     /**
      * Add a default vertex positioned at a position on the Canvas (e.g. the center of the screen)
      */
-    addDefaultVertex(pos: CanvasCoord, view: View): ClientVertex{
-        const p = pos.toCoord(view);
-        const vData = new ClientVertexData( p.x, p.y, "", view, Color.Neutral);
+    addDefaultVertex(pos: CanvasCoord): ClientVertex{
+        const p = pos.toCoord(this.board.view);
+        const vData = new ClientVertexData( p.x, p.y, "", this.board.view, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
     }
 
-    addLink(startIndex: number, endIndex: number, orientation: ORIENTATION, data: ClientLinkData): ClientLink {
+    addLink(startIndex: number, endIndex: number, orientation: ORIENTATION, data: ClientLinkData): Option<ClientLink> {
         const link = super.addLink(startIndex, endIndex, orientation, data);
-        const link2 = new ClientLink(link.index, link.startVertex, link.endVertex, orientation, data);
+        if (typeof link == "undefined") return undefined;
+        const startVertex = new ClientVertex(link.startVertex.index, link.startVertex.data);
+        const endVertex = new ClientVertex(link.endVertex.index, link.endVertex.data);
+        const link2 = new ClientLink(link.index, startVertex, endVertex, orientation, data);
         this.links.set(link.index, link2);
         return link2;
     }
 
-    addDefaultEdge(startIndex: number, endIndex: number, view: View){
-        const linkData = new ClientLinkData(undefined, Color.Neutral, "", view);
+    addDefaultEdge(startIndex: number, endIndex: number){
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.view);
         this.addLink(startIndex, endIndex, ORIENTATION.UNDIRECTED, linkData);
     }
 
-    addDefaultArc(startIndex: number, endIndex: number, view: View){
-        const linkData = new ClientLinkData(undefined, Color.Neutral, "", view);
+    addDefaultArc(startIndex: number, endIndex: number){
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.view);
         this.addLink(startIndex, endIndex, ORIENTATION.DIRECTED, linkData);
     }
 
@@ -484,8 +507,9 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
 
     translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, view: View){
-        if (this.vertices.has(index)) {
-            const vertex = this.vertices.get(index);
+        const vertex = this.vertices.get(index);
+ 
+        if (typeof vertex != "undefined") {
             const previous_pos = vertex.data.pos.copy();
             vertex.translate_by_canvas_vect(cshift, view);
             const new_pos = vertex.data.pos.copy();

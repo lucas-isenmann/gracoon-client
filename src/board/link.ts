@@ -1,4 +1,4 @@
-import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect, Vertex } from "gramoloss";
+import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
@@ -29,6 +29,7 @@ export class ClientLinkData extends BasicLinkData {
 
     constructor(cp: Option<Coord>,  color: Color, weight: string, view: View) {
         super(cp, weight, color);
+        this.color = color;
         if (typeof cp == "undefined"){
             this.cp_canvas_pos = "";
         } else {
@@ -47,8 +48,10 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     endVertex: ClientVertex;
 
 
-    constructor(index, startVertex, endVertex, orientation, linkData){
+    constructor(index: number, startVertex: ClientVertex, endVertex: ClientVertex, orientation: ORIENTATION, linkData: ClientLinkData){
         super(index, startVertex, endVertex, orientation, linkData);
+        this.startVertex = startVertex;
+        this.endVertex = endVertex;
     }
 
    

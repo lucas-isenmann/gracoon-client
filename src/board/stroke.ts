@@ -2,7 +2,9 @@ import { View } from "./camera";
 import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
-import { Color } from "../colors_v2";
+import { Color, getCanvasColor } from "../colors_v2";
+import { SELECTION_COLOR } from "../draw";
+import { ClientBoard } from "./board";
 
 export class ClientStroke extends Stroke{
     color: Color;
@@ -13,6 +15,7 @@ export class ClientStroke extends Stroke{
     
     constructor(pos: Array<Coord>, color: Color, width:number, view: View){
         super(pos, color, width);
+        this.color = color;
         this.is_selected = false;
         this.canvas_positions = new Array();
         this.canvas_corner_top_left = view.create_canvas_coord(this.top_left);
@@ -81,5 +84,57 @@ export class ClientStroke extends Stroke{
             }
         }
         return false;
+    }
+
+    draw(ctx: CanvasRenderingContext2D, board: ClientBoard){
+        if(this.positions.length > 0){ 
+            if(this.is_selected){
+                const tlcanvas = this.canvas_corner_top_left;
+                const brcanvas = this.canvas_corner_bottom_right;
+                ctx.beginPath();
+                ctx.strokeStyle = SELECTION_COLOR;
+                ctx.lineWidth = 1;
+                
+                ctx.rect(tlcanvas.x - 3 ,tlcanvas.y - 3, brcanvas.x - tlcanvas.x + 6, brcanvas.y - tlcanvas.y + 6);
+                ctx.stroke();
+    
+                
+                let position_canvas = this.canvas_positions[0];
+                ctx.beginPath();
+                ctx.lineWidth = this.width + 4;
+                ctx.moveTo(position_canvas.x, position_canvas.y);
+                for(let i = 1; i<this.positions.length; i++){
+                    position_canvas = this.canvas_positions[i];
+                    ctx.lineTo(position_canvas.x, position_canvas.y);
+                }
+                ctx.stroke();
+            }
+    
+            if ( board.elementOver instanceof ClientStroke && board.elementOver === this ){
+                let position_canvas = this.canvas_positions[0];
+                ctx.beginPath();
+                ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+                ctx.lineWidth = this.width*6;
+                ctx.globalAlpha = 0.5;
+                ctx.moveTo(position_canvas.x, position_canvas.y);
+                for(let i = 1; i < this.positions.length; i++){
+                    position_canvas = this.canvas_positions[i];
+                    ctx.lineTo(position_canvas.x, position_canvas.y);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+            
+            let position_canvas = this.canvas_positions[0];
+            ctx.beginPath();
+            ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+            ctx.lineWidth = this.width;
+            ctx.moveTo(position_canvas.x, position_canvas.y);
+            for(let i = 1; i < this.positions.length; i++){
+                position_canvas = this.canvas_positions[i];
+                ctx.lineTo(position_canvas.x, position_canvas.y);
+            }
+            ctx.stroke();
+        }
     }
 }

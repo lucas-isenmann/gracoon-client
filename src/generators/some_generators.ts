@@ -1,4 +1,5 @@
 import { ORIENTATION } from "gramoloss";
+import { ClientBoard } from "../board/board";
 import { View } from "../board/camera";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ClientGraph } from "../board/graph";
@@ -12,8 +13,8 @@ import { GraphGenerator } from "./generator";
 
  let independentGenerator = new GraphGenerator("independent", [new Integer("n", 3)])
 
- independentGenerator.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+ independentGenerator.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = independentGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
@@ -21,7 +22,7 @@ import { GraphGenerator } from "./generator";
     const r = 50;
     const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new CanvasCoord(center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n)), view)
+        graph.addDefaultVertex(new CanvasCoord(center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n)))
     }
     return graph;
 }
@@ -30,8 +31,8 @@ import { GraphGenerator } from "./generator";
 
  let cliqueGenerator = new GraphGenerator("clique", [new Integer("n", 3)])
 
-cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+cliqueGenerator.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = cliqueGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
@@ -39,9 +40,9 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
     const r = 50;
     const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ))
         for ( let j = 0 ; j < i ; j ++ ){
-            graph.addDefaultEdge(j,i,view);
+            graph.addDefaultEdge(j,i);
         }
     }
     return graph;
@@ -52,8 +53,8 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
 
  let randomTournament = new GraphGenerator("random_tournament", [new Integer("n", 3)])
 
- randomTournament.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+ randomTournament.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = randomTournament.attributes[0].value;
     if (typeof n == "string"){
         return graph;
@@ -61,12 +62,12 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
     const r = 50;
     const center = pos;
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ))
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < 0.5 ){
-                graph.addDefaultArc(j,i,view);
+                graph.addDefaultArc(j,i);
             }else {
-                graph.addDefaultArc(i,j,view);
+                graph.addDefaultArc(i,j);
             }
         }
     }
@@ -77,8 +78,8 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
 
  let randomGNP = new GraphGenerator("gnp", [new Integer("n", 3), new Percentage("p")]);
 
- randomGNP.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+ randomGNP.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = randomGNP.attributes[0].value;
     const p = randomGNP.attributes[1].value;
     if (typeof n == "string" || typeof p == "string"){
@@ -87,11 +88,10 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
     const center = pos;
     const r = 50;
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ))
         for ( let j = 0 ; j < i ; j ++ ){
             if ( Math.random() < p){
-                const linkData =  new ClientLinkData(undefined, Color.Neutral, "", view);
-                graph.addLink(j,i,ORIENTATION.UNDIRECTED, linkData);
+                graph.addDefaultEdge(j,i);
             }
             
         }
@@ -105,8 +105,8 @@ cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
 
 let randomStar = new GraphGenerator("star", [new Integer("n", 3)])
 
-randomStar.generate = (pos: CanvasCoord, view : View) => {
-   const graph = new ClientGraph();
+randomStar.generate = (pos: CanvasCoord, board: ClientBoard) => {
+   const graph = new ClientGraph(board);
    const n = randomStar.attributes[0].value;
    if (typeof n == "string"){
         return graph;
@@ -114,10 +114,10 @@ randomStar.generate = (pos: CanvasCoord, view : View) => {
     const r = 50;
     const center = pos;
     if(n>0){
-        graph.addDefaultVertex(new CanvasCoord( center.x, center.y), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x, center.y))
         for ( let i = 1 ; i <= n ; i ++){
-            graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ), view)
-            graph.addDefaultEdge(0,i, view);
+            graph.addDefaultVertex(new CanvasCoord( center.x + r*Math.cos( (2*Math.PI*i) /n), center.y + r*Math.sin( (2*Math.PI*i) /n) ))
+            graph.addDefaultEdge(0,i);
         }
     }
 
@@ -128,8 +128,8 @@ randomStar.generate = (pos: CanvasCoord, view : View) => {
 
 let completeBipartite = new GraphGenerator("complete_bipartite", [new Integer("n",1),new Integer("m",1)]);
 
-completeBipartite.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+completeBipartite.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = completeBipartite.attributes[0].value;
     const m = completeBipartite.attributes[1].value;
     if (typeof n == "string"){
@@ -138,15 +138,15 @@ completeBipartite.generate = (pos: CanvasCoord, view: View) => {
     const center = pos;
 
     for ( let i = 0 ; i < n ; i ++){
-        graph.addDefaultVertex(new CanvasCoord( center.x + i*30 , center.y), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + i*30 , center.y))
     }
     for ( let j = 0 ; j < m ; j ++){
-        graph.addDefaultVertex(new CanvasCoord( center.x + j*30 , center.y+100), view)
+        graph.addDefaultVertex(new CanvasCoord( center.x + j*30 , center.y+100))
     }
 
     for ( let i = 0 ; i < n ; i ++){
         for ( let j = 0 ; j < m ; j ++){
-            graph.addDefaultEdge(i,n+j,view);
+            graph.addDefaultEdge(i,n+j);
         }
     }
     return graph;
@@ -160,8 +160,8 @@ completeBipartite.generate = (pos: CanvasCoord, view: View) => {
 
 let gridGenerator = new GraphGenerator("grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
 
-gridGenerator.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+gridGenerator.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = gridGenerator.attributes[0].value;
     const m = gridGenerator.attributes[1].value;
     if (typeof n == "string" || typeof m == "string" ){
@@ -171,7 +171,7 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
     
     for ( let i = 0 ; i < n ; i++){
         for ( let j = 0 ; j < m ; j ++){
-            graph.addDefaultVertex(new CanvasCoord(center.x + i*30 , center.y+j*30), view);
+            graph.addDefaultVertex(new CanvasCoord(center.x + i*30 , center.y+j*30));
         }
     }
 
@@ -179,10 +179,10 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
         for ( let j = 0 ; j < m ; j ++){
             let current_index = i*m + j;
             if( j < m - 1){
-                graph.addDefaultEdge(current_index, current_index + 1, view);
+                graph.addDefaultEdge(current_index, current_index + 1);
             }
             if( i < n-1 ){
-                graph.addDefaultEdge(current_index, current_index+m, view);
+                graph.addDefaultEdge(current_index, current_index+m);
             }
         }
     }
@@ -195,15 +195,15 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
 
 let aztecDiamondGenerator = new GraphGenerator("aztecDiamond", [new Integer("n",1)]);
 
-aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
-    const graph = new ClientGraph();
+aztecDiamondGenerator.generate = (pos: CanvasCoord, board: ClientBoard) => {
+    const graph = new ClientGraph(board);
     const n = aztecDiamondGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
     }
     const center = pos;
     
-    function check(i,j,n): boolean {
+    function check(i: number,j: number,n: number): boolean {
         return (i+j >= n-1 && i+j <= 3*n+1 && j-i <= n+1 && i-j <= n+1);
     }
 
@@ -214,7 +214,7 @@ aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
         for ( let j = 0 ; j < 2*n+1 ; j ++){
             indices[i].push(-1);
             if ( check(i,j,n) ){
-                const v = graph.addDefaultVertex(new CanvasCoord(center.x + i*30 - n*30 , center.y+j*30 - n*30), view);
+                const v = graph.addDefaultVertex(new CanvasCoord(center.x + i*30 - n*30 , center.y+j*30 - n*30));
                 indices[i][j] = v.index;
             }
         }
@@ -224,10 +224,10 @@ aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
         for (let j = 0 ; j < 2*n+1 ; j ++){
             if (indices[i][j] != -1){
                 if (check(i+1, j, n) && i+1 < 2*n+1){
-                    graph.addDefaultEdge(indices[i][j], indices[i+1][j], view);
+                    graph.addDefaultEdge(indices[i][j], indices[i+1][j]);
                 }
                 if (check(i,j+1,n) && j+1 < 2*n+1){
-                    graph.addDefaultEdge(indices[i][j], indices[i][j+1], view);
+                    graph.addDefaultEdge(indices[i][j], indices[i][j+1]);
 
                 }
             }

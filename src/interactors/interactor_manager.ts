@@ -194,6 +194,11 @@ export function setup_interactions(canvas: HTMLCanvasElement, ctx: CanvasRenderi
 
     canvas.addEventListener('mousemove', function (e) {
         const click_pos = new CanvasCoord(e.pageX, e.pageY);
+        
+        if ( local_board.updateElementOver(click_pos)){
+            requestAnimationFrame(() => draw(canvas, ctx, g) );
+        }
+
         mouse_pos = new CanvasCoord(e.pageX, e.pageY);
         has_moved = true;
         if (graph_clipboard != null) {

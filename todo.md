@@ -39,6 +39,7 @@
 
 - [ ] gestion tablette
 - [ ] optimisation possible en Math.floor() dans view.canvasCoord
+- [ ] 
 - quand on déplace un sommet sur un autre ça les fusionne
   - [X] ça marche
   - [ ] visuel qui dit que ça va fusionner quand on déplace

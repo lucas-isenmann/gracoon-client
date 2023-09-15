@@ -1,4 +1,4 @@
-import { Coord } from "gramoloss";
+import { Coord, Option } from "gramoloss";
 import { ClientGraph } from "../../board/graph";
 import { ClientRectangle } from "../../board/rectangle";
 import { CanvasCoord } from "../../board/canvas_coord";
@@ -12,39 +12,34 @@ import { color_selected } from "./color";
 
 export const rectangle_interactorV2 = new InteractorV2("rectangle", "Draw rectangle", "", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
 
-let first_corner : Coord;
-let opposite_corner: CanvasCoord;
-
-let index_rectangle : number | string = "";
+let firstCorner : Option<Coord>;
+let currentRectangle: Option<ClientRectangle> = undefined;
 
 
 rectangle_interactorV2.mousedown = (( canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
     if (last_down === DOWN_TYPE.EMPTY) {
-        first_corner = local_board.view.create_server_coord(e);
-        opposite_corner = e.copy();
-        index_rectangle = local_board.get_next_available_index_rectangle();
-        const client_rectangle = new ClientRectangle(first_corner, first_corner, color_selected, local_board.view);
-        local_board.rectangles.set(index_rectangle, client_rectangle);
+        firstCorner = local_board.view.create_server_coord(e);
+        const newIndex = local_board.get_next_available_index_rectangle();
+        currentRectangle = new ClientRectangle(firstCorner, firstCorner, color_selected, local_board);
+        local_board.rectangles.set(newIndex, currentRectangle);
     } 
 })
 
 rectangle_interactorV2.mousemove = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
-    if ( typeof index_rectangle !== "string")
-    {
-        local_board.rectangles.get(index_rectangle).resize_corner_area(local_board.view.create_canvas_coord(first_corner), e, local_board.view);
+    if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
+        currentRectangle.resize_corner_area(local_board.view.create_canvas_coord(firstCorner), e, local_board.view);
         return true;   
     }
     return false;
 })
 
 rectangle_interactorV2.mouseup = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
-    if ( typeof index_rectangle !== "string")
-    {
-        const current_rectangle = local_board.rectangles.get(index_rectangle);
+    if ( typeof currentRectangle != "undefined") {
         
-        current_rectangle.c1 = local_board.view.create_server_coord(current_rectangle.canvas_corner_top_left); 
-        current_rectangle.c2 = local_board.view.create_server_coord(current_rectangle.canvas_corner_bottom_right); 
-        index_rectangle = "";
+        currentRectangle.c1 = local_board.view.create_server_coord(currentRectangle.canvas_corner_top_left); 
+        currentRectangle.c2 = local_board.view.create_server_coord(currentRectangle.canvas_corner_bottom_right); 
+        currentRectangle = undefined;
+        firstCorner = undefined;
 
         //TODO: emit server
     }

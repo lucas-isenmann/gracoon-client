@@ -47,6 +47,10 @@ export class CanvasCoord extends Coord {
         return new Coord( (this.x - view.camera.x)/ view.zoom, (this.y - view.camera.y)/ view.zoom);
     }
 
+    static fromCoord(c: Coord, view: View): CanvasCoord{
+        return new CanvasCoord(c.x*view.zoom + view.camera.x, c.y*view.zoom+view.camera.y);
+    }
+
     // return boolean
     // true if the square of size 10 centered on this intersects the bezier Curve from c1 to c2 with control point cp
     is_nearby_beziers_1cp(c1: CanvasCoord, cp: CanvasCoord, c2: CanvasCoord): boolean {

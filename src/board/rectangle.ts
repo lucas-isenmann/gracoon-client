@@ -3,6 +3,7 @@ import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
+import { ClientBoard } from "./board";
 
 export class ClientRectangle extends Rectangle {
     color: Color;
@@ -10,14 +11,17 @@ export class ClientRectangle extends Rectangle {
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
+    board: ClientBoard;
 
 
-    constructor( c1: Coord, c2: Coord, color: Color, view: View){
-        super(c1,c2, color);
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    constructor(c1: Coord, c2: Coord, color: Color, board: ClientBoard){
+        super(c1, c2, color);
+        this.color = color;
+        this.board = board;
+        this.canvas_corner_top_left = CanvasCoord.fromCoord(this.top_left_corner(), board.view); 
+        this.canvas_corner_bottom_left = CanvasCoord.fromCoord(this.bot_left_corner(), board.view);
+        this.canvas_corner_bottom_right = CanvasCoord.fromCoord(this.bot_right_corner(), board.view);
+        this.canvas_corner_top_right = CanvasCoord.fromCoord(this.top_right_corner(), board.view);
     }
 
 
@@ -33,6 +37,9 @@ export class ClientRectangle extends Rectangle {
 
         // draw rect fill
         ctx.globalAlpha = 0.07;
+        if (this.board.elementOver === this){
+            ctx.globalAlpha = 0.2;
+        }
         ctx.fillStyle = getCanvasColor(this.color, view.dark_mode);
         ctx.fill();
         ctx.globalAlpha = 1;

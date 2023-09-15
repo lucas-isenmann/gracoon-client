@@ -152,7 +152,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     /**
      *  Draw the vertex on the context.
      */
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D, isMouseOver: boolean) {
         let vertex_radius = VERTEX_RADIUS;
         if (local_board.view.index_type != INDEX_TYPE.NONE) {
             vertex_radius = 2 * VERTEX_RADIUS;
@@ -160,7 +160,11 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
         const color = getCanvasColor(this.data.color, local_board.view.dark_mode);
 
-        if (this.data.is_selected) {
+        if (isMouseOver){
+            draw_circle(this.data.canvas_pos, color, vertex_radius*1.5, 0.5, ctx);
+        }
+
+        if (this.data.is_selected ) {
             ctx.beginPath();
             ctx.arc(this.data.canvas_pos.x, this.data.canvas_pos.y, vertex_radius*1.8, 0, 2 * Math.PI);
             ctx.lineWidth = 4;
@@ -216,6 +220,7 @@ export class ClientVertexData extends BasicVertexData {
 
     constructor(x:number, y:number, weight: string, view: View, color: Color) {
         super(new Coord(x,y), weight, color);
+        this.color = color;
         this.canvas_pos = view.create_canvas_coord(this.pos );
         this.is_selected = false;
         this.index_string = "";

@@ -28,7 +28,6 @@ import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
 import { ORIENTATION } from "gramoloss";
 import { colorsData, getCanvasColor } from "./colors_v2";
-import { Multicolor } from "./multicolor";
 
 export const local_board = new ClientBoard();
 

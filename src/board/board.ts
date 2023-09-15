@@ -6,18 +6,19 @@ import { socket } from "../socket";
 import { ClientArea } from "./area";
 import { View } from "./camera";
 import { ClientGraph } from "./graph";
-import { ClientLinkData, LinkPreData } from "./link";
+import { ClientLink, ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
 import { ClientRepresentation } from "./representations/client_representation";
 import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./vect";
-import { ClientVertexData } from "./vertex";
+import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { color_selected } from "../side_bar/interactors/color";
+import { Color } from "../colors_v2";
 
 
 export enum BoardElementType {
@@ -56,12 +57,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     graph: ClientGraph;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
+    elementOver: undefined | ClientVertex | ClientLink | ClientStroke | ClientRectangle;
 
     constructor(){
         super();
-        this.graph = new ClientGraph();
+        this.graph = new ClientGraph(this);
         this.view = new View();
         this.variables = new Map();
+        this.elementOver = undefined;
 
         this.variablesDiv = document.createElement("div");
         this.variablesDiv.id = "variablesDiv";
@@ -254,6 +257,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         for (const rect of this.rectangles.values()){
             rect.draw(ctx, this.view);
         }
+        this.strokes.forEach(s => {
+            s.draw(ctx, this);
+        });
     }
 
     clear() {
@@ -305,6 +311,40 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     
+    /**
+     * Return true if this.elementOver has changed.
+     */
+    updateElementOver(pos: CanvasCoord): boolean {
+        const before = this.elementOver;
+        this.elementOver = undefined;
+        
+        for (const rectangle of this.rectangles.values()){
+            if (is_click_over(rectangle, pos)){
+                this.elementOver = rectangle;
+                break;
+            }
+        }
+
+        for (const link of this.graph.links.values()){
+            if (link.isPosNear(pos)){
+                this.elementOver = link;
+                break;
+            }
+        }
+        for (const stroke of this.strokes.values()){
+            if (stroke.is_nearby(pos, this.view)){
+                this.elementOver = stroke;
+                break;
+            }
+        }
+        for (const vertex of this.graph.vertices.values()){
+            if (vertex.is_nearby(pos, 150)){
+                this.elementOver = vertex;
+                break;
+            }
+        }
+        return before !== this.elementOver;
+    }
 
 
     get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>) {
@@ -426,11 +466,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-    translate_area(shift: CanvasVect, area_index: number, vertices_contained: Set<number>){
-        if( this.areas.has(area_index)){
-            const area = this.areas.get(area_index);
-            this.graph.vertices.forEach((vertex, vertex_index) => {
-                if (vertices_contained.has(vertex_index)){
+    translate_area(shift: CanvasVect, areaIndex: number, verticesContained: Set<number>){
+        const area = this.areas.get(areaIndex);
+        if( typeof area != "undefined" ){
+            this.graph.vertices.forEach((vertex, vertexIndex) => {
+                if (verticesContained.has(vertexIndex)){
                     vertex.translate_by_canvas_vect(shift, this.view);
                 }
             })
@@ -438,20 +478,20 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 if ( typeof link.data.cp != "undefined"){
                     const v1 = link.startVertex;
                     const v2 = link.endVertex;
-                    if(vertices_contained.has(link.startVertex.index) && vertices_contained.has(link.endVertex.index)){
+                    if(verticesContained.has(link.startVertex.index) && verticesContained.has(link.endVertex.index)){
                         link.translate_cp_by_canvas_vect(shift, this.view);
                     }
-                    else if(vertices_contained.has(link.startVertex.index)){ // and thus not v2
-                        const new_pos = v1.data.pos;
-                        const previous_pos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
-                        const fixed_pos = v2.data.pos;
-                        link.transformCP(new_pos, previous_pos, fixed_pos);
+                    else if(verticesContained.has(link.startVertex.index)){ // and thus not v2
+                        const newPos = v1.data.pos;
+                        const previousPos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
+                        const fixedPos = v2.data.pos;
+                        link.transformCP(newPos, previousPos, fixedPos);
                         link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
-                    }else if(vertices_contained.has(link.endVertex.index)) { // and thus not v1
-                        const new_pos = v2.data.pos;
-                        const previous_pos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
-                        const fixed_pos = v1.data.pos;
-                        link.transformCP(new_pos, previous_pos, fixed_pos);
+                    }else if(verticesContained.has(link.endVertex.index)) { // and thus not v1
+                        const newPos = v2.data.pos;
+                        const previousPos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
+                        const fixedPos = v1.data.pos;
+                        link.transformCP(newPos, previousPos, fixedPos);
                         link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
                     }
                 }
@@ -461,8 +501,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
-    emitSubdivideLink(linkIndex: number, pos: Coord, callback: (response: number) => void) {
-        socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, callback);
+    emitSubdivideLink(linkIndex: number, pos: Coord, weight: string, color: Color, callback: (response: number) => void) {
+        socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, weight, color, callback);
     }
 
     emit_redo() {

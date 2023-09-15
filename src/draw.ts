@@ -1,4 +1,4 @@
-const SELECTION_COLOR = 'green' // avant c'était '#00ffff'
+export const SELECTION_COLOR = 'green' // avant c'était '#00ffff'
 export let COLOR_BACKGROUND = "#1e1e1e";
 export const GRID_COLOR = '#777777';
 export const VERTEX_RADIUS = 8;
@@ -9,7 +9,6 @@ export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
 
 import { User, users } from './user';
 import { ClientGraph } from './board/graph';
-import { ClientStroke } from './board/stroke';
 import { ClientArea } from './board/area';
 import { interactor_loaded } from './interactors/interactor_manager';
 import { clamp } from './utils';
@@ -18,7 +17,6 @@ import { local_board } from './setup';
 import { drawRoundRect, drawLine} from './draw_basics';
 import { graph_clipboard } from './clipboard';
 import { CanvasCoord } from './board/canvas_coord';
-import { getCanvasColor } from './colors_v2';
 
 export function toggle_dark_mode(enable:boolean){
     const action_DOM = document.getElementById("actions");
@@ -296,50 +294,8 @@ function draw_alignements(ctx: CanvasRenderingContext2D) {
 
 }
 
-// DRAW STROKES
-function draw_stroke(ctx: CanvasRenderingContext2D, s:ClientStroke){
-    if(s.positions.length > 0){ 
-        if(s.is_selected){
-            const tlcanvas = s.canvas_corner_top_left;
-            const brcanvas = s.canvas_corner_bottom_right;
-            ctx.beginPath();
-            ctx.strokeStyle = SELECTION_COLOR;
-            ctx.lineWidth = 1;
-            
-            ctx.rect(tlcanvas.x - 3 ,tlcanvas.y - 3, brcanvas.x - tlcanvas.x + 6, brcanvas.y - tlcanvas.y + 6);
-            ctx.stroke();
-
-            
-            let position_canvas = s.canvas_positions[0];
-            ctx.beginPath();
-            ctx.lineWidth = s.width + 4;
-            ctx.moveTo(position_canvas.x, position_canvas.y);
-            for(let i = 1; i<s.positions.length; i++){
-                position_canvas = s.canvas_positions[i];
-                ctx.lineTo(position_canvas.x, position_canvas.y);
-            }
-            ctx.stroke();
-        }
-
-        let position_canvas = s.canvas_positions[0];
-        ctx.beginPath();
-        ctx.strokeStyle = getCanvasColor(s.color, local_board.view.dark_mode);
-        ctx.lineWidth = s.width;
-        ctx.moveTo(position_canvas.x, position_canvas.y);
-        for(let i = 1; i<s.positions.length; i++){
-            position_canvas = s.canvas_positions[i];
-            ctx.lineTo(position_canvas.x, position_canvas.y);
-        }
-        ctx.stroke();
-    }
-}
 
 
-function draw_strokes(ctx: CanvasRenderingContext2D){
-    local_board.strokes.forEach(s => {
-        draw_stroke(ctx, s);
-    });
-}
 
 
 // DRAW AREA
@@ -432,7 +388,6 @@ export function draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g
 
     draw_areas(ctx);
     draw_alignements(ctx);
-    draw_strokes(ctx);
     g.draw(ctx);
     draw_users(canvas, ctx);
     draw_rectangular_selection(ctx);
