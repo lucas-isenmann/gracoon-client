@@ -1,16 +1,13 @@
-import { BasicVertex, BasicVertexData, bezierValue, Board, Coord, Vect, Vertex, Weighted } from "gramoloss";
-import katex from "katex";
-import { COLOR_INNER_VERTEX_DEFAULT, VERTEX_RADIUS } from "../draw";
-import { draw_circle, real_color } from "../draw_basics";
-import { DOWN_TYPE } from "../interactors/interactor";
-import { interactor_loaded, key_states } from "../interactors/interactor_manager";
+import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
+import {  VERTEX_RADIUS } from "../draw";
+import { draw_circle } from "../draw_basics";
 import { local_board } from "../setup";
-import { solutionQuadratic } from "../utils";
 import { INDEX_TYPE, View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
 import { BoardElementType } from "./board";
 import { initWeightDiv } from "./weightable";
+import { Color, getCanvasColor } from "../colors_v2";
 
 export class ParameterValue {
     value: string;
@@ -161,7 +158,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
             vertex_radius = 2 * VERTEX_RADIUS;
         }
 
-        const color = real_color(this.data.color, local_board.view.dark_mode);
+        const color = getCanvasColor(this.data.color, local_board.view.dark_mode);
 
         if (this.data.is_selected) {
             ctx.beginPath();
@@ -210,18 +207,19 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
 
 export class ClientVertexData extends BasicVertexData {
+    color: Color;
     canvas_pos: CanvasCoord;
     is_selected: boolean;
     index_string: string;
     parameter_values: Map<string,ParameterValue>;
     weightDiv: HTMLDivElement | undefined; // set to undefined until a non empty weight is used
 
-    constructor(x:number, y:number, weight: string, view: View) {
-        super(new Coord(x,y),weight,"black");
+    constructor(x:number, y:number, weight: string, view: View, color: Color) {
+        super(new Coord(x,y), weight, color);
         this.canvas_pos = view.create_canvas_coord(this.pos );
         this.is_selected = false;
         this.index_string = "";
-        this.color = COLOR_INNER_VERTEX_DEFAULT;
+        // this.color = COLOR_INNER_VERTEX_DEFAULT;
         this.parameter_values = new Map();
         this.weightDiv = undefined;
     }

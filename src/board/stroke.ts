@@ -1,16 +1,17 @@
 import { View } from "./camera";
-import { BasicColorName } from "../basic_colors";
 import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
+import { Color } from "../colors_v2";
 
 export class ClientStroke extends Stroke{
+    color: Color;
     canvas_positions: Array<CanvasCoord>;
     is_selected:boolean;
     canvas_corner_top_left: CanvasCoord;
     canvas_corner_bottom_right: CanvasCoord;
     
-    constructor(pos:Array<Coord>, color:BasicColorName, width:number, view: View){
+    constructor(pos: Array<Coord>, color: Color, width:number, view: View){
         super(pos, color, width);
         this.is_selected = false;
         this.canvas_positions = new Array();

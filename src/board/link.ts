@@ -5,6 +5,7 @@ import { CanvasVect } from "./vect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { initWeightDiv } from "./weightable";
+import { Color } from "../colors_v2";
 
 
 export class LinkPreData extends BasicLinkData {
@@ -12,8 +13,8 @@ export class LinkPreData extends BasicLinkData {
     endIndex: number;
     orientation: ORIENTATION;
 
-    constructor(startIndex: number, endIndex: number, orientation: ORIENTATION){
-        super(undefined, "", "black");
+    constructor(startIndex: number, endIndex: number, orientation: ORIENTATION, weight: string, color: Color){
+        super(undefined, weight, color);
         this.startIndex = startIndex;
         this.endIndex = endIndex;
         this.orientation = orientation;
@@ -21,11 +22,12 @@ export class LinkPreData extends BasicLinkData {
 }
 
 export class ClientLinkData extends BasicLinkData {
+    color: Color;
     cp_canvas_pos: CanvasCoord | string;
     is_selected: boolean;
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
 
-    constructor(cp: Option<Coord>,  color: string, weight: string, view: View) {
+    constructor(cp: Option<Coord>,  color: Color, weight: string, view: View) {
         super(cp, weight, color);
         if (typeof cp == "undefined"){
             this.cp_canvas_pos = "";

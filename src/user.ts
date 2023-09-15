@@ -67,8 +67,8 @@ export class User {
         }
     }
 
-    set_color(color: string){
-        this.multicolor.set_color(color);
+    setColor(color: string){
+        this.multicolor.setColor(color);
     }
     
 
@@ -125,29 +125,25 @@ export class Self{
     label:string;
     multicolor:Multicolor;
     id:string;
-    // contrast_color:string;
 
     constructor(){
         this.label = null;
         this.multicolor = null;
         this.id = null;
-        // this.contrast_color = null;
     }
 
     init(id:string, label:string, color:string){
         this.multicolor = new Multicolor(color);
         this.label = label;
         this.id = id;
-        // this.contrast_color = invertColor(color);
     }
 
     update_label(label:string){
         this.label = label;
     }
 
-    set_color(color:string){
-        this.multicolor.set_color(color);
-        // this.contrast_color = invertColor(color);
+    setColor(color:string){
+        this.multicolor.setColor(color);
     }
 
 

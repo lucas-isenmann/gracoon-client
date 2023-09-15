@@ -16,9 +16,9 @@ import { clamp } from './utils';
 import { Multicolor } from './multicolor';
 import { local_board } from './setup';
 import { drawRoundRect, drawLine} from './draw_basics';
-import { real_color2 } from './basic_colors';
 import { graph_clipboard } from './clipboard';
 import { CanvasCoord } from './board/canvas_coord';
+import { getCanvasColor } from './colors_v2';
 
 export function toggle_dark_mode(enable:boolean){
     const action_DOM = document.getElementById("actions");
@@ -323,7 +323,7 @@ function draw_stroke(ctx: CanvasRenderingContext2D, s:ClientStroke){
 
         let position_canvas = s.canvas_positions[0];
         ctx.beginPath();
-        ctx.strokeStyle = real_color2(s.color, local_board.view.dark_mode);
+        ctx.strokeStyle = getCanvasColor(s.color, local_board.view.dark_mode);
         ctx.lineWidth = s.width;
         ctx.moveTo(position_canvas.x, position_canvas.y);
         for(let i = 1; i<s.positions.length; i++){

@@ -6,72 +6,91 @@ import { key_states, last_down, last_down_index } from "../../interactors/intera
 import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
-import BASIC_COLORS from '../../basic_colors.json';
+import { Color, colorsData, getCanvasColor } from "../../colors_v2";
 
 export const color_interactorV2 = new InteractorV2("color", "Edit colors", "c", ORIENTATION_INFO.RIGHT, "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
 
+export let color_selected: Color = Color.Neutral;
+
 // Local variables
-export let color_selected = "gray";
-const colors_available = new Array();
+const colors_available = new Array<Color>();
 
-for ( const name in BASIC_COLORS){
-    colors_available.push(name)
+export function setupColorInteractor(){
+    for ( const colorName of colorsData.keys()){
+        colors_available.push(colorName as Color);
+    }
+    
+    // Color picker HTML div
+    const color_picker_div = document.createElement("div");
+    color_picker_div.id = "color_picker";
+    document.body.appendChild(color_picker_div);
+    
+    // Color picker input HTML input
+    const color_picker_input = document.createElement("input");
+    color_picker_input.classList.add("color_picker_input");
+    color_picker_input.type = "color";
+    color_picker_input.onchange = (() => {
+        color_selected = color_picker_input.value as Color;
+        colors_available.push(color_selected);
+        add_available_color(color_selected);
+        update_selected_available_color();
+    });
+    color_picker_div.onmouseleave = ((e) => {
+        move_back_color_picker_div();
+    });
+    //color_picker_div.appendChild(color_picker_input); // color_picker_input DISABLED
+    
+    for (const basic_color of colors_available) {
+        add_available_color(basic_color);
+    }
+    update_selected_available_color()
 }
 
-// Color picker HTML div
-const color_picker_div = document.createElement("div");
-color_picker_div.id = "color_picker";
-document.body.appendChild(color_picker_div);
 
-// Color picker input HTML input
-const color_picker_input = document.createElement("input");
-color_picker_input.classList.add("color_picker_input");
-color_picker_input.type = "color";
-color_picker_input.onchange = (() => {
-    color_selected = color_picker_input.value;
-    colors_available.push(color_selected);
-    add_available_color(color_selected);
-    update_selected_available_color();
-});
-color_picker_div.onmouseleave = ((e) => {
-    move_back_color_picker_div();
-});
-//color_picker_div.appendChild(color_picker_input); // color_picker_input DISABLED
-
-for (const basic_color of colors_available) {
-    add_available_color(basic_color);
-}
-update_selected_available_color()
 
 function turn_on_color_picker_div() {
-    color_picker_div.style.display = "block";
-    color_picker_div.style.opacity = "1";
+    const colorPicketDiv = document.getElementById("color_picker");
+    if (typeof colorPicketDiv != "undefined"){
+        colorPicketDiv.style.display = "block";
+        colorPicketDiv.style.opacity = "1";
+    }
+   
 }
 
 function turn_off_color_picker_div() {
-    color_picker_div.style.opacity = "0";
-    setTimeout(() => { color_picker_div.style.display = "none" }, 200);
+    const colorPicketDiv = document.getElementById("color_picker");
+    if (typeof colorPicketDiv != "undefined"){
+        colorPicketDiv.style.opacity = "0";
+        setTimeout(() => { colorPicketDiv.style.display = "none" }, 200);
+    }
+    
 }
 
 function move_back_color_picker_div() {
     const color_interactor_div = document.getElementById(color_interactorV2.id);
     const offsets = color_interactor_div.getBoundingClientRect();
-    color_picker_div.style.top = String(offsets.top) + "px";
-    color_picker_div.style.left = "70" + "px";
+    const colorPicketDiv = document.getElementById("color_picker");
+    if (typeof colorPicketDiv != "undefined"){
+        colorPicketDiv.style.top = String(offsets.top) + "px";
+        colorPicketDiv.style.left = "70" + "px";
+    }
 }
 
 
-function add_available_color(color_name) {
+function add_available_color(color: Color) {
     const color_div = document.createElement("div");
-    color_div.id = "color_choice_" + color_name;
+    color_div.id = "color_choice_" + color;
     color_div.classList.add("color_choice");
-    color_div.style.backgroundColor = BASIC_COLORS[color_name].dark;
+    color_div.style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
     color_div.onclick = () => {
-        color_selected = color_name;
+        color_selected = color;
         update_selected_available_color();
         move_back_color_picker_div();
     }
-    color_picker_div.appendChild(color_div);
+    const colorPicketDiv = document.getElementById("color_picker");
+    if (typeof colorPicketDiv != "undefined"){
+        colorPicketDiv.appendChild(color_div);
+    }
 }
 
 function update_selected_available_color() {
@@ -123,9 +142,13 @@ function select_previous_color() {
 // Interactors methods
 
 color_interactorV2.trigger = (mouse_pos: CanvasCoord) => {
+    console.log("trigger color interactor");
     turn_on_color_picker_div();
     move_back_color_picker_div();
-    if (color_picker_div.style.display == "block") {
+    const colorPicketDiv = document.getElementById("color_picker");
+    if (typeof colorPicketDiv == "undefined")  return;
+
+    if (colorPicketDiv.style.display == "block") {
         if (key_states.get("Shift")){
             select_previous_color();
         } else {

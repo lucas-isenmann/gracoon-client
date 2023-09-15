@@ -17,6 +17,7 @@ import { handleServerVersion } from "./handlers/serverVersion";
 import ENV from './.env.json';
 
 import { io } from "socket.io-client";
+import { Color } from "./colors_v2";
 
 const port = ENV.port;
 const adress = "http://" + ENV.serverAdress + ":" + port;
@@ -80,7 +81,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     function update_other_self_user(id:string, label:string, color:string){
         // console.log(id, label, color);
         if (users.has(id)) {
-            users.get(id).set_color(color);
+            users.get(id).setColor(color);
             users.get(id).label = label;
         }
         else {
@@ -235,7 +236,8 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 const x = data.element.data.pos.x as number;
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
-                const newVertex = local_board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, local_board.view));
+                const color = data.element.data.color as Color;
+                const newVertex = local_board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, local_board.view, color));
                 if (weight != ""){
                     newVertex.afterSetWeight();
                 }
@@ -248,7 +250,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 if (data.element.orientation == "DIRECTED"){
                     orient = ORIENTATION.DIRECTED;
                 }
-                const color = data.element.data.color as string;
+                const color = data.element.data.color as Color;
                 const weight = data.element.data.weight as string;
 
                 const newLinkData = new ClientLinkData(cp, color, weight, local_board.view);
@@ -313,7 +315,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             const vertex = local_board.graph.vertices.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
-                vertex.data.color = color;
+                vertex.data.color = color as Color;
             } else if (data.param == "weight"){
                 if (document.activeElement.id != ("vertex_weight_" + data.index)){
                     const text = data.value as string;
@@ -325,7 +327,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             const link = local_board.graph.links.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
-                link.data.color = color;
+                link.data.color = color as Color;
             } else if (data.param == "weight"){
                 const weight = data.value as string;
                 link.setWeight(weight);
@@ -343,7 +345,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             const stroke = local_board.strokes.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
-                stroke.color = color;
+                stroke.color = color as Color;
             }
         } else if (data.kind == "Area"){
             const area = local_board.areas.get(data.index);
@@ -446,7 +448,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
         g.clear_vertices();
         for (const data of vertices_entries) {
-            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, local_board.view);
+            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, local_board.view, data[1].data.color as Color);
             vertexData.color = data[1].data.color;
             const newVertex = g.set_vertex(data[0], vertexData);
             if (vertexData.weight != ""){

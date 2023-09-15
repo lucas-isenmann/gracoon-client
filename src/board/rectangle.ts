@@ -1,17 +1,18 @@
 import { Coord, Rectangle } from "gramoloss";
-import { BasicColorName, real_color2 } from "../basic_colors";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
+import { Color, getCanvasColor } from "../colors_v2";
 
 export class ClientRectangle extends Rectangle {
+    color: Color;
     canvas_corner_top_left : CanvasCoord;
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
 
 
-    constructor( c1: Coord, c2: Coord, color: BasicColorName, view: View){
+    constructor( c1: Coord, c2: Coord, color: Color, view: View){
         super(c1,c2, color);
         this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
@@ -23,7 +24,7 @@ export class ClientRectangle extends Rectangle {
     draw(ctx: CanvasRenderingContext2D, view: View){
         // draw border
         ctx.beginPath();
-        ctx.strokeStyle = real_color2(this.color, view.dark_mode);
+        ctx.strokeStyle = getCanvasColor(this.color, view.dark_mode);
         ctx.lineWidth = 2;
         const c1canvas = this.canvas_corner_top_left;
         const c2canvas = this.canvas_corner_bottom_right;
@@ -32,7 +33,7 @@ export class ClientRectangle extends Rectangle {
 
         // draw rect fill
         ctx.globalAlpha = 0.07;
-        ctx.fillStyle = real_color2(this.color, view.dark_mode);
+        ctx.fillStyle = getCanvasColor(this.color, view.dark_mode);
         ctx.fill();
         ctx.globalAlpha = 1;
     }

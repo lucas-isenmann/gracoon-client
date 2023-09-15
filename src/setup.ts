@@ -18,16 +18,17 @@ import { rectangle_interactorV2 } from "./side_bar/interactors/rectangle";
 import { area_interactorV2 } from "./side_bar/interactors/area";
 import { eraser_interactorV2 } from "./side_bar/interactors/eraser";
 import { text_interactorV2 } from "./side_bar/interactors/text";
-import { color_interactorV2 } from "./side_bar/interactors/color";
+import { color_interactorV2, setupColorInteractor } from "./side_bar/interactors/color";
 import ENV from './.env.json';
 import { SideBarLauncher } from "./side_bar/side_bar_launcher";
-import BASIC_COLORS from "./basic_colors.json";
 import { TikZ_create_file_data } from "./tikz";
 import { INDEX_TYPE } from "./board/camera";
 import { createPopup } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
 import { ORIENTATION } from "gramoloss";
+import { colorsData, getCanvasColor } from "./colors_v2";
+import { Multicolor } from "./multicolor";
 
 export const local_board = new ClientBoard();
 
@@ -128,15 +129,15 @@ function setup() {
         if(local_board.view.dark_mode){
             toggle_dark_mode(false);
             local_board.view.dark_mode = false;
-            for( const name in BASIC_COLORS){
-                document.getElementById("color_choice_" + name).style.backgroundColor = BASIC_COLORS[name].light;
+            for( const color of colorsData.keys()){
+                document.getElementById("color_choice_" + color).style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
             } 
         }
         else{
             toggle_dark_mode(true);
             local_board.view.dark_mode = true;
-            for( const name in BASIC_COLORS){
-                document.getElementById("color_choice_" + name).style.backgroundColor = BASIC_COLORS[name].dark;
+            for( const color of colorsData.keys()){
+                document.getElementById("color_choice_" + color).style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
             } 
         }
 
@@ -317,7 +318,7 @@ function setup() {
     document.body.appendChild(left_side_bar.dom);
 
 
-
+    setupColorInteractor();
 
 
     draw(canvas, ctx, local_board.graph);

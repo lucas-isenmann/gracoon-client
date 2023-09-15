@@ -1,7 +1,6 @@
 import { INDEX_TYPE } from "./board/camera";
 import { VERTEX_RADIUS } from "./draw";
 import { local_board } from "./setup";
-import BASIC_COLORS from "./basic_colors.json";
 import { CanvasCoord } from "./board/canvas_coord";
 
 const ARC_ARROW_LENGTH = 12
@@ -90,19 +89,3 @@ export function draw_head(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord,
     ctx.stroke();
 }
 
-
-// set of available colors:
-// "red", "green", "blue", "black", "grey", "orange", "yellow", "purple", "pink", "brown"
-export function real_color(color: string, dark_mode: boolean){
-    if (dark_mode){
-        if ( color == "#000000"){
-            return "white";
-        }
-        return BASIC_COLORS[color].dark;
-    }else {
-        if ( color == "#000000"){
-            return "black";
-        }
-        return  BASIC_COLORS[color].light;
-    }
-}

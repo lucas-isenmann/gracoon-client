@@ -17,6 +17,7 @@ import { ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
+import { color_selected } from "../side_bar/interactors/color";
 
 
 export enum BoardElementType {
@@ -512,12 +513,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         switch(element.constructor){
             case ClientVertexData: {
                 const vertexData = element as ClientVertexData;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertexData.pos}, callback);
+                console.log(color_selected);
+                console.log(vertexData.color);
+                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
                 break;
             }
             case LinkPreData: {
                 const data = element as LinkPreData;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation}, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation, weight: data.weight, color: data.color}, callback);
                 break;
             }
             case ClientStroke: {

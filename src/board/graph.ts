@@ -4,11 +4,12 @@ import { CanvasCoord } from "./canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
 import { BasicGraph, Coord, Graph, ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
 import { CanvasVect } from "./vect";
-import { draw_circle, draw_head, drawLine, real_color } from "../draw_basics";
+import { draw_circle, draw_head } from "../draw_basics";
 import { local_board } from "../setup";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { interactor_loaded } from "../interactors/interactor_manager";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
+import { Color, getCanvasColor } from "../colors_v2";
 
 
 
@@ -84,7 +85,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const posu = u.data.canvas_pos; 
             const posv = v.data.canvas_pos; 
             const poscp = link.data.cp_canvas_pos;
-            const color = real_color(link.data.color, local_board.view.dark_mode);
+            const color = getCanvasColor(link.data.color, local_board.view.dark_mode);
 
             if (link.data.is_selected) {
                 ctx.strokeStyle = color;
@@ -392,7 +393,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         const subgraph = new ClientGraph();
         for (const [index, v] of this.vertices.entries()) {
             if(v.data.is_selected){
-                subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, view))
+                subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, view, v.data.color))
             }
         }
 
@@ -436,7 +437,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
     addDefaultVertex(pos: Coord, view: View): ClientVertex{
-        const vData = new ClientVertexData( pos.x, pos.y, "", view);
+        const vData = new ClientVertexData( pos.x, pos.y, "", view, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
     }
@@ -449,12 +450,12 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
     addDefaultEdge(startIndex: number, endIndex: number, view: View){
-        const linkData = new ClientLinkData(undefined, "black", "", view);
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", view);
         this.addLink(startIndex, endIndex, ORIENTATION.UNDIRECTED, linkData);
     }
 
     addDefaultArc(startIndex: number, endIndex: number, view: View){
-        const linkData = new ClientLinkData(undefined, "black", "", view);
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", view);
         this.addLink(startIndex, endIndex, ORIENTATION.DIRECTED, linkData);
     }
 
