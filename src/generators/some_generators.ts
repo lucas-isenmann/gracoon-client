@@ -28,11 +28,11 @@ import { GraphGenerator } from "./generator";
 
 // ----------------------------
 
- let randomCliqueGenerator = new GraphGenerator("clique", [new Integer("n", 3)])
+ let cliqueGenerator = new GraphGenerator("clique", [new Integer("n", 3)])
 
- randomCliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
+cliqueGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
-    const n = randomCliqueGenerator.attributes[0].value;
+    const n = cliqueGenerator.attributes[0].value;
     if (typeof n == "string"){
         return graph;
     }
@@ -158,14 +158,13 @@ completeBipartite.generate = (pos: CanvasCoord, view: View) => {
 
 // ----------------------------
 
-let gridGenerator = new GraphGenerator("grid", [new Integer("n (column)",1),new Integer("m (row)",1), new Percentage("proba")]);
+let gridGenerator = new GraphGenerator("grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
 
 gridGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
     const n = gridGenerator.attributes[0].value;
     const m = gridGenerator.attributes[1].value;
-    const p = gridGenerator.attributes[2].value;
-    if (typeof n == "string" || typeof m == "string" || typeof p == "string"){
+    if (typeof n == "string" || typeof m == "string" ){
         return graph;
     }
     const center = pos;
@@ -180,11 +179,9 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
         for ( let j = 0 ; j < m ; j ++){
             let current_index = i*m + j;
             if( j < m - 1){
-                if (Math.random() < p) 
                 graph.addDefaultEdge(current_index, current_index + 1, view);
             }
             if( i < n-1 ){
-                if (Math.random() < p )
                 graph.addDefaultEdge(current_index, current_index+m, view);
             }
         }
@@ -196,13 +193,12 @@ gridGenerator.generate = (pos: CanvasCoord, view: View) => {
 // ---------
 
 
-let aztecDiamondGenerator = new GraphGenerator("aztecDiamond", [new Integer("n",1), new Percentage("proba", 1)]);
+let aztecDiamondGenerator = new GraphGenerator("aztecDiamond", [new Integer("n",1)]);
 
 aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
     const graph = new ClientGraph();
     const n = aztecDiamondGenerator.attributes[0].value;
-    const p = aztecDiamondGenerator.attributes[1].value;
-    if (typeof n == "string" || typeof p == "string"){
+    if (typeof n == "string"){
         return graph;
     }
     const center = pos;
@@ -248,7 +244,7 @@ aztecDiamondGenerator.generate = (pos: CanvasCoord, view: View) => {
 
 export let generators_available = new Array<GraphGenerator>();
 generators_available.push(independentGenerator);
-generators_available.push(randomCliqueGenerator);
+generators_available.push(cliqueGenerator);
 generators_available.push(randomGNP);
 generators_available.push(randomStar);
 generators_available.push(completeBipartite);
