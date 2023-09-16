@@ -1,9 +1,8 @@
-import { draw } from '../draw';
 import { param_average_degree, param_diameter, param_has_cycle, param_has_directed_cycle, param_has_proper_coloring, param_is_connected, param_is_good_weight, param_max_degree, param_min_degree, param_min_indegree, param_nb_edges, param_nb_vertices, param_number_colors, param_number_connected_comp, param_is_drawing_planar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
-import { local_board } from '../setup';
+import { ClientBoard } from '../board/board';
 
 
 
@@ -41,7 +40,7 @@ export function setup_parametors_available() {
 
 
 
-export function load_param(param: Parametor, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph, area_id: number) {
+export function load_param(param: Parametor, board: ClientBoard, area_id: number) {
     const html_id =  param.id + "_area_" + area_id;
     const param_to_load = {parametor:param, html_id:html_id, area_id : area_id};
 
@@ -51,8 +50,8 @@ export function load_param(param: Parametor, canvas: HTMLCanvasElement, ctx: Can
         div_parametor.classList.remove("inactive_parametor");
 
         if(param.is_live){
-            update_parametor(g, param_to_load);
-            requestAnimationFrame(function () { draw(canvas, ctx, g) })
+            update_parametor(board.graph, param_to_load);
+            requestAnimationFrame(function () {board.draw() })
         }
         
         toggle_list_separator(area_id, true);
@@ -94,8 +93,8 @@ export function update_parametor(g:ClientGraph, param){
         update_result_span(result, param.parametor, result_span);
     }
     else{
-        if(local_board.areas.has(param.area_id)){
-            var result = param.parametor.compute(local_board.get_subgraph_from_area(param.area_id), true);
+        if(g.board.areas.has(param.area_id)){
+            var result = param.parametor.compute(g.board.get_subgraph_from_area(param.area_id), true);
             update_result_span(result, param.parametor, result_span);
         }
         else{

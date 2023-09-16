@@ -2,6 +2,8 @@ import { View } from "./camera";
 import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./vect";
+import { ClientBoard } from "./board";
+import { interactor_loaded } from "../interactors/interactor_manager";
 
 
 export enum AREA_CORNER {
@@ -207,6 +209,71 @@ export class ClientArea extends Area{
         this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
         this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    }
+
+
+
+
+    // DRAW AREA
+    draw(board: ClientBoard){
+
+
+        board.ctx.beginPath();
+        board.ctx.strokeStyle = this.color;
+        board.ctx.lineWidth = 2;
+        const c1canvas = this.canvas_corner_top_left;
+        const c2canvas = this.canvas_corner_bottom_right;
+        board.ctx.rect(c1canvas.x , c1canvas.y, c2canvas.x - c1canvas.x, c2canvas.y - c1canvas.y);
+        board.ctx.stroke();
+
+        board.ctx.globalAlpha = 0.07;
+        board.ctx.fillStyle = this.color;
+        board.ctx.fill();
+        board.ctx.globalAlpha = 1;
+
+        board.ctx.beginPath();
+        board.ctx.font = "400 24px Arial";
+        const measure = board.ctx.measureText(this.label);
+        board.ctx.fillStyle = this.color;
+        const text_canvas_pos = this.canvas_corner_bottom_left;
+        board.ctx.rect(text_canvas_pos.x, text_canvas_pos.y - 29, measure.width + 10, 29);
+        board.ctx.fill();
+
+        
+        board.ctx.beginPath();
+        board.ctx.fillStyle = "white"; // TODO multicolor.contrast
+        board.ctx.fillText(this.label, text_canvas_pos.x + 5, text_canvas_pos.y - 5);
+        board.ctx.fill();
+
+
+
+        if(interactor_loaded && interactor_loaded.id === "area"){
+            const top_left = this.canvas_corner_top_left;
+            const top_right = this.canvas_corner_top_right;
+            const bot_right = this.canvas_corner_bottom_right;
+
+            const corner_side = 18;
+
+            board.ctx.beginPath();
+            board.ctx.strokeStyle = this.color;
+            board.ctx.fillStyle = this.color;
+            board.ctx.lineWidth = 2;
+            board.ctx.rect(top_left.x, top_left.y, corner_side, corner_side);
+            board.ctx.stroke();
+            // ctx.fill();
+
+            board.ctx.beginPath();
+            board.ctx.strokeStyle = this.color;
+            board.ctx.lineWidth = 2;
+            board.ctx.rect(top_right.x-corner_side, top_right.y, corner_side, corner_side);
+            board.ctx.stroke();
+
+            board.ctx.beginPath();
+            board.ctx.strokeStyle = this.color;
+            board.ctx.lineWidth = 2;
+            board.ctx.rect(bot_right.x-corner_side, bot_right.y-corner_side, corner_side, corner_side);
+            board.ctx.stroke();
+        }
     }
 
    

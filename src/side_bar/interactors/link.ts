@@ -1,17 +1,15 @@
 import { ORIENTATION } from "gramoloss";
-import { ClientGraph } from "../../board/graph";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { draw_circle, drawLine, draw_head } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { key_states, last_down, last_down_index } from "../../interactors/interactor_manager";
-import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
 import { SideBar } from "../side_bar";
-import { color_selected } from "./color";
-import { Color, getCanvasColor } from "../../colors_v2";
+import { getCanvasColor } from "../../colors_v2";
+import { ClientBoard } from "../../board/board";
 
 
 
@@ -22,83 +20,83 @@ import { Color, getCanvasColor } from "../../colors_v2";
 class LinkInteractor extends InteractorV2 {
     indexLastCreatedVertex: number | undefined;
 
-    constructor(id:string, info: string, shortcut: string, orientationInfo: ORIENTATION_INFO, iconSrc: string, cursorStyle: string, interactableElementTypes: Set<DOWN_TYPE>, mySideBar?: SideBar, rootSidebar?: SideBar)
+    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientationInfo: ORIENTATION_INFO, iconSrc: string, cursorStyle: string, interactableElementTypes: Set<DOWN_TYPE>, mySideBar?: SideBar, rootSidebar?: SideBar)
     {
-        super(id, info, shortcut, orientationInfo, iconSrc, cursorStyle, interactableElementTypes, mySideBar, rootSidebar);
+        super(board, id, info, shortcut, orientationInfo, iconSrc, cursorStyle, interactableElementTypes, mySideBar, rootSidebar);
         this.indexLastCreatedVertex = undefined;
     }
 }
 
-export function createLinkInteractor(orientation: ORIENTATION): InteractorV2{
+export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATION): InteractorV2{
     const id = orientation == ORIENTATION.UNDIRECTED ? "edge" : "arc";
     const info = orientation == ORIENTATION.UNDIRECTED ? "Create edges" : "Create arcs";
     const shortcutLetter = orientation == ORIENTATION.UNDIRECTED ? "e" : "a";
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
-    const linkInteractor = new LinkInteractor(id, info, shortcutLetter, ORIENTATION_INFO.RIGHT, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
+    const linkInteractor = new LinkInteractor(board, id, info, shortcutLetter, ORIENTATION_INFO.RIGHT, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
 
 
-    linkInteractor.mousedown = ((canvas, ctx, g: ClientGraph, e) => {
+    linkInteractor.mousedown = ((board: ClientBoard, e) => {
         if (last_down == DOWN_TYPE.EMPTY) {
-            const pos = g.align_position(e, new Set(), canvas, local_board.view);
-            const server_pos = local_board.view.create_server_coord(pos);
+            const pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
+            const server_pos = board.view.create_server_coord(pos);
 
-            if( local_board.view.is_link_creating){
-                local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view, color_selected), (response) => { 
-                    local_board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", color_selected), () => {} )
+            if( board.view.is_link_creating){
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
+                    board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
                     if (key_states.get("Control")){
-                        local_board.view.is_link_creating = true;
+                        board.view.is_link_creating = true;
                         linkInteractor.indexLastCreatedVertex = response;
-                        local_board.view.link_creating_start = pos;
-                        local_board.view.link_creating_type = orientation;
+                        board.view.link_creating_start = pos;
+                        board.view.link_creating_type = orientation;
                     } else {
-                        local_board.view.is_link_creating = false;
+                        board.view.is_link_creating = false;
                     }
                     
                 });
             } else {
-                local_board.view.is_link_creating = true;
-                local_board.view.link_creating_start = pos;
-                local_board.view.link_creating_type = orientation;
-                local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view, color_selected), (response) => { linkInteractor.indexLastCreatedVertex = response } );
+                board.view.is_link_creating = true;
+                board.view.link_creating_start = pos;
+                board.view.link_creating_type = orientation;
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { linkInteractor.indexLastCreatedVertex = response } );
             }
         } 
         else if (last_down == DOWN_TYPE.LINK){
-            local_board.view.is_link_creating = true;
-            local_board.view.link_creating_start = e;
-            local_board.view.link_creating_type = orientation;
-            const pos = local_board.view.create_server_coord(e);
-            local_board.emitSubdivideLink( last_down_index, pos, "", color_selected, (response) => { linkInteractor.indexLastCreatedVertex = response } );
+            board.view.is_link_creating = true;
+            board.view.link_creating_start = e;
+            board.view.link_creating_type = orientation;
+            const pos = board.view.create_server_coord(e);
+            board.emitSubdivideLink( last_down_index, pos, "", board.colorSelected, (response) => { linkInteractor.indexLastCreatedVertex = response } );
         } 
         else if (last_down === DOWN_TYPE.VERTEX) {
-            const vertex = g.vertices.get(last_down_index);
-            if( local_board.view.is_link_creating){
-                local_board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, last_down_index, orientation, "", color_selected), () => {} )
+            const vertex = board.graph.vertices.get(last_down_index);
+            if( board.view.is_link_creating){
+                board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, last_down_index, orientation, "", board.colorSelected), () => {} )
                 if (key_states.get("Control")){
-                    local_board.view.is_link_creating = true;
+                    board.view.is_link_creating = true;
                     linkInteractor.indexLastCreatedVertex = last_down_index;
-                    local_board.view.link_creating_start = vertex.data.canvas_pos;
-                    local_board.view.link_creating_type = orientation;
+                    board.view.link_creating_start = vertex.data.canvas_pos;
+                    board.view.link_creating_type = orientation;
                 } else {
-                    local_board.view.is_link_creating = false;
+                    board.view.is_link_creating = false;
                 }
             } else {
                 linkInteractor.indexLastCreatedVertex = last_down_index;
-                local_board.view.is_link_creating = true;
-                local_board.view.link_creating_start = vertex.data.canvas_pos;
-                local_board.view.link_creating_type = orientation;
+                board.view.is_link_creating = true;
+                board.view.link_creating_start = vertex.data.canvas_pos;
+                board.view.link_creating_type = orientation;
             }
 
             
         }
     })
 
-    linkInteractor.mousemove = ((canvas, ctx, g: ClientGraph, e) => {
-        local_board.view.creating_vertex_pos = g.align_position(e, new Set(), canvas, local_board.view);
+    linkInteractor.mousemove = ((board: ClientBoard, e) => {
+        board.view.creating_vertex_pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
         return true;
     })
 
-    linkInteractor.mouseup = ((canvas, ctx, g: ClientGraph, e) => {
-        if (local_board.view.is_link_creating == false){
+    linkInteractor.mouseup = ((board: ClientBoard, e) => {
+        if (board.view.is_link_creating == false){
             return;
         }
         if ( key_states.get("Control")){
@@ -108,52 +106,52 @@ export function createLinkInteractor(orientation: ORIENTATION): InteractorV2{
         const firstVertexIndex = (last_down == DOWN_TYPE.VERTEX) ? last_down_index : linkInteractor.indexLastCreatedVertex;
         
 
-        const vertexIndex = g.get_vertex_index_nearby(g.align_position(e, new Set(), canvas, local_board.view));
+        const vertexIndex = board.graph.get_vertex_index_nearby(board.graph.align_position(e, new Set(), board.canvas, board.view));
         if (vertexIndex != null){
             if ( firstVertexIndex != vertexIndex) { // there is a vertex nearby and it is not the previous one
-                local_board.emit_add_element(new LinkPreData(firstVertexIndex, vertexIndex,  orientation, "", color_selected), (response: number) => {});
+                board.emit_add_element(new LinkPreData(firstVertexIndex, vertexIndex,  orientation, "", board.colorSelected), (response: number) => {});
             } 
         } else {
-            const link = g.nearbyLink(e);
+            const link = board.graph.nearbyLink(e);
             if (typeof link == "undefined"){
-                const aligned_mouse_pos = g.align_position(e, new Set(), canvas, local_board.view);
-                const server_pos = aligned_mouse_pos.toCoord(local_board.view);
-                local_board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", local_board.view, color_selected), (response) => { 
+                const aligned_mouse_pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
+                const server_pos = aligned_mouse_pos.toCoord(board.view);
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
                     if (key_states.get("Control")){
-                        local_board.view.is_link_creating = true;
+                        board.view.is_link_creating = true;
                         linkInteractor.indexLastCreatedVertex = response;
-                        local_board.view.link_creating_start = aligned_mouse_pos;
-                        local_board.view.link_creating_type = orientation;
+                        board.view.link_creating_start = aligned_mouse_pos;
+                        board.view.link_creating_type = orientation;
                     }
-                    local_board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", color_selected), () => {} )
+                    board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
             else {
-                local_board.emitSubdivideLink(link.index, e.toCoord(local_board.view), "", color_selected, (response) => { 
-                    local_board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", color_selected), () => {} )
+                board.emitSubdivideLink(link.index, e.toCoord(board.view), "", board.colorSelected, (response) => { 
+                    board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
         }
 
-        local_board.view.is_link_creating = false;
+        board.view.is_link_creating = false;
         
 
     })
 
-    linkInteractor.trigger = (mouse_pos: CanvasCoord) => {
-        local_board.view.is_creating_vertex = true;
-        local_board.view.creating_vertex_pos = mouse_pos;
+    linkInteractor.trigger = (board: ClientBoard, mouse_pos: CanvasCoord) => {
+        board.view.is_creating_vertex = true;
+        board.view.creating_vertex_pos = mouse_pos;
     }
 
 
-    linkInteractor.draw = (ctx: CanvasRenderingContext2D) => {
-        if (local_board.view.is_creating_vertex){
-            draw_circle(local_board.view.creating_vertex_pos, "grey", 10, 0.5, ctx);
+    linkInteractor.draw = (board: ClientBoard) => {
+        if (board.view.is_creating_vertex){
+            draw_circle(board.view.creating_vertex_pos, "grey", 10, 0.5, board.ctx);
         }
-        if (local_board.view.is_link_creating) {
-            drawLine(local_board.view.link_creating_start, local_board.view.creating_vertex_pos, ctx, getCanvasColor(color_selected, local_board.view.dark_mode),4);
-            if (local_board.view.link_creating_type == ORIENTATION.DIRECTED) {
-                draw_head(ctx, local_board.view.link_creating_start, local_board.view.creating_vertex_pos);
+        if (board.view.is_link_creating) {
+            drawLine(board.view.link_creating_start, board.view.creating_vertex_pos, board.ctx, getCanvasColor(board.colorSelected, board.view.dark_mode),4);
+            if (board.view.link_creating_type == ORIENTATION.DIRECTED) {
+                draw_head(board.ctx, board.view.link_creating_start, board.view.creating_vertex_pos, board.view.index_type);
             }
         }
     }

@@ -86,55 +86,55 @@ export class ClientStroke extends Stroke{
         return false;
     }
 
-    draw(ctx: CanvasRenderingContext2D, board: ClientBoard){
+    draw(board: ClientBoard){
         if(this.positions.length > 0){ 
             if(this.is_selected){
                 const tlcanvas = this.canvas_corner_top_left;
                 const brcanvas = this.canvas_corner_bottom_right;
-                ctx.beginPath();
-                ctx.strokeStyle = SELECTION_COLOR;
-                ctx.lineWidth = 1;
+                board.ctx.beginPath();
+                board.ctx.strokeStyle = SELECTION_COLOR;
+                board.ctx.lineWidth = 1;
                 
-                ctx.rect(tlcanvas.x - 3 ,tlcanvas.y - 3, brcanvas.x - tlcanvas.x + 6, brcanvas.y - tlcanvas.y + 6);
-                ctx.stroke();
+                board.ctx.rect(tlcanvas.x - 3 ,tlcanvas.y - 3, brcanvas.x - tlcanvas.x + 6, brcanvas.y - tlcanvas.y + 6);
+                board.ctx.stroke();
     
                 
                 let position_canvas = this.canvas_positions[0];
-                ctx.beginPath();
-                ctx.lineWidth = this.width + 4;
-                ctx.moveTo(position_canvas.x, position_canvas.y);
+                board.ctx.beginPath();
+                board.ctx.lineWidth = this.width + 4;
+                board.ctx.moveTo(position_canvas.x, position_canvas.y);
                 for(let i = 1; i<this.positions.length; i++){
                     position_canvas = this.canvas_positions[i];
-                    ctx.lineTo(position_canvas.x, position_canvas.y);
+                    board.ctx.lineTo(position_canvas.x, position_canvas.y);
                 }
-                ctx.stroke();
+                board.ctx.stroke();
             }
     
             if ( board.elementOver instanceof ClientStroke && board.elementOver === this ){
                 let position_canvas = this.canvas_positions[0];
-                ctx.beginPath();
-                ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
-                ctx.lineWidth = this.width*6;
-                ctx.globalAlpha = 0.5;
-                ctx.moveTo(position_canvas.x, position_canvas.y);
+                board.ctx.beginPath();
+                board.ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+                board.ctx.lineWidth = this.width*6;
+                board.ctx.globalAlpha = 0.5;
+                board.ctx.moveTo(position_canvas.x, position_canvas.y);
                 for(let i = 1; i < this.positions.length; i++){
                     position_canvas = this.canvas_positions[i];
-                    ctx.lineTo(position_canvas.x, position_canvas.y);
+                    board.ctx.lineTo(position_canvas.x, position_canvas.y);
                 }
-                ctx.stroke();
-                ctx.globalAlpha = 1;
+                board.ctx.stroke();
+                board.ctx.globalAlpha = 1;
             }
             
             let position_canvas = this.canvas_positions[0];
-            ctx.beginPath();
-            ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
-            ctx.lineWidth = this.width;
-            ctx.moveTo(position_canvas.x, position_canvas.y);
+            board.ctx.beginPath();
+            board.ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+            board.ctx.lineWidth = this.width;
+            board.ctx.moveTo(position_canvas.x, position_canvas.y);
             for(let i = 1; i < this.positions.length; i++){
                 position_canvas = this.canvas_positions[i];
-                ctx.lineTo(position_canvas.x, position_canvas.y);
+                board.ctx.lineTo(position_canvas.x, position_canvas.y);
             }
-            ctx.stroke();
+            board.ctx.stroke();
         }
     }
 }

@@ -1,15 +1,14 @@
+import { ClientBoard } from "../board/board";
 import { CanvasCoord } from "../board/canvas_coord";
-import { draw } from "../draw";
-import { local_board } from "../setup";
 import { ElementSideBar, ORIENTATION_INFO } from "./element_side_bar";
 import { SideBar } from "./side_bar";
 
 
 export abstract class ItemSideBar extends ElementSideBar {
-    trigger: (mouse_pos:CanvasCoord) => void; 
+    trigger: (board: ClientBoard, mousePos: CanvasCoord) => void; 
     
-    constructor(id:string, info: string,  shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSideBar?: SideBar) {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSideBar); 
+    constructor(board: ClientBoard, id:string, info: string,  shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSideBar?: SideBar) {
+        super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSideBar); 
         this.trigger = () => { };
     }
     
@@ -29,21 +28,21 @@ export abstract class ItemSideBar extends ElementSideBar {
      * Note: calls super.render() 
      * @param my_sidebar The sidebar the item belongs
      */
-    render(my_sidebar: SideBar): void {
-        super.render(my_sidebar);
+    render(board: ClientBoard, my_sidebar: SideBar): void {
+        super.render(board, my_sidebar);
         this.dom.classList.add("side_bar_item");
         this.img_dom.classList.add("side_bar_item_img");
         this.dom.addEventListener("mousedown", (e) => {
             const pos = new CanvasCoord(e.pageX, e.pageY);
-            this.common_trigger(pos);
-            this.trigger(pos);
+            this.common_trigger(board, pos);
+            this.trigger(board, pos);
             const canvas = document.getElementById('main') as HTMLCanvasElement;
             const ctx = canvas.getContext('2d');
-            requestAnimationFrame(function () { draw(canvas, ctx, local_board.graph) });
+            requestAnimationFrame(function () { board.draw() });
             }
         )
     }
-    abstract common_trigger(mouse_pos:CanvasCoord);
+    abstract common_trigger(board: ClientBoard, mouse_pos:CanvasCoord);
 
 
 }

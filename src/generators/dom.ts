@@ -99,7 +99,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
                 return;
             }
         }
-        set_clipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board.view), new CanvasCoord(e.pageX, e.pageY) , true, canvas);
+        set_clipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true, canvas);
         last_generator = gen;
         turn_off_generators_div();
     }
@@ -109,9 +109,9 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
 
 
 
-export function regenerate_graph(e: MouseEvent, canvas: HTMLCanvasElement, view: View){
+export function regenerate_graph(e: MouseEvent, board: ClientBoard){
     if ( last_generator !== null){
-        set_clipboard(last_generator.generate(new CanvasCoord(e.pageX, e.pageY), view), new CanvasCoord(e.pageX, e.pageY), true, canvas);
+        set_clipboard(last_generator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true, board.canvas);
     }
 }
 

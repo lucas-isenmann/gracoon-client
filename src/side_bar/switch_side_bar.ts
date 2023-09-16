@@ -1,3 +1,4 @@
+import { ClientBoard } from "../board/board";
 import { ORIENTATION_INFO } from "./element_side_bar";
 import { ItemSideBar } from "./item_side_bar";
 import { SideBar } from "./side_bar";
@@ -6,9 +7,9 @@ import { SideBar } from "./side_bar";
 export class SwitchSideBar extends ItemSideBar {
     selected: boolean;
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSidebar?: SideBar)
+    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
+        super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
     }
 
 
@@ -29,7 +30,7 @@ export class SwitchSideBar extends ItemSideBar {
     }
 
     setRootSideBar(rootSideBar: SideBar) {
-        console.log("setRootSideBar", this.id, rootSideBar.id);
+        // console.log("setsRootSideBar", this.id, rootSideBar.id);
 
         this.rootSidebar = rootSideBar;
     }

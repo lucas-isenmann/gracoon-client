@@ -1,12 +1,11 @@
 import { Coord, DegreeWidthRep, ORIENTATION } from "gramoloss";
 import { draw_circle } from "../../draw_basics";
-import { local_board } from "../../setup";
 import { View } from "../camera";
-import { ClientGraph } from "../graph";
-import { ClientLink, ClientLinkData } from "../link";
+import { ClientLinkData } from "../link";
 import { CanvasVect } from "../vect";
 import { ClientVertex } from "../vertex";
 import { CanvasCoord } from "../canvas_coord";
+import { ClientBoard } from "../board";
 
 
 export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLinkData> {
@@ -14,17 +13,19 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
+    board: ClientBoard;
 
-    constructor(g: ClientGraph, c1: Coord, c2: Coord, view: View){
-        super(g,c1,c2);
+    constructor(board: ClientBoard, c1: Coord, c2: Coord, view: View){
+        super(board.graph,c1,c2);
+        this.board = board;
         this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
         this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
     }
 
-    static from_embedding(g: ClientGraph, view: View): ClientDegreeWidthRep{
-        if ( g.vertices.size > 0){
+    static from_embedding(board: ClientBoard, view: View): ClientDegreeWidthRep{
+        if ( board.graph.vertices.size > 0){
             let minX = NaN;
             let maxX = NaN;
             let minY = NaN;
@@ -45,9 +46,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const w = 20 + maxX - minX;
             minX += w;
             maxX += w;
-            return new ClientDegreeWidthRep(g, new Coord(minX, minY), new Coord(maxX, maxY), view);
+            return new ClientDegreeWidthRep(board, new Coord(minX, minY), new Coord(maxX, maxY), view);
         } else {
-            return new ClientDegreeWidthRep(g, new Coord(0, 0), new Coord(100, 100), view);
+            return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100), view);
         }
     }
 
@@ -76,7 +77,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
                 if (x1 < x2){
                     const canvas_coord2 = view.create_canvas_coord(new Coord(x2,y));
                     const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
-                    if (local_board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
+                    if (this.board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
                         ctx.beginPath();
                         ctx.moveTo(canvas_coord1.x, canvas_coord1.y);
                         ctx.lineWidth = 3;
@@ -105,9 +106,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let dwc = 0;
             for (const [index2, x2] of this.x.entries()){
                 if (index1 != index2){
-                    if (x1 < x2 && local_board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
+                    if (x1 < x2 && this.board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
                         dwc += 1;
-                    } else if (x2 < x1 && local_board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
+                    } else if (x2 < x1 && this.board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
                         dwc += 1;
                     } 
                 }
@@ -122,9 +123,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let dwc = 0;
             for (const [index2, x2] of this.x.entries()){
                 if (index1 != index2){
-                    if (x1 < x2 && local_board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
+                    if (x1 < x2 && this.board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
                         dwc += 1;
-                    } else if (x2 < x1 && local_board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
+                    } else if (x2 < x1 && this.board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
                         dwc += 1;
                     } 
                 }

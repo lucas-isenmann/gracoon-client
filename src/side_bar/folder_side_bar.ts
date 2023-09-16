@@ -1,4 +1,5 @@
-import { CanvasCoord } from "../board/vertex";
+import { ClientBoard } from "../board/board";
+import { CanvasCoord } from "../board/canvas_coord";
 import { ElementSideBar, ORIENTATION_INFO, ORIENTATION_SIDE_BAR } from "./element_side_bar";
 import { SideBar } from "./side_bar";
 
@@ -17,8 +18,8 @@ export class FolderSideBar extends ElementSideBar{
     expand_direction : FOLDER_EXPAND_DIRECTION;
     expand : (mouse_pos : CanvasCoord) => void;
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  next_sidebar:SideBar, expand_direction : FOLDER_EXPAND_DIRECTION, my_sidebar?: SideBar, rootSidebar?: SideBar) {
-        super(id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar); 
+    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  next_sidebar:SideBar, expand_direction : FOLDER_EXPAND_DIRECTION, my_sidebar?: SideBar, rootSidebar?: SideBar) {
+        super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar); 
         this.expand = (e) => { };
         this.expand_direction = expand_direction;
         this.next_sidebar = next_sidebar;
@@ -29,9 +30,9 @@ export class FolderSideBar extends ElementSideBar{
      * Note: calls setup_element 
      * @param my_sidebar The sidebar the folder belongs
      */
-    render(my_sidebar:SideBar){
+    render(board: ClientBoard, my_sidebar:SideBar){
         // set up the common div 
-        super.render(my_sidebar);
+        super.render(board, my_sidebar);
 
         // append the sidebar contained in the folder, and hide it
         this.dom.appendChild(this.next_sidebar.dom);

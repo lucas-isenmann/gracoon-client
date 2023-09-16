@@ -1,11 +1,10 @@
 import { center_canvas_on_rectangle } from "./camera";
-import { COLOR_BACKGROUND, draw } from "../draw";
+import { COLOR_BACKGROUND } from "../draw";
 import { Parametor } from "../parametors/parametor";
 import { params_available, remove_loaded_param, update_parametor } from "../parametors/parametor_manager";
 import { socket } from "../socket";
 import { ClientVertex } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
-import { local_board } from "../setup";
 import { params_available_turn_on_div } from "../parametors/div_parametor";
 import { ClientGraph } from "./graph";
 import { ClientBoard } from "./board";
@@ -24,9 +23,9 @@ export function make_list_areas(canvas: HTMLCanvasElement, ctx: CanvasRenderingC
         for(const [area_index, a] of board.areas.entries()){
             const span_area = get_title_span_for_area(board, area_index);
             span_area.addEventListener("click", (e)=>{
-                center_canvas_on_rectangle(view, a.canvas_corner_top_left, a.canvas_corner_bottom_right, canvas, board);
+                center_canvas_on_rectangle(view, a.canvas_corner_top_left, a.canvas_corner_bottom_right, board);
                 requestAnimationFrame(function () { 
-                    draw(canvas, ctx, g) 
+                    board.draw()
                 });
                 socket.emit("my_view", view.camera.x, view.camera.y, view.zoom);
             })
@@ -116,7 +115,7 @@ export function init_parametor_div(param:Parametor, area_id: number, board: Clie
                 update_parametor(g,param_to_load);
                 const canvas = document.getElementById('main') as HTMLCanvasElement;
                 const ctx = canvas.getContext('2d');
-                requestAnimationFrame(function () { draw(canvas, ctx, g) });
+                requestAnimationFrame(function () { board.draw() });
 
             });
             svg_reload_parametor.classList.add("reload_img");
@@ -221,7 +220,7 @@ export function get_title_span_for_area(board: ClientBoard, area_id: number):HTM
     return span_area;
 }
 
-export function init_list_parametors_for_area(board: ClientBoard, area_id: number, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D){
+export function init_list_parametors_for_area(board: ClientBoard, area_id: number){
     const g = board.graph;
     const view = board.view;
     let area_DOM = document.getElementById("area_"+ area_id);
@@ -258,18 +257,18 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
                 if(area_id >= 0){
                     // Center on the area on click
                     titleDOM.addEventListener("click",  (e)=>{
-                        const area = local_board.areas.get(area_id); // It seems we have to reget the area since the corners may have change
-                        center_canvas_on_rectangle(view, area.canvas_corner_top_left, area.canvas_corner_bottom_right, canvas, board);
+                        const area = board.areas.get(area_id); // It seems we have to reget the area since the corners may have change
+                        center_canvas_on_rectangle(view, area.canvas_corner_top_left, area.canvas_corner_bottom_right, board);
                         requestAnimationFrame(function () { 
-                            draw(canvas, ctx, g) 
+                            board.draw()
                         });
                     });
                 }
                 else{
                     // Center on the graph on click
                     titleDOM.addEventListener("click",  (e)=>{
-                        let top_left_corner = new CanvasCoord(-canvas.width/2, -canvas.height/2);
-                        let bot_right_corner = new CanvasCoord(canvas.width/2, canvas.height/2);
+                        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
+                        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
     
                         if(g.vertices.size > 1){
                             const v : ClientVertex = g.vertices.values().next().value;
@@ -290,17 +289,17 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
                         }
                         else if(g.vertices.size === 1){
                             const v = g.vertices.values().next().value;
-                            let xMin = v.pos.canvas_pos.x - canvas.width/2;
-                            let yMin = v.pos.canvas_pos.y - canvas.height/2;
-                            let xMax = v.pos.canvas_pos.x + canvas.width/2;
-                            let yMax = v.pos.canvas_pos.y + canvas.height/2;
+                            let xMin = v.pos.canvas_pos.x - board.canvas.width/2;
+                            let yMin = v.pos.canvas_pos.y - board.canvas.height/2;
+                            let xMax = v.pos.canvas_pos.x + board.canvas.width/2;
+                            let yMax = v.pos.canvas_pos.y + board.canvas.height/2;
                             top_left_corner = new CanvasCoord(xMin, yMin);
                             bot_right_corner = new CanvasCoord(xMax, yMax);
                         }
     
-                        center_canvas_on_rectangle(view, top_left_corner, bot_right_corner, canvas, board);
+                        center_canvas_on_rectangle(view, top_left_corner, bot_right_corner, board);
                         requestAnimationFrame(function () { 
-                            draw(canvas, ctx, g) 
+                            board.draw()
                         });
                     });
                 }

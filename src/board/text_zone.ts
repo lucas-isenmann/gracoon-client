@@ -1,24 +1,24 @@
 import { Coord, TextZone } from "gramoloss";
-import { interactor_loaded, key_states, select_interactor } from "../interactors/interactor_manager";
-import { selectionV2 } from "../side_bar/interactors/selection";
+import { interactor_loaded, key_states } from "../interactors/interactor_manager";
 import renderMathInElement from "../katex-auto-render/auto-render";
-import { local_board } from "../setup";
-import { eraser_interactorV2 } from "../side_bar/interactors/eraser";
-import { BoardElementType } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
 import { marked } from "marked";
+import { INTERACTOR_TYPE } from "../interactors/interactor";
 
 export class ClientTextZone extends TextZone {
     canvas_pos: CanvasCoord;
     div: HTMLDivElement;
     content_div: HTMLDivElement;
     last_mouse_pos: CanvasCoord;
-
-    constructor(pos: Coord, width: number, text: string, view: View, index: number){
+    board: ClientBoard;
+    
+    constructor(pos: Coord, width: number, text: string, board: ClientBoard, index: number){
         super(pos, width, text);
-        this.canvas_pos = view.create_canvas_coord(pos);
+        this.board = board;
+        this.canvas_pos = board.view.create_canvas_coord(pos);
         this.last_mouse_pos = new CanvasCoord(0,0);
 
             this.div = document.createElement("div");
@@ -54,7 +54,7 @@ export class ClientTextZone extends TextZone {
                 }
                 window.addEventListener("mousemove", move_div);
                 function stop_event(){
-                    local_board.emit_update_element( BoardElementType.TextZone, index, "width", text_zone.width);
+                    board.emit_update_element( BoardElementType.TextZone, index, "width", text_zone.width);
                     window.removeEventListener("mouseup", stop_event);
                     window.removeEventListener("mousemove", move_div);
                 }
@@ -63,7 +63,7 @@ export class ClientTextZone extends TextZone {
             }
 
             content.onmousemove = () => {
-                if (interactor_loaded.id == selectionV2.id){
+                if (interactor_loaded.id == INTERACTOR_TYPE.SELECTION){
                     const s = window.getSelection();
                     s.removeAllRanges();
                 }
@@ -71,13 +71,13 @@ export class ClientTextZone extends TextZone {
 
             content.onmousedown = (e: MouseEvent) => {
                 this.last_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
-                if (interactor_loaded.id == selectionV2.id){
+                if (interactor_loaded.id == INTERACTOR_TYPE.SELECTION){
                     function move_div(e: MouseEvent){
                         console.log("moveDiv");
                         const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
                         const cshift = CanvasVect.from_canvas_coords(text_zone.last_mouse_pos, new_mouse_pos);
-                        const shift = local_board.view.server_vect(cshift);
-                        local_board.emit_translate_elements([[BoardElementType.TextZone, index]], shift);
+                        const shift = board.view.server_vect(cshift);
+                        board.emit_translate_elements([[BoardElementType.TextZone, index]], shift);
                         text_zone.last_mouse_pos = new_mouse_pos;
                     }
                     window.addEventListener("mousemove", move_div);
@@ -86,13 +86,13 @@ export class ClientTextZone extends TextZone {
                         window.removeEventListener("mousemove", move_div);
                     }
                     window.addEventListener("mouseup", stop_event);
-                } else if (interactor_loaded.id == eraser_interactorV2.id){
-                    local_board.emit_delete_elements([[BoardElementType.TextZone, index]]);
+                } else if (interactor_loaded.id == INTERACTOR_TYPE.ERASER){
+                    board.emit_delete_elements([[BoardElementType.TextZone, index]]);
                 }
             }
 
             content.onfocus = (e) => {
-                if ( interactor_loaded.id != selectionV2.id){
+                if ( interactor_loaded.id != INTERACTOR_TYPE.SELECTION){
                     content.innerText = this.text;
                     restoreSelection(content.id);
                 } else {
@@ -102,7 +102,7 @@ export class ClientTextZone extends TextZone {
 
             content.onblur = (e) => {
                 onDivBlur();
-                local_board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
+                board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
             }
 
 
@@ -130,7 +130,7 @@ export class ClientTextZone extends TextZone {
 
             content.onkeyup = (e) => {
                 saveSelection();
-                local_board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
+                board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
 
                 if (e.key == "Enter" && key_states.get("Control")) {
                     content.blur();

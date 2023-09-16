@@ -1,11 +1,10 @@
-import { View } from "../board/camera";
+import { ClientBoard } from "../board/board";
 import { createPopup } from "../popup";
-import { local_board } from "../setup";
 import { removeRandomLinks, intoTournament } from "./implementations/into_tournament";
 import { GraphModifyer } from "./modifyer";
 
 // --- Modifyers available ---
-let modifyers_available = new Array<GraphModifyer>(
+const modifyers_available = new Array<GraphModifyer>(
     intoTournament,
     removeRandomLinks
     );
@@ -13,7 +12,7 @@ let modifyers_available = new Array<GraphModifyer>(
 
 
 
-export function setup_modifyers_div(canvas: HTMLCanvasElement, view: View) {
+export function setup_modifyers_div(board: ClientBoard) {
     const main_div = createPopup("modifyers_div", "Modifyers");
     const popup_content = document.getElementById("modifyers_div_content");
     popup_content.style.display = "flex";
@@ -44,7 +43,7 @@ export function setup_modifyers_div(canvas: HTMLCanvasElement, view: View) {
         text.classList.add("modifyer_item");
         text.innerHTML = mod.humanName;
         text.onclick = () => {
-            activate_modifyer_div(canvas, mod, view);
+            activate_modifyer_div(board, mod);
         }
         modifyers_list.appendChild(text)
     }
@@ -58,7 +57,7 @@ export function turn_on_modifyers_div() {
     document.getElementById("modifyers_div").style.display = "block";
 }
 
-function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, view: View) {
+function activate_modifyer_div(board: ClientBoard, mod: GraphModifyer) {
     const div = document.getElementById("modifyer_configuration");
     div.innerHTML = ""; // TODO clear better ??
 
@@ -74,7 +73,7 @@ function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, vi
 
     // Attributes
     for (const attribute of mod.attributes) {
-        attribute.reset_inputs(local_board);
+        attribute.reset_inputs(board);
         const attribute_div = document.createElement("div");
         const label = document.createElement("label");
         label.innerText = attribute.name + ": ";
@@ -92,7 +91,7 @@ function activate_modifyer_div(canvas: HTMLCanvasElement, mod: GraphModifyer, vi
                 return;
             }
         }
-        local_board.emit_apply_modifyer(mod);
+        board.emit_apply_modifyer(mod);
         turn_off_modifyers_div();
     }
     div.appendChild(modify_button);

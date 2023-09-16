@@ -25,24 +25,24 @@ export class ClientRectangle extends Rectangle {
     }
 
 
-    draw(ctx: CanvasRenderingContext2D, view: View){
+    draw(){
         // draw border
-        ctx.beginPath();
-        ctx.strokeStyle = getCanvasColor(this.color, view.dark_mode);
-        ctx.lineWidth = 2;
+        this.board.ctx.beginPath();
+        this.board.ctx.strokeStyle = getCanvasColor(this.color, this.board.view.dark_mode);
+        this.board.ctx.lineWidth = 2;
         const c1canvas = this.canvas_corner_top_left;
         const c2canvas = this.canvas_corner_bottom_right;
-        ctx.rect(c1canvas.x , c1canvas.y, c2canvas.x - c1canvas.x, c2canvas.y - c1canvas.y);
-        ctx.stroke();
+        this.board.ctx.rect(c1canvas.x , c1canvas.y, c2canvas.x - c1canvas.x, c2canvas.y - c1canvas.y);
+        this.board.ctx.stroke();
 
         // draw rect fill
-        ctx.globalAlpha = 0.07;
+        this.board.ctx.globalAlpha = 0.07;
         if (this.board.elementOver === this){
-            ctx.globalAlpha = 0.2;
+            this.board.ctx.globalAlpha = 0.2;
         }
-        ctx.fillStyle = getCanvasColor(this.color, view.dark_mode);
-        ctx.fill();
-        ctx.globalAlpha = 1;
+        this.board.ctx.fillStyle = getCanvasColor(this.color, this.board.view.dark_mode);
+        this.board.ctx.fill();
+        this.board.ctx.globalAlpha = 1;
     }
     
 

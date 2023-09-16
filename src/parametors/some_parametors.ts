@@ -1,11 +1,9 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { Coord, Graph, ORIENTATION, Vect } from 'gramoloss';
+import { ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
-import { local_board } from '../setup';
 import { ClientVertex } from '../board/vertex';
-import { ClientRectangle } from '../board/rectangle';
 import { shuffle } from '../utils';
 import { Color } from '../colors_v2';
 
@@ -223,7 +221,7 @@ export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "d
 
 paramDelaunayConstructor.compute = ((g: ClientGraph) => {
     g.resetDelaunayGraph((i,j) => {
-        return new ClientLinkData(undefined, Color.Neutral, "", local_board.view);
+        return new ClientLinkData(undefined, Color.Neutral, "", g.board.view);
     });
     return String("/");
 });
@@ -514,7 +512,7 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
     const subgraph = new Array();
     const constraints = new Array<Array<Array<[number,boolean]>>>();
     for (let i = 0 ; i < m ; i ++){
-        const newg = new ClientGraph();
+        const newg = new ClientGraph(g.board);
         for ( let j = association[i]; j <= i ; j ++){
             const link = g.links.get(ordered_links[j]);
             const start_vertex = link.startVertex;

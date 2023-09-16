@@ -1,9 +1,9 @@
 import { Coord, Option } from "gramoloss";
+import { ClientBoard } from "./board/board";
 import { View } from "./board/camera";
 import { CanvasCoord } from "./board/canvas_coord";
-import { COLOR_BACKGROUND, draw, draw_user} from "./draw";
+import { COLOR_BACKGROUND} from "./draw";
 import { Multicolor } from "./multicolor";
-import { local_board } from "./setup";
 import { socket } from "./socket";
 
 
@@ -33,7 +33,7 @@ export class User {
         this.id_timeout = undefined;
     }
 
-    set_pos(newPos: Option<Coord>, view: View) {
+    set_pos(newPos: Option<Coord>, board: ClientBoard) {
 
         if (typeof newPos != "undefined"){
             if( typeof this.pos == "undefined" || ( this.pos.x != newPos.x || this.pos.y != newPos.y ) ){ // If the user position is updated
@@ -48,7 +48,7 @@ export class User {
                     const interval_id = setInterval(()=>{
                         const canvas = document.getElementById('main') as HTMLCanvasElement;
                         const ctx = canvas.getContext('2d');
-                        requestAnimationFrame(function () { draw(canvas, ctx, local_board.graph) });
+                        requestAnimationFrame(function () { board.draw() });
     
                         if(Date.now() - this.timer_refresh > 4000){
                             // The interval kill itself after the user does not move for 4secs 
@@ -61,7 +61,7 @@ export class User {
         
         this.pos = newPos;
         if (typeof this.pos != "undefined"){
-            this.canvas_pos = view.create_canvas_coord(this.pos);
+            this.canvas_pos = board.view.create_canvas_coord(this.pos);
         } else {
             this.canvas_pos = undefined;
         }
@@ -76,41 +76,7 @@ export class User {
 
 export let users = new Map<string, User>();
 
-export function update_user_list_div() {
-    let div = document.getElementById("user_list");
-    div.innerHTML = "";
-    if (users.size === 0) {
-        div.style.visibility = "hidden";
-        // div.style.marginLeft = "0px";
-        div.style.padding = "0px";
-    }
-    else {
-        div.style.visibility = "visible";
-        div.style.padding = "2px";
-        // div.style.marginLeft = "10px";
-    }
 
-    for (let u of users.values()) {
-        let newDiv = document.createElement("div");
-        newDiv.classList.add("user");
-        newDiv.style.color = u.multicolor.contrast;
-        newDiv.innerHTML = u.label.substring(0, 1);
-        newDiv.title = "Click to follow " + u.label;
-        newDiv.style.background = u.multicolor.color;
-        newDiv.style.borderColor = u.multicolor.color;
-        newDiv.dataset.label = u.label;
-
-        newDiv.onclick = function () {
-            if(local_board.view.following === u.id){
-                self_user.unfollow(u.id);
-            }
-            else{
-                self_user.follow(u.id);
-            }
-        }
-        div.appendChild(newDiv);
-    }
-}
 
 
 export function update_users_canvas_pos(view: View) {
@@ -122,17 +88,19 @@ export function update_users_canvas_pos(view: View) {
 }
 
 export class Self{
-    label:string;
-    multicolor:Multicolor;
-    id:string;
+    label: string;
+    multicolor: Multicolor;
+    id: string;
+    following: string | undefined;
 
     constructor(){
         this.label = null;
         this.multicolor = null;
         this.id = null;
+        this.following = undefined;
     }
 
-    init(id:string, label:string, color:string){
+    init(id: string, label: string, color: string){
         this.multicolor = new Multicolor(color);
         this.label = label;
         this.id = id;
@@ -147,63 +115,114 @@ export class Self{
     }
 
 
-    follow(id:string){
+    follow(id: string){
         if(users.has(id)){
             const borderDIV = document.getElementById("border");
+            if (borderDIV == null) return;
             const u = users.get(id);
-            local_board.view.following = id;
+            if (typeof u == "undefined") return;
+            this.following = id;
             borderDIV.style.borderColor = u.multicolor.color;
             socket.emit("follow", id);
         }
         else{
-            local_board.view.following = null;
+            this.following = undefined;
         }
     }
 
     unfollow(id:string){
         const borderDIV = document.getElementById("border");
-        local_board.view.following = null;
-        borderDIV.style.borderColor = COLOR_BACKGROUND;
+        this.following = undefined;
+        if (borderDIV != null){
+            borderDIV.style.borderColor = COLOR_BACKGROUND;
+        }
         socket.emit("unfollow", id);
     }
-}
-
-
-export const self_user = new Self();
-
-
-export function update_self_user_div(){
-    update_self_user_color();
-    update_self_user_label();
-}
-
-
-function update_self_user_color(){
-    let div = document.getElementById('self_user_color');
-    div.style.background = self_user.multicolor.color;
-}
-
-function update_self_user_label(){
-    let div = document.getElementById('self_user_label');
-    div.textContent = self_user.label;
-    div.addEventListener('keydown', function(e:KeyboardEvent)
-    {   
-        const someKeys: Array<string> = ["Delete", "Backspace", "ArrowLeft", "ArrowRight"];
-
-
-        // console.log(e.key);
-        const prevent = "!@#$%^&*()+=-[]\\\';,./{}|\":<>?";
-        if(div.textContent.length > 0 && (e.key == "Escape" || e.key == "Enter")){
-            div.blur();
+    
+    update_self_user_color(){
+        const div = document.getElementById('self_user_color');
+        if (div != null){
+            div.style.background = this.multicolor.color;
         }
-        else if(prevent.includes(e.key) || (div.textContent.length > 8 && someKeys.indexOf(e.key) == -1)){
-            e.preventDefault();
-        }
-    });
+    }
 
-    div.addEventListener('focusout', function()
-    {   
-        socket.emit("update_self_user", div.textContent, self_user.multicolor.color);
-    });
+    update_self_user_div(){
+        this.update_self_user_color();
+        this.update_self_user_label();
+    }
+    
+    update_user_list_div() {
+        const div = document.getElementById("user_list");
+        if (div == null) return;
+        div.innerHTML = "";
+        if (users.size === 0) {
+            div.style.visibility = "hidden";
+            // div.style.marginLeft = "0px";
+            div.style.padding = "0px";
+        }
+        else {
+            div.style.visibility = "visible";
+            div.style.padding = "2px";
+            // div.style.marginLeft = "10px";
+        }
+    
+        for (let u of users.values()) {
+            let newDiv = document.createElement("div");
+            newDiv.classList.add("user");
+            newDiv.style.color = u.multicolor.contrast;
+            newDiv.innerHTML = u.label.substring(0, 1);
+            newDiv.title = "Click to follow " + u.label;
+            newDiv.style.background = u.multicolor.color;
+            newDiv.style.borderColor = u.multicolor.color;
+            newDiv.dataset.label = u.label;
+    
+            const self_user = this;
+            newDiv.onclick = function () {
+                if(self_user.following === u.id){
+                    self_user.unfollow(u.id);
+                }
+                else{
+                    self_user.follow(u.id);
+                }
+            }
+            div.appendChild(newDiv);
+        }
+    }
+
+
+    update_self_user_label(){
+        let div = document.getElementById('self_user_label');
+        if (div == null) return;
+
+        div.textContent = this.label;
+        div.addEventListener('keydown', function(e:KeyboardEvent)
+        {   
+            const someKeys: Array<string> = ["Delete", "Backspace", "ArrowLeft", "ArrowRight"];
+
+
+            // console.log(e.key);
+            const prevent = "!@#$%^&*()+=-[]\\\';,./{}|\":<>?";
+            if(div.textContent.length > 0 && (e.key == "Escape" || e.key == "Enter")){
+                div.blur();
+            }
+            else if(prevent.includes(e.key) || (div.textContent.length > 8 && someKeys.indexOf(e.key) == -1)){
+                e.preventDefault();
+            }
+        });
+
+        const self_user = this;
+        div.addEventListener('focusout', function()
+        {   
+            socket.emit("update_self_user", div.textContent, self_user.multicolor.color);
+        });
+
+    }
 
 }
+
+
+
+
+
+
+

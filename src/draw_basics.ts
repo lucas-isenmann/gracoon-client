@@ -1,6 +1,5 @@
 import { INDEX_TYPE } from "./board/camera";
 import { VERTEX_RADIUS } from "./draw";
-import { local_board } from "./setup";
 import { CanvasCoord } from "./board/canvas_coord";
 
 const ARC_ARROW_LENGTH = 12
@@ -69,10 +68,10 @@ export function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: numbe
     ctx.closePath();
 }
 
-export function draw_head(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord) {
+export function draw_head(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord, indexType: INDEX_TYPE) {
     const headlen = ARC_ARROW_LENGTH;
     let vertex_radius = VERTEX_RADIUS;
-    if (local_board.view.index_type != INDEX_TYPE.NONE) {
+    if (indexType != INDEX_TYPE.NONE) {
         vertex_radius = VERTEX_RADIUS * 2;
     }
     const d = Math.sqrt(start_pos.dist2(end_pos))

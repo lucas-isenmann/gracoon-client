@@ -1,5 +1,5 @@
 import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
-import { BoardElementType } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { ClientVertex, ClientVertexData } from "./vertex";
@@ -112,10 +112,10 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     /**
      * 
      */
-    afterSetWeight(){
+    afterSetWeight(board: ClientBoard){
         console.log("afterSetWeight");
         if (typeof this.data.weightDiv === "undefined"){
-            initWeightDiv(this, BoardElementType.Link);
+            initWeightDiv(this, BoardElementType.Link, board);
         } else {
             this.data.weightDiv.innerHTML = this.data.weight;
             // this.weightDiv.innerHTML = katex.renderToString(this.weight);
@@ -157,9 +157,9 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     //         const weight_value = parseInt(link.weight);
     //         if ( isNaN(weight_value) == false){
     //             if (e.deltaY < 0) {
-    //                 local_board.emit_update_element( BoardElementType.Link, link_index, "weight", String(weight_value+1));
+    //                 board.emit_update_element( BoardElementType.Link, link_index, "weight", String(weight_value+1));
     //             }else {
-    //                 local_board.emit_update_element(  BoardElementType.Link, link_index, "weight", String(weight_value-1));
+    //                 board.emit_update_element(  BoardElementType.Link, link_index, "weight", String(weight_value-1));
     //             }
     //         }
     //     })
@@ -211,10 +211,10 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
     // clone(): ClientLink {
     //     if (typeof this.cp === "string"){
-    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, local_board.view);
+    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, board.view);
     //         return newLink; // TODO I think there are things to clone with the div
     //     } else {
-    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, local_board.view);
+    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, board.view);
     //         return newLink; // TODO I think there are things to clone with the div
     //     }
     // }

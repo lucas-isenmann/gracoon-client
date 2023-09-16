@@ -1,7 +1,6 @@
+import { INTERACTOR_TYPE } from "../interactors/interactor";
 import { interactor_loaded, key_states } from "../interactors/interactor_manager";
-import { local_board } from "../setup";
-import { text_interactorV2 } from "../side_bar/interactors/text";
-import { BoardElementType } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 
 export interface Weightable {
     getIndex(): number | undefined;
@@ -15,7 +14,7 @@ export interface Weightable {
 /**
  * Init the weightDiv
  */
-export function initWeightDiv<R extends Weightable>(element: R, type: BoardElementType){
+export function initWeightDiv<R extends Weightable>(element: R, type: BoardElementType, board: ClientBoard){
     if (typeof element.getIndex() !== "undefined"){
         element.setWeightDiv(document.createElement("div"));
         element.getWeightDiv().contentEditable = "true";    
@@ -29,7 +28,7 @@ export function initWeightDiv<R extends Weightable>(element: R, type: BoardEleme
         element.getWeightDiv().onkeyup = (e) => {
             // saveSelection();
             element.setWeight(element.getWeightDiv().textContent);
-            local_board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
+            board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
             if (e.key == "Enter" && key_states.get("Control")) {
                 element.getWeightDiv().blur();
                 element.setAutoWeightDivPos();
@@ -38,7 +37,7 @@ export function initWeightDiv<R extends Weightable>(element: R, type: BoardEleme
 
         // Prevent other interactors to click on this div (and launch the editor of the weight).
         element.getWeightDiv().onmousedown = (e: MouseEvent) => {
-            if (interactor_loaded.id != text_interactorV2.id){
+            if (interactor_loaded.id != INTERACTOR_TYPE.TEXT){
                 e.preventDefault();
             }
         }
@@ -47,9 +46,9 @@ export function initWeightDiv<R extends Weightable>(element: R, type: BoardEleme
             const weightNumberValue = parseInt(element.getWeight());
             if ( isNaN(weightNumberValue) == false){
                 if (e.deltaY < 0) {
-                    local_board.emit_update_element( type, element.getIndex(), "weight", String(weightNumberValue+1));
+                    board.emit_update_element( type, element.getIndex(), "weight", String(weightNumberValue+1));
                 }else {
-                    local_board.emit_update_element(  type, element.getIndex(), "weight", String(weightNumberValue-1));
+                    board.emit_update_element(  type, element.getIndex(), "weight", String(weightNumberValue-1));
                 }
             }
         })

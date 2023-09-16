@@ -1,11 +1,10 @@
 import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
-import {  VERTEX_RADIUS } from "../draw";
+import { VERTEX_RADIUS } from "../draw";
 import { draw_circle } from "../draw_basics";
-import { local_board } from "../setup";
 import { INDEX_TYPE, View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
-import { BoardElementType } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 import { initWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "../colors_v2";
 
@@ -61,9 +60,9 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
 
-    afterSetWeight(){
+    afterSetWeight(board: ClientBoard){
         if (typeof this.data.weightDiv === "undefined"){
-            initWeightDiv(this, BoardElementType.Vertex);
+            initWeightDiv(this, BoardElementType.Vertex, board);
         } else {
             this.data.weightDiv.innerHTML = this.data.weight;
             // this.weightDiv.innerHTML = katex.renderToString(this.weight);
@@ -72,10 +71,10 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
 
-    setPos(nx: number, ny: number) {
+    setPos(board: ClientBoard, nx: number, ny: number) {
         this.data.pos.x = nx;
         this.data.pos.y = ny;
-        this.data.canvas_pos = local_board.view.create_canvas_coord(this.data.pos );
+        this.data.canvas_pos = board.view.create_canvas_coord(this.data.pos );
         this.setAutoWeightDivPos();
     }
 
@@ -152,24 +151,25 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     /**
      *  Draw the vertex on the context.
      */
-    draw(ctx: CanvasRenderingContext2D, isMouseOver: boolean) {
+    draw(board: ClientBoard) {
         let vertex_radius = VERTEX_RADIUS;
-        if (local_board.view.index_type != INDEX_TYPE.NONE) {
+        if (board.view.index_type != INDEX_TYPE.NONE) {
             vertex_radius = 2 * VERTEX_RADIUS;
         }
 
-        const color = getCanvasColor(this.data.color, local_board.view.dark_mode);
+        const color = getCanvasColor(this.data.color, board.view.dark_mode);
 
-        if (isMouseOver){
-            draw_circle(this.data.canvas_pos, color, vertex_radius*1.5, 0.5, ctx);
+
+        if ( board.elementOver instanceof ClientVertex && board.elementOver.index == this.index){
+            draw_circle(this.data.canvas_pos, color, vertex_radius*1.5, 0.5, board.ctx);
         }
 
         if (this.data.is_selected ) {
-            ctx.beginPath();
-            ctx.arc(this.data.canvas_pos.x, this.data.canvas_pos.y, vertex_radius*1.8, 0, 2 * Math.PI);
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = color;
-            ctx.stroke();
+            board.ctx.beginPath();
+            board.ctx.arc(this.data.canvas_pos.x, this.data.canvas_pos.y, vertex_radius*1.8, 0, 2 * Math.PI);
+            board.ctx.lineWidth = 4;
+            board.ctx.strokeStyle = color;
+            board.ctx.stroke();
         } else {
             /* DISABLED for new draw of vertices
             draw_circle(vertex.pos.canvas_pos, COLOR_BORDER_VERTEX, vertex_radius, 1, ctx);
@@ -177,28 +177,28 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         }
         
         
-        draw_circle(this.data.canvas_pos, color, vertex_radius - 2, 1, ctx);
+        draw_circle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
 
         // DRAW INDEX 
-        if (local_board.view.index_type != INDEX_TYPE.NONE) {
-            ctx.font = "17px Arial";
-            const measure = ctx.measureText(this.data.index_string);
-            if ( local_board.view.dark_mode){
-                ctx.fillStyle = "black";
+        if (board.view.index_type != INDEX_TYPE.NONE) {
+            board.ctx.font = "17px Arial";
+            const measure = board.ctx.measureText(this.data.index_string);
+            if ( board.view.dark_mode){
+                board.ctx.fillStyle = "black";
             } else {
-                ctx.fillStyle = "white";
+                board.ctx.fillStyle = "white";
             }
             const pos = this.data.canvas_pos
-            ctx.fillText(this.data.index_string, pos.x - measure.width / 2, pos.y + 5);
+            board.ctx.fillText(this.data.index_string, pos.x - measure.width / 2, pos.y + 5);
         }
 
         // DRAW PARAMETER VALUES
         for( const pv of this.data.parameter_values.values()){
-            ctx.font = "17px Arial";
-            const measure = ctx.measureText(pv.value);
-            ctx.fillStyle = "white"
+            board.ctx.font = "17px Arial";
+            const measure = board.ctx.measureText(pv.value);
+            board.ctx.fillStyle = "white"
             const pos = this.data.canvas_pos
-            ctx.fillText(pv.value, pos.x - measure.width / 2, pos.y + 25);
+            board.ctx.fillText(pv.value, pos.x - measure.width / 2, pos.y + 25);
         }
     }
 

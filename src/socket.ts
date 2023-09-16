@@ -1,12 +1,10 @@
-import { draw } from "./draw";
-import { self_user, update_self_user_div, update_users_canvas_pos, update_user_list_div, User, users } from "./user";
+import { Self, update_users_canvas_pos,  User, users } from "./user";
 import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { init_list_parametors_for_area } from "./board/area_div";
 import { get_sensibilities, SENSIBILITY } from "./parametors/parametor";
-import { local_board } from "./setup";
 import { ClientVertexData } from "./board/vertex";
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { ClientLinkData } from "./board/link";
@@ -29,7 +27,7 @@ export const socket = io(adress);
 // export const socket = new WebSocket("ws://" + ENV.serverAdress + ":" + ENV.port);
 
 
-export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, board: ClientBoard) {
+export function setup_socket(board: ClientBoard) {
     const g = board.graph;
     
     // USERS
@@ -44,7 +42,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     socket.on('send_view', handle_send_view);
     socket.on('view_follower', handle_update_view_follower);
 
-    function handle_room_id(romm_id:number){
+    function handle_room_id(romm_id: number){
         let url = new URL(document.URL);
         let urlsp = url.searchParams;
         let room_id = encodeURI(urlsp.get("room_id"));
@@ -59,23 +57,23 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
     function handle_update_view_follower(x:number, y:number, zoom:number, id:string){
         // console.log("FOLLOWING USER:", x,y,zoom, id);
-        if(users.has(id) && local_board.view.following == id){
+        if(users.has(id) && board.selfUser.following == id){
             // console.log("Following......")
-            local_board.view.camera = new Coord(x, y);
-            local_board.view.zoom = zoom;
-            local_board.update_canvas_pos(local_board.view);
-            update_users_canvas_pos(local_board.view);
-            requestAnimationFrame(function () { draw(canvas, ctx, g) });
+            board.view.camera = new Coord(x, y);
+            board.view.zoom = zoom;
+            board.update_canvas_pos(board.view);
+            update_users_canvas_pos(board.view);
+            requestAnimationFrame(function () { board.draw() });
         }
         else{
             // console.log("reset....");
-            local_board.view.following = null;
+            board.selfUser.following = undefined;
         }
     }
 
     function handle_send_view(){
         // console.log("SENDING MY VIEW");
-        socket.emit("my_view", local_board.view.camera.x, local_board.view.camera.y, local_board.view.zoom);
+        socket.emit("my_view", board.view.camera.x, board.view.camera.y, board.view.zoom);
     }
 
     function update_other_self_user(id:string, label:string, color:string){
@@ -85,14 +83,14 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             users.get(id).label = label;
         }
         else {
-            users.set(id, new User(id, label, color, local_board.view));
+            users.set(id, new User(id, label, color, board.view));
         }
-        update_user_list_div();
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
+        board.selfUser.update_user_list_div();
+        requestAnimationFrame(function () { board.draw() });
     }
 
 
-    function handle_my_id(id: string, label:string, color:string) {
+    function handle_my_id(id: string, label: string, color :string) {
         let url = new URL(document.URL);
         let urlsp = url.searchParams;
         let room_id = encodeURI(urlsp.get("room_id"));
@@ -101,37 +99,37 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             socket.emit("change_room_to", room_id);
         }
 
-        self_user.init(id, label, color);
-        update_self_user_div();
+        board.selfUser.init(id, label, color);
+        board.selfUser.update_self_user_div();
     }
 
-    function update_user(id: string, label: string, color: string, rawPos: undefined | {x: number, y: number}) {
-        console.log("Handle: update_user ", id, rawPos);
-        const newPos: undefined | Coord = typeof rawPos == "undefined" ? undefined : new Coord(rawPos.x, rawPos.y);
-        console.log(newPos);
-        if (self_user.id == null || id == self_user.id){
+    function update_user(id: string, label: string, color: string, rawPos: null | {x: number, y: number}) {
+        // console.log("Handle: update_user ", id, rawPos);
+        const newPos: undefined | Coord = (rawPos == null ? undefined : new Coord(rawPos.x, rawPos.y));
+        // console.log(newPos);
+        if (board.selfUser.id == null || id == board.selfUser.id){
             return;
         }
         const user =  users.get(id);
         if (typeof user != "undefined") {
             user.label = label;
-           user.set_pos(newPos,local_board.view);
+           user.set_pos(newPos, board);
         }
         else {
-            users.set(id, new User(id, label, color, local_board.view,  newPos));
-            update_user_list_div();
+            users.set(id, new User(id, label, color, board.view,  newPos));
+            board.selfUser.update_user_list_div();
         }
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
+        requestAnimationFrame(function () { board.draw() });
     }
 
 
     function remove_user(userid: string) {
-        if(local_board.view.following == userid){
-            self_user.unfollow(userid);
+        if(board.selfUser.following == userid){
+            board.selfUser.unfollow(userid);
         }
         users.delete(userid);
-        update_user_list_div();
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
+        board.selfUser.update_user_list_div();
+        requestAnimationFrame(function () { board.draw() });
     }
 
     
@@ -139,11 +137,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         users.clear();
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 
-            const new_user = new User(data[0], data[1].label, data[1].color, local_board.view, new Coord(-100, -100));
+            const new_user = new User(data[0], data[1].label, data[1].color, board.view, new Coord(-100, -100));
             users.set(data[0], new_user);
         }
         // console.log(users);
-        requestAnimationFrame(function () { update_user_list_div() });
+        requestAnimationFrame(function () { board.selfUser.update_user_list_div() });
     }
 
 
@@ -166,25 +164,25 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     function handle_translate_elements(data, sensibilities){
         // console.log("handle_translate_elements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
-        const cshift = local_board.view.create_canvas_vect(shift);
+        const cshift = board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
             if ( kind == "TextZone"){
-                const text_zone = local_board.text_zones.get(index);
-                text_zone.translate(cshift, local_board.view);
+                const text_zone = board.text_zones.get(index);
+                text_zone.translate(cshift, board.view);
             } else if ( kind == "Stroke"){
-                const stroke = local_board.strokes.get(index);
-                stroke.translate_by_canvas_vect(cshift, local_board.view);
+                const stroke = board.strokes.get(index);
+                stroke.translate_by_canvas_vect(cshift, board.view);
             } else if ( kind == "Area"){
-                const area = local_board.areas.get(index);
+                const area = board.areas.get(index);
                 const vertices_contained = g.vertices_contained_by_area(area);
-                local_board.translate_area(cshift, index,vertices_contained);
+                board.translate_area(cshift, index,vertices_contained);
                 for (const link of g.links.values()){
                     if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
                         link.setAutoWeightDivPos();
                     }
                 }
             } else if (kind == "Vertex"){
-                g.translate_vertex_by_canvas_vect(index, cshift, local_board.view);
+                g.translate_vertex_by_canvas_vect(index, cshift, board.view);
                 for (const link of g.links.values()){
                     if (link.startVertex.index == index || link.endVertex.index == index){
                         link.setAutoWeightDivPos();
@@ -204,7 +202,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
             }
         }
         
-        requestAnimationFrame(function () {draw(canvas, ctx, g) });
+        requestAnimationFrame(function () {board.draw() });
     }
 
     function handle_add_elements( datas, sensibilities){
@@ -215,31 +213,31 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 data.element.positions.forEach(e => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, local_board.view);
-                local_board.strokes.set(data.index, new_stroke);
+                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.view);
+                board.strokes.set(data.index, new_stroke);
             } else if (data.kind == "TextZone"){
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
                 const width = data.element.width as number;
                 const text = data.element.text as string;
-                const new_text_zone = new ClientTextZone(pos, width, text , local_board.view, data.index);
-                local_board.text_zones.set(data.index, new_text_zone);
+                const new_text_zone = new ClientTextZone(pos, width, text , board, data.index);
+                board.text_zones.set(data.index, new_text_zone);
             } else if (data.kind == "Area"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
                 const c2 = new Coord(data.element.c2.x,data.element.c2.y);
-                const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, local_board.view);
-                local_board.areas.set(data.index, new_area);
-                init_list_parametors_for_area(board, data.index, canvas, ctx);
+                const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board.view);
+                board.areas.set(data.index, new_area);
+                init_list_parametors_for_area(board, data.index);
                 //TO CHECK: I added this line here because the panels were not updated when creating a new area. Is it still how we are supposed to do it now ? 
-                update_options_graphs(canvas, ctx, g);
+                update_options_graphs(board);
        
             } else if (data.kind == "Vertex"){
                 const x = data.element.data.pos.x as number;
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                const newVertex = local_board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, local_board.view, color));
+                const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.view, color));
                 if (weight != ""){
-                    newVertex.afterSetWeight();
+                    newVertex.afterSetWeight(board);
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (data.kind == "Link"){
@@ -253,44 +251,44 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 const color = data.element.data.color as Color;
                 const weight = data.element.data.weight as string;
 
-                const newLinkData = new ClientLinkData(cp, color, weight, local_board.view);
-                const newLink = local_board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
+                const newLinkData = new ClientLinkData(cp, color, weight, board.view);
+                const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
                 if (data.weight != ""){
-                    newLink.afterSetWeight();
+                    newLink.afterSetWeight(board);
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
         
-        requestAnimationFrame(function () {draw(canvas, ctx, g) });
+        requestAnimationFrame(function () {board.draw() });
     }
 
     function handle_delete_elements(data, sensibilities){
         // console.log("handle_delete_elements", data);
         for ( const element of data){
             if (element[0] == "Stroke"){
-                local_board.strokes.delete(element[1]);
+                board.strokes.delete(element[1]);
             } else if (element[0] == "TextZone"){
-                const text_zone = local_board.text_zones.get(element[1]);
+                const text_zone = board.text_zones.get(element[1]);
                 text_zone.div.remove();
-                local_board.text_zones.delete(element[1]);
+                board.text_zones.delete(element[1]);
             } else if (element[0] == "Area"){
-                local_board.areas.delete(element[1]);
+                board.areas.delete(element[1]);
             } else if (element[0] == "Vertex"){
-                local_board.graph.delete_vertex(element[1]);
+                board.graph.delete_vertex(element[1]);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (element[0] == "Link"){
-                if ( local_board.graph.links.has(element[1])){
-                    const link = local_board.graph.links.get(element[1]);
+                if ( board.graph.links.has(element[1])){
+                    const link = board.graph.links.get(element[1]);
                     if ( typeof link.data.weightDiv !== "undefined"){
                         link.data.weightDiv.remove();
                     }
-                    local_board.graph.links.delete(element[1]);
+                    board.graph.links.delete(element[1]);
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
-        requestAnimationFrame(function () {draw(canvas, ctx, g) });
+        requestAnimationFrame(function () {board.draw() });
     }
 
 
@@ -298,7 +296,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
     function handle_update_element(data){
         console.log("handle_update_element", data);
         if (data.kind == "TextZone"){
-            const text_zone = local_board.text_zones.get(data.index);
+            const text_zone = board.text_zones.get(data.index);
             if (data.param == "width"){
                 const width = data.value as number;
                 text_zone.width = width;
@@ -312,7 +310,7 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 }
             }
         } else if (data.kind == "Vertex"){
-            const vertex = local_board.graph.vertices.get(data.index);
+            const vertex = board.graph.vertices.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
                 vertex.data.color = color as Color;
@@ -320,11 +318,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                 if (document.activeElement.id != ("vertex_weight_" + data.index)){
                     const text = data.value as string;
                     vertex.data.weight = text;
-                    vertex.afterSetWeight();
+                    vertex.afterSetWeight(board);
                 }
             }
         }else if (data.kind == "Link"){
-            const link = local_board.graph.links.get(data.index);
+            const link = board.graph.links.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
                 link.data.color = color as Color;
@@ -337,65 +335,63 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     link.data.cp_canvas_pos = "";
                 } else {
                     const new_cp = new Coord(data.value.x, data.value.y);
-                    link.set_cp(new_cp, local_board.view);
+                    link.set_cp(new_cp, board.view);
                 }
-                link.afterSetWeight();
+                link.afterSetWeight(board);
             }
         }else if (data.kind == "Stroke"){
-            const stroke = local_board.strokes.get(data.index);
+            const stroke = board.strokes.get(data.index);
             if(data.param == "color"){
                 const color = data.value as string;
                 stroke.color = color as Color;
             }
         } else if (data.kind == "Area"){
-            const area = local_board.areas.get(data.index);
+            const area = board.areas.get(data.index);
             if(data.param == "c1"){
                 const new_c1 = new Coord(data.value.x , data.value.y);
                 area.c1 = new_c1;
-                area.update_canvas_pos(local_board.view);
+                area.update_canvas_pos(board.view);
             } else if(data.param == "c2"){
                 const new_c2 = new Coord(data.value.x , data.value.y);
                 area.c2 = new_c2;
-                area.update_canvas_pos(local_board.view);
+                area.update_canvas_pos(board.view);
             }
         } else {
             console.log("Kind not supported :", data.kind);
         }
-        requestAnimationFrame(function () {draw(canvas, ctx, g) });
+        requestAnimationFrame(function () {board.draw() });
     }
 
     function handle_reset_board(text_zones_entries){
         // console.log("handle reset board");
-        local_board.clear();
+        board.clear();
         for (const data of text_zones_entries) {
             const pos = new Coord(data[1].pos.x, data[1].pos.y);
             const width = data[1].width as number;
             const text = data[1].text as string;
-            const text_zone = new ClientTextZone(pos, width, text, local_board.view, data[0] )
-            local_board.text_zones.set(data[0], text_zone);
+            const text_zone = new ClientTextZone(pos, width, text, board, data[0] )
+            board.text_zones.set(data[0], text_zone);
         }
 
-        requestAnimationFrame(function () { 
-            draw(canvas, ctx, g) 
-        });
+        requestAnimationFrame(function () { board.draw() });
     }
 
 
 
     function handle_strokes(data){
         // console.log(data);
-        local_board.strokes.clear();
+        board.strokes.clear();
         for(const s of data){
             const positions = new Array<Coord>();
             s[1].positions.forEach(e => {
                 positions.push(new Coord(e.x, e.y));
             });
-            const new_stroke = new ClientStroke(positions, s[1].color, s[1].width, local_board.view);
-            local_board.strokes.set(s[0], new_stroke);
+            const new_stroke = new ClientStroke(positions, s[1].color, s[1].width, board.view);
+            board.strokes.set(s[0], new_stroke);
         }
         // update_params_loaded(g,false);
         requestAnimationFrame(function () { 
-            draw(canvas, ctx, g) 
+            board.draw() 
         });
         
     }
@@ -404,21 +400,21 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
     function handle_areas(data){
         let old_area_ids = new Set<number>();
-        for ( const index of local_board.areas.keys()){
+        for ( const index of board.areas.keys()){
             old_area_ids.add(index);
         }
 
-        local_board.areas.clear();
+        board.areas.clear();
         for(const s of data){
             const c1 = new Coord(s[1].c1.x, s[1].c1.y);
             const c2 = new Coord(s[1].c2.x, s[1].c2.y);
-            const new_area = new ClientArea( s[1].label, c1, c2, s[1].color, local_board.view);
-            local_board.areas.set(s[0], new_area);
-            init_list_parametors_for_area(board, s[0], canvas, ctx);
+            const new_area = new ClientArea( s[1].label, c1, c2, s[1].color, board.view);
+            board.areas.set(s[0], new_area);
+            init_list_parametors_for_area(board, s[0]);
         }
 
         let new_area_ids = new Set<number>();
-        for ( const index of local_board.areas.keys()){
+        for ( const index of board.areas.keys()){
             new_area_ids.add(index);
         }
 
@@ -429,11 +425,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         }
         
         update_params_loaded(g, new Set([SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.GEOMETRIC]), false);
-        update_options_graphs(canvas, ctx, g);
+        update_options_graphs(board);
         // console.log("update???")
         // make_list_areas(canvas, ctx, g);
         requestAnimationFrame(function () { 
-            draw(canvas, ctx, g) 
+            board.draw()
         });
     }
 
@@ -448,11 +444,11 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
         g.clear_vertices();
         for (const data of vertices_entries) {
-            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, local_board.view, data[1].data.color as Color);
+            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.view, data[1].data.color as Color);
             vertexData.color = data[1].data.color;
             const newVertex = g.set_vertex(data[0], vertexData);
             if (vertexData.weight != ""){
-                newVertex.afterSetWeight();
+                newVertex.afterSetWeight(board);
             }
         }
 
@@ -469,12 +465,12 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
                     break;
             }
             const cp = typeof rawLink.data.cp == "undefined" ? undefined : new Coord(rawLink.data.cp.x, rawLink.data.cp.y);
-            const newLinkData = new ClientLinkData(cp, rawLink.data.color, rawLink.data.weight, local_board.view);
+            const newLinkData = new ClientLinkData(cp, rawLink.data.color, rawLink.data.weight, board.view);
             // console.log("update_graph, cp ", newLinkData.cp);
             const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
             // console.log("update_graph, cp ", newLink.data.cp);
             if (newLinkData.weight != ""){
-                newLink.afterSetWeight();
+                newLink.afterSetWeight(board);
             }
         }
 
@@ -487,14 +483,14 @@ export function setup_socket(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
         console.log("[" + s + "]");
         */
 
-        g.compute_vertices_index_string(local_board.view);
+        g.compute_vertices_index_string(board.view);
 
-        init_list_parametors_for_area(board, -1, canvas, ctx);
+        init_list_parametors_for_area(board, -1);
 
         const sensi = get_sensibilities(sensibilities);
         update_params_loaded(g, sensi, false);
         console.timeEnd('resetGraph')
-        requestAnimationFrame(function () { draw(canvas, ctx, g) });
+        requestAnimationFrame(function () { board.draw() });
     }
 
 }

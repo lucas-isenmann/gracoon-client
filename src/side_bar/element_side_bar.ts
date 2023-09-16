@@ -1,6 +1,7 @@
 import { SideBar } from "./side_bar";
 
 import svgIcons from '../img/icons/*.svg';
+import { ClientBoard } from "../board/board";
 
 
 export enum ORIENTATION_SIDE_BAR{
@@ -30,7 +31,7 @@ export abstract class ElementSideBar{
 
 
 
-    constructor(id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  sidebar?: SideBar, rootSidebar?: SideBar) {
+    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,  sidebar?: SideBar, rootSidebar?: SideBar) {
         this.info = info;
         this.shortcut = shortcut;
         this.initial_img_src = img_src;
@@ -39,8 +40,8 @@ export abstract class ElementSideBar{
         this.orientation_info = orientation_info;
         if(sidebar !== undefined){
             this.my_sidebar = sidebar;
-            this.render(sidebar);
-            sidebar.add_elements(this);
+            this.render(board, sidebar);
+            sidebar.add_elements(board, this);
         } else {
             this.my_sidebar = null;
         }
@@ -87,7 +88,7 @@ export abstract class ElementSideBar{
      * Create and insert the HTMLElements of the element into the sidebar given in parameter
      * @param my_sidebar The sidebar the element belongs
      */
-    render(my_sidebar:SideBar){
+    render(board: ClientBoard, my_sidebar: SideBar){
         this.my_sidebar = my_sidebar;
         this.dom = document.getElementById(this.id);
         if(this.dom != null){
@@ -109,10 +110,10 @@ export abstract class ElementSideBar{
         this.my_sidebar.dom.appendChild(this.dom);
         this.dom.appendChild(this.img_dom);
 
-        // TODO: Remove -- just for debugging
-        this.img_dom.onmouseover = () => {
-            console.log(this.id);
-        }
+        // Just for debugging
+        // this.img_dom.onmouseover = () => {
+        //     console.log(this.id);
+        // }
 
 
         // TODO: Just one div_recap for all elements

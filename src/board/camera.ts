@@ -43,7 +43,7 @@ export class View {
 
     index_type: INDEX_TYPE;
 
-    following: string;
+
 
     dark_mode: boolean;
 
@@ -71,7 +71,6 @@ export class View {
         this.is_creating_vertex = false;
         this.creating_vertex_pos = new CanvasCoord(0,0);
 
-        this.following = null;
 
         this.dark_mode = true;
         this.is_drawing_interactor = true;
@@ -142,11 +141,11 @@ export class View {
 
 
 
-export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot_right:CanvasCoord, canvas: HTMLCanvasElement, board: ClientBoard){
+export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot_right:CanvasCoord, board: ClientBoard){
     const w = bot_right.x - top_left.x;
     const h = bot_right.y - top_left.y;
-    const shift_x = (canvas.width - w)/2 - top_left.x;
-    const shift_y = (canvas.height - h)/2 - top_left.y;
+    const shift_x = (this.canvas.width - w)/2 - top_left.x;
+    const shift_y = (this.canvas.height - h)/2 - top_left.y;
 
     view.translate_camera(new Vect(shift_x, shift_y));
 
@@ -156,10 +155,10 @@ export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot
         return;
     }
 
-    const ratio_w = canvas.width/w;
-    const ratio_h = canvas.height/h;
+    const ratio_w = this.canvas.width/w;
+    const ratio_h = this.canvas.height/h;
 
-    const center = new CanvasCoord(canvas.width/2, canvas.height/2);
+    const center = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
     view.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
     board.update_canvas_pos(view);
     update_users_canvas_pos(view);

@@ -1,3 +1,4 @@
+import { ClientBoard } from "../board/board";
 import { ElementSideBar, ORIENTATION_SIDE_BAR } from "./element_side_bar";
 import { FolderSideBar } from "./folder_side_bar";
 
@@ -58,13 +59,13 @@ export class SideBar {
      * Add the elements, create their HTML and insert them in the HTML of the sidebar
      * @param args Arbitrary list of elements.
      */
-    add_elements(...elements: ElementSideBar[]){
+    add_elements(board: ClientBoard, ...elements: ElementSideBar[]){
         for (const element of elements){ 
             this.elements.push(element);
 
             // We check if the element is not already in the sidebar
             if(element.my_sidebar != this){
-                element.render(this);
+                element.render(board, this);
             }
         }
 
@@ -96,9 +97,9 @@ export class SideBar {
      * Recursively set the rootSidebar of all elements.
      */
     setRootSideBar(rootSideBar: SideBar){
-        console.log("SideBar: ", this.id, " setRootSideBar");
+        // console.log("SideBar: ", this.id, " setRootSideBar");
         for(const element of this.elements){
-            console.log(element.id);
+            // console.log(element.id);
             element.setRootSideBar(rootSideBar);
         }
     }

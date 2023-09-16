@@ -1,5 +1,5 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
-import { draw, GRID_COLOR } from "../draw";
+import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawClipboardGraph, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -17,8 +17,9 @@ import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
-import { color_selected } from "../side_bar/interactors/color";
 import { Color } from "../colors_v2";
+import { interactor_loaded } from "../interactors/interactor_manager";
+import { Self, users } from "../user";
 
 
 export enum BoardElementType {
@@ -58,14 +59,31 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
     elementOver: undefined | ClientVertex | ClientLink | ClientStroke | ClientRectangle;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    selfUser: Self;
+    colorSelected: Color;
 
     constructor(){
         super();
+
+        this.selfUser = new Self();
+        this.colorSelected = Color.Neutral;
+
+        this.canvas = document.createElement("canvas");
+        document.body.appendChild(this.canvas);
+        this.canvas.id = "main";
+        const ctx = this.canvas.getContext('2d');
+        if (ctx == null) throw Error("Cannot get context 2d of canvas");
+        this.ctx = ctx; 
+        
+
         this.graph = new ClientGraph(this);
         this.view = new View();
-        this.variables = new Map();
+        
         this.elementOver = undefined;
 
+        this.variables = new Map();
         this.variablesDiv = document.createElement("div");
         this.variablesDiv.id = "variablesDiv";
         document.body.appendChild(this.variablesDiv);
@@ -108,7 +126,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         // const crossRatio = this.getVariableValue("crossRatio");
         // const width = this.getVariableValue("width");
 
-        // draw(canvas, ctx, this.graph);
+        // this.draw();
         // if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
         //     this.graph.drawCombinatorialMap(undefined, ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
         // }
@@ -182,38 +200,38 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      * @param canvas The sidebar the item belongs
      * @param ctx The ctx of the canvas
      */
-    draw_triangular_grid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    drawTriangularGrid() {
         const grid_size = this.view.grid_size;
         const h = grid_size*Math.sqrt(3)/2;
 
         //   \ diagonals
-        for (let x = (this.view.camera.x - this.view.camera.y/Math.sqrt(3)) % grid_size - Math.floor((canvas.width+canvas.height)/grid_size)*grid_size; x < canvas.width; x += grid_size) {
-            ctx.beginPath();
-            ctx.strokeStyle = GRID_COLOR;
-            ctx.lineWidth = 1;
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x + canvas.height , canvas.height*Math.sqrt(3));
-            ctx.stroke();
+        for (let x = (this.view.camera.x - this.view.camera.y/Math.sqrt(3)) % grid_size - Math.floor((this.canvas.width+this.canvas.height)/grid_size)*grid_size; x < this.canvas.width; x += grid_size) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = GRID_COLOR;
+            this.ctx.lineWidth = 1;
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x + this.canvas.height , this.canvas.height*Math.sqrt(3));
+            this.ctx.stroke();
         }
 
         //   / diagonals
-        for (let x = (this.view.camera.x + this.view.camera.y/Math.sqrt(3)) % grid_size + Math.floor((canvas.width+canvas.height)/grid_size)*grid_size; x > 0 ; x -= grid_size) {
-            ctx.beginPath();
-            ctx.strokeStyle = GRID_COLOR;
-            ctx.lineWidth = 1;
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x - canvas.height , canvas.height*Math.sqrt(3));
-            ctx.stroke();
+        for (let x = (this.view.camera.x + this.view.camera.y/Math.sqrt(3)) % grid_size + Math.floor((this.canvas.width+this.canvas.height)/grid_size)*grid_size; x > 0 ; x -= grid_size) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = GRID_COLOR;
+            this.ctx.lineWidth = 1;
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x - this.canvas.height , this.canvas.height*Math.sqrt(3));
+            this.ctx.stroke();
         }
 
         // horizontal lines
-        for (let y = this.view.camera.y % h; y < canvas.height; y += h) {
-            ctx.beginPath();
-            ctx.strokeStyle = GRID_COLOR;
-            ctx.lineWidth = 1;
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-            ctx.stroke();
+        for (let y = this.view.camera.y % h; y < this.canvas.height; y += h) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = GRID_COLOR;
+            this.ctx.lineWidth = 1;
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.canvas.width, y);
+            this.ctx.stroke();
         }
 
         // debugging : draw the quadrilateral containing the point
@@ -246,21 +264,159 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    /**
+     * The alignement lines with other vertices.
+     */
+    drawAlignements() {
+        if (this.view.alignement_horizontal) {
+            drawLine(new CanvasCoord(0, this.view.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.view.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        }
+        if (this.view.alignement_vertical) {
+            drawLine(new CanvasCoord(this.view.alignement_vertical_x, 0), new CanvasCoord(this.view.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        }
+    }
+
+
+    drawInteractor() {
+        if (this.view.is_drawing_interactor){
+            interactor_loaded.draw(this)
+        }
+    }
+
+
+    drawRectangularSelection() {
+        if (this.view.is_rectangular_selecting) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = SELECTION_COLOR;
+            this.ctx.rect(this.view.selection_corner_1.x, this.view.selection_corner_1.y, this.view.selection_corner_2.x - this.view.selection_corner_1.x, this.view.selection_corner_2.y - this.view.selection_corner_1.y);
+            this.ctx.stroke();
+
+            this.ctx.globalAlpha = 0.07;
+            this.ctx.fillStyle = SELECTION_COLOR;
+            this.ctx.fill();
+
+            this.ctx.globalAlpha = 1;
+        }
+    }
+
+    drawFollowing(){
+        if( typeof this.selfUser.following != "undefined"){
+            const following_user = users.get(this.selfUser.following);
+            if(following_user){
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = following_user.multicolor.color;
+                this.ctx.lineWidth = 10;
+                this.ctx.rect(0,0,1000,1000);
+                this.ctx.stroke();
+            }
+            else{
+                this.selfUser.following = undefined;
+            }
+        }
+    }
+
+    draw() {
+        this.drawBackground();
         if (this.view.display_triangular_grid){
-            this.draw_triangular_grid(document.getElementById("main") as HTMLCanvasElement, ctx);
+            this.drawTriangularGrid();
         }
         for (const rep of this.representations.values()){
-            rep.draw(ctx, this.view);
+            rep.draw(this.ctx, this.view);
         }
 
         for (const rect of this.rectangles.values()){
-            rect.draw(ctx, this.view);
+            rect.draw();
         }
-        this.strokes.forEach(s => {
-            s.draw(ctx, this);
-        });
+        this.strokes.forEach(stroke => stroke.draw(this));
+        this.areas.forEach(area => area.draw(this));
+        this.drawAlignements();
+        this.graph.draw(this.ctx);
+
+        drawUsers(this.canvas, this.ctx);
+        this.drawRectangularSelection();
+        this.drawInteractor();
+        drawClipboardGraph(this.ctx);
+
     }
+
+    resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        // view.window_height = window.innerHeight;
+        // view.window_width = window.innerWidth;
+        const board = this;
+        requestAnimationFrame(function () { board.draw() })
+    }
+
+    drawBackground() {
+        this.ctx.beginPath();
+        this.ctx.fillStyle = COLOR_BACKGROUND;
+        this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fill();
+    
+        if (this.view.grid_show) {
+            this.drawRectangularGrid();
+        }
+    }
+
+
+
+    drawRectangularGrid() {
+        const grid_size = this.view.grid_size;
+
+        for (let i = this.view.camera.x % grid_size; i < this.canvas.width; i += grid_size) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = GRID_COLOR;
+            this.ctx.lineWidth = 1;
+            this.ctx.moveTo(i, 0);
+            this.ctx.lineTo(i, this.canvas.height);
+            this.ctx.stroke();
+        }
+
+        for (let i = this.view.camera.y % grid_size; i < this.canvas.height; i += grid_size) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = GRID_COLOR;
+            this.ctx.lineWidth = 1;
+            this.ctx.moveTo(0, i);
+            this.ctx.lineTo(this.canvas.width, i);
+            this.ctx.stroke();
+        }
+    }
+
+
+
+    /**
+     * Return true if an element has been erased.
+     * Emit delete_elements alone.
+     */
+    eraseAt(e: CanvasCoord, eraseDistance: number) : boolean{
+        for (const [index, s] of this.strokes.entries()) {
+            if (s.is_nearby(e, this.view) !== false) {
+                this.emit_delete_elements([[BoardElementType.Stroke, index]]);
+                return true;
+            }
+        }
+        for (const [index, vertex] of this.graph.vertices.entries()) {
+            if (vertex.is_nearby(e, Math.pow(eraseDistance + VERTEX_RADIUS, 2))) {
+                this.emit_delete_elements([[BoardElementType.Vertex, index]]);
+                return true;
+            }
+        }
+        for (const index of this.graph.links.keys()) {
+            if (this.graph.is_click_over_link(index, e, this.view)) {
+                this.emit_delete_elements([[BoardElementType.Link, index]]);
+                return true;
+            }
+        }
+        for(const [index,area] of this.areas.entries()){
+            if( is_click_over(area,e) ){
+                this.emit_delete_elements([[BoardElementType.Area, index]]);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     clear() {
         for( const text_zone of this.text_zones.values()){
@@ -305,7 +461,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             index += 1;
         }
         const pos = this.view.create_server_coord(canvas_pos);
-        const text_zone = new ClientTextZone(pos, 200, "salut", this.view, index);
+        const text_zone = new ClientTextZone(pos, 200, "salut", this, index);
         this.text_zones.set(index, text_zone);
         return index;
     }
@@ -553,8 +709,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         switch(element.constructor){
             case ClientVertexData: {
                 const vertexData = element as ClientVertexData;
-                console.log(color_selected);
-                console.log(vertexData.color);
                 socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
                 break;
             }

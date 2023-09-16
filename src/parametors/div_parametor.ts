@@ -1,9 +1,8 @@
-import { ClientGraph } from '../board/graph';
-import { local_board } from '../setup';
+import { ClientBoard } from '../board/board';
 import { Parametor } from './parametor';
-import { load_param, params_available, params_loaded } from './parametor_manager';
+import { load_param, params_available } from './parametor_manager';
 
-export function update_params_available_div(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph) {
+export function update_params_available_div(board: ClientBoard) {
     const div = document.getElementById("params_available_content");
 
     const search_input_container = document.createElement("div");
@@ -50,7 +49,7 @@ function handle_search_onkeyup() {
     }
 }
 
-export function update_options_graphs(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, g: ClientGraph){
+export function update_options_graphs(board: ClientBoard){
 
     // We first clear every options 
     const elements = document.getElementsByClassName("subgraph_option");
@@ -69,10 +68,10 @@ export function update_options_graphs(canvas: HTMLCanvasElement, ctx: CanvasRend
         div_original.parentNode.replaceChild(div, div_original);
 
         // we add the click event
-        div.addEventListener('click', (e)=> toggle_list_graph_option(param, canvas, ctx, g));
+        div.addEventListener('click', (e)=> toggle_list_graph_option(param, board));
 
 
-        if(local_board.areas.size == 0){
+        if(board.areas.size == 0){
             // console.log("NO AREA", div);
         }
         else{ // If we have areas, we add a list of the subgraphs
@@ -94,18 +93,18 @@ export function update_options_graphs(canvas: HTMLCanvasElement, ctx: CanvasRend
             gDiv.textContent = "Everything";
             newDiv.appendChild(gDiv);
             gDiv.addEventListener('click', function () {   
-                load_param(param, canvas, ctx, g, -1); 
+                load_param(param, board, -1); 
                 params_available_turn_off_div();
             });
 
             // Div for each area
-            for(const [area_index, a] of local_board.areas.entries()){
+            for(const [area_index, a] of board.areas.entries()){
                 let aDiv = document.createElement("div");
                 aDiv.classList.add("subgraph_option");
                 aDiv.textContent = a.label;
                 newDiv.appendChild(aDiv);
                 aDiv.addEventListener('click', function () { 
-                    load_param(param, canvas, ctx, g, area_index); 
+                    load_param(param, board, area_index); 
                     params_available_turn_off_div();
                 });
             }
@@ -125,13 +124,13 @@ export function params_available_turn_on_div() {
 }
 
 
-function toggle_list_graph_option(param:Parametor, canvas:HTMLCanvasElement, ctx:CanvasRenderingContext2D, g:ClientGraph){
+function toggle_list_graph_option(param:Parametor, board: ClientBoard){
     // console.log("CLICKY CLICKY", param);
 
 
     // if there is no area, click on the parametor just computes it on the full graph
-    if(local_board.areas.size == 0){
-        load_param(param, canvas, ctx, g, -1);
+    if(board.areas.size == 0){
+        load_param(param, board, -1);
         params_available_turn_off_div(); 
     }
     else{

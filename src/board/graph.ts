@@ -2,10 +2,9 @@ import { INDEX_TYPE, View } from "./camera";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
-import { BasicGraph, Coord, Graph, ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
+import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { draw_circle, draw_head } from "../draw_basics";
-import { local_board } from "../setup";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { interactor_loaded } from "../interactors/interactor_manager";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
@@ -76,14 +75,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      */
     drawVertices(ctx: CanvasRenderingContext2D){
         for (const v of this.vertices.values()) {
-            let isMouseOver = false;
             
-            if ( this.board.elementOver instanceof ClientVertex){
-                if (this.board.elementOver.index == v.index){
-                    isMouseOver = true;
-                }
-            }
-            v.draw(ctx, isMouseOver);
+            v.draw(this.board);
         }
     }
 
@@ -98,7 +91,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const posu = u.data.canvas_pos; 
             const posv = v.data.canvas_pos; 
             const poscp = link.data.cp_canvas_pos;
-            const color = getCanvasColor(link.data.color, local_board.view.dark_mode);
+            const color = getCanvasColor(link.data.color, this.board.view.dark_mode);
 
             const isMouseOver = (this.board.elementOver instanceof ClientLink && this.board.elementOver.index == link.index);
 
@@ -147,7 +140,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 if (typeof poscp != "string"){
                     cp = poscp
                 }
-                draw_head(ctx, cp, posv);
+                draw_head(ctx, cp, posv, this.board.view.index_type);
             }
         }
     }
@@ -607,11 +600,11 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                         if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 1){
                             qp1.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp1.id;
-                            // draw_line(local_board.view.create_canvas_coord(qp1.pos), local_board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
+                            // draw_line(this.board.view.create_canvas_coord(qp1.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
                         } else if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 0){
                             qp2.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp2.id;
-                            // draw_line(local_board.view.create_canvas_coord(qp2.pos), local_board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
+                            // draw_line(this.board.view.create_canvas_coord(qp2.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
                         }
                     }
                 }
@@ -741,12 +734,12 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     //     const hh2 = h2FromEdgeLength(edgeDir);
                     //     d += curvedStanchionUnder2(currentQp, nextQp, hh, hh2, crossRatio);
                     // } else {
-                        local_board.drawLine(ctx, currentQp.pos, currentQp.quarterEdgePoint, colors[currentColor], width);
+                        this.board.drawLine(ctx, currentQp.pos, currentQp.quarterEdgePoint, colors[currentColor], width);
 
                         d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
                         if ( currentQp.id %2 == 1){
-                            local_board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, currentQp.middleEdgeCP, currentQp.middleEdgePoint, colors[currentColor], width);
-                            local_board.drawBezierCurve(ctx, nextQp.middleEdgePoint, nextQp.middleEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
+                            this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, currentQp.middleEdgeCP, currentQp.middleEdgePoint, colors[currentColor], width);
+                            this.board.drawBezierCurve(ctx, nextQp.middleEdgePoint, nextQp.middleEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
 
                             
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${currentQp.middleEdgeCP.x} ${currentQp.middleEdgeCP.y}, ${currentQp.middleEdgePoint.x} ${currentQp.middleEdgePoint.y}`;
@@ -754,34 +747,34 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                             d += `C ${nextQp.middleEdgeCP.x} ${nextQp.middleEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                             
                         } else {
-                            local_board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
+                            this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
                             
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                         }
 
-                        local_board.drawLine(ctx, nextQp.quarterEdgePoint, nextQp.pos, colors[currentColor], width);
+                        this.board.drawLine(ctx, nextQp.quarterEdgePoint, nextQp.pos, colors[currentColor], width);
                         d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
                     // }
 
 
-                    local_board.drawCircle(ctx, currentQp.cp, 3, "green");
+                    this.board.drawCircle(ctx, currentQp.cp, 3, "green");
                     if ( currentQp.id %2 == 0 ){
-                        local_board.drawCircle(ctx, currentQp.pos, 3, "blue");
+                        this.board.drawCircle(ctx, currentQp.pos, 3, "blue");
                     } else {
-                        local_board.drawCircle(ctx, currentQp.pos, 3, "red");
+                        this.board.drawCircle(ctx, currentQp.pos, 3, "red");
                     }
 
                     currentQp = nextQp;
 
                     nextQp = quarterPoints.get(currentQp.interiorAdj);
-                    local_board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, colors[currentColor], width);
+                    this.board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, colors[currentColor], width);
                     d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
 
-                    local_board.drawCircle(ctx, currentQp.cp, 3, "green");
+                    this.board.drawCircle(ctx, currentQp.cp, 3, "green");
                     if ( currentQp.id %2 == 0 ){
-                        local_board.drawCircle(ctx, currentQp.pos, 3, "blue");
+                        this.board.drawCircle(ctx, currentQp.pos, 3, "blue");
                     } else {
-                        local_board.drawCircle(ctx, currentQp.pos, 3, "red");
+                        this.board.drawCircle(ctx, currentQp.pos, 3, "red");
                     }
 
                     currentQp = nextQp;
@@ -871,14 +864,14 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                         d += curvedStanchionUnder2(currentQp, nextQp, hh, hh2, t);
                     } else {
                         if ( currentQp.id %2 == 1){
-                            // local_board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, qp.middleEdgeCP, qp.middleEdgePoint, "gray");
+                            // this.board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, qp.middleEdgeCP, qp.middleEdgePoint, "gray");
                             d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${currentQp.middleEdgeCP.x} ${currentQp.middleEdgeCP.y}, ${currentQp.middleEdgePoint.x} ${currentQp.middleEdgePoint.y}`;
                             d += `M ${nextQp.middleEdgePoint.x} ${nextQp.middleEdgePoint.y}`;
                             d += `C ${nextQp.middleEdgeCP.x} ${nextQp.middleEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                             d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
                         } else {
-                            // local_board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, oppositeQp.quarterEdgeCP, oppositeQp.quarterEdgePoint, "gray");
+                            // this.board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, oppositeQp.quarterEdgeCP, oppositeQp.quarterEdgePoint, "gray");
                             d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                             d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;

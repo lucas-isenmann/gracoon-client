@@ -1,4 +1,11 @@
 
+export enum INTERACTOR_TYPE {
+    COLOR = "color",
+    SELECTION = "selection",
+    ERASER = "eraser",
+    TEXT = "text"
+}
+
 
 export enum DOWN_TYPE {
     EMPTY = "EMPTY",

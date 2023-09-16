@@ -1,71 +1,79 @@
 import { TextZone } from "gramoloss";
-import { BoardElementType } from "../../board/board";
-import { ClientGraph } from "../../board/graph";
+import { ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/canvas_coord";
-import { DOWN_TYPE } from "../../interactors/interactor";
+import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { last_down, last_down_index } from "../../interactors/interactor_manager";
-import { local_board } from "../../setup";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 
-export const text_interactorV2 = new InteractorV2("text", "Create and edit text zones", "t", ORIENTATION_INFO.RIGHT, "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+
+
+export function createTextInteractor(board: ClientBoard): InteractorV2{
+
+    const text_interactorV2 = new InteractorV2(board, INTERACTOR_TYPE.TEXT, "Create and edit text zones", "t", ORIENTATION_INFO.RIGHT, "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+
+
+    text_interactorV2.mousedown = ((board: ClientBoard, e: CanvasCoord) => {
+        // validate_weight();
+
+        if (last_down == DOWN_TYPE.LINK ) {
+            if ( board.graph.links.has(last_down_index)){
+                const link = board.graph.links.get(last_down_index);
+                link.afterSetWeight(board);
+
+                // A timeout is needed I dont know why.
+                if (typeof link.data.weightDiv !== "undefined"){
+                    setTimeout(() => {
+                        link.data.weightDiv.focus();
+                    }, 50);
+                }
+            }
+        }
+        else if (last_down == DOWN_TYPE.VERTEX){
+            if ( board.graph.vertices.has(last_down_index)){
+                const vertex = board.graph.vertices.get(last_down_index);
+                vertex.afterSetWeight(board);
+
+                // A timeout is needed I dont know why.
+                if (typeof vertex.data.weightDiv !== "undefined"){
+                    setTimeout(() => {
+                        vertex.data.weightDiv.focus();
+                    }, 50);
+                }
+            }
+        }
+        // else if (last_down == DOWN_TYPE.VERTEX_WEIGHT) {
+        //     if ( board.graph.vertices.has(last_down_index)){
+        //         const vertex = board.graph.vertices.get(last_down_index);
+        //         display_weight_input(last_down_index, vertex.canvas_pos, DOWN_TYPE.VERTEX);
+        //     }
+        // }
+        else if ( last_down == DOWN_TYPE.EMPTY){
+            const coord = board.view.create_server_coord(e);
+            board.emit_add_element(new TextZone(coord, 100, ""),(response: number) => { 
+                setTimeout(() => {
+                    const text_zone = board.text_zones.get(response);
+                    text_zone.content_div.focus();
+                }, 50);
+            } );
+        }
+    })
+
+
+    text_interactorV2.onleave = () => {
+        // current_index = null;
+        // turn_off_weight_input();
+    }
+
+    return text_interactorV2;
+} 
+
 
 
 
 
 // --------------
 
-text_interactorV2.mousedown = ((canvas, ctx, g: ClientGraph, e: CanvasCoord) => {
-    // validate_weight();
-
-    if (last_down == DOWN_TYPE.LINK ) {
-        if ( g.links.has(last_down_index)){
-            const link = g.links.get(last_down_index);
-            link.afterSetWeight();
-
-            // A timeout is needed I dont know why.
-            if (typeof link.data.weightDiv !== "undefined"){
-                setTimeout(() => {
-                    link.data.weightDiv.focus();
-                }, 50);
-            }
-        }
-    }
-    else if (last_down == DOWN_TYPE.VERTEX){
-        if ( g.vertices.has(last_down_index)){
-            const vertex = g.vertices.get(last_down_index);
-            vertex.afterSetWeight();
-
-            // A timeout is needed I dont know why.
-            if (typeof vertex.data.weightDiv !== "undefined"){
-                setTimeout(() => {
-                    vertex.data.weightDiv.focus();
-                }, 50);
-            }
-        }
-    }
-    // else if (last_down == DOWN_TYPE.VERTEX_WEIGHT) {
-    //     if ( g.vertices.has(last_down_index)){
-    //         const vertex = g.vertices.get(last_down_index);
-    //         display_weight_input(last_down_index, vertex.canvas_pos, DOWN_TYPE.VERTEX);
-    //     }
-    // }
-    else if ( last_down == DOWN_TYPE.EMPTY){
-        const coord = local_board.view.create_server_coord(e);
-        local_board.emit_add_element(new TextZone(coord, 100, ""),(response: number) => { 
-            setTimeout(() => {
-                const text_zone = local_board.text_zones.get(response);
-                text_zone.content_div.focus();
-            }, 50);
-        } );
-    }
-})
-
-
-text_interactorV2.onleave = () => {
-    // current_index = null;
-    // turn_off_weight_input();
-}
 
 
 

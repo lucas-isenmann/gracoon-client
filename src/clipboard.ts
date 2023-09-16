@@ -1,6 +1,6 @@
+import { ClientBoard } from "./board/board";
 import { CanvasCoord } from "./board/canvas_coord";
 import { ClientGraph } from "./board/graph";
-import { local_board } from "./setup";
 
 export let graph_clipboard: ClientGraph = null;
 export let mouse_position_at_generation: CanvasCoord = null;
@@ -14,8 +14,8 @@ export function set_clipboard(graph: ClientGraph, pos_at_click: CanvasCoord, is_
     canvas.style.cursor = "grab";
 }
 
-export function paste_generated_graph() {
-    local_board.emit_paste_graph(graph_clipboard);
+export function paste_generated_graph(board: ClientBoard) {
+    board.emit_paste_graph(graph_clipboard);
 }
 
 export function clear_clipboard(canvas: HTMLCanvasElement){
