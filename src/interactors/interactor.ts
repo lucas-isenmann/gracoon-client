@@ -7,6 +7,9 @@ export enum INTERACTOR_TYPE {
 }
 
 
+
+
+
 export enum DOWN_TYPE {
     EMPTY = "EMPTY",
     VERTEX = "VERTEX",

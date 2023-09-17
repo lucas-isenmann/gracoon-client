@@ -19,29 +19,28 @@ export let down_meta_element: any = "";
 export let last_down_index: number = null;
 export let down_coord: CanvasCoord = null;
 
-export let interactor_loaded: InteractorV2 = null;
 export let last_down: DOWN_TYPE = null;
+
 let previous_canvas_shift = new CanvasVect(0,0);
 
-// key states
 
 
 
-export function select_interactor(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
-    
-    if (interactor_loaded != null && interactor_loaded != interactor) {
-        interactor_loaded.onleave();
+export function selectInteractor(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
+    if (interactor.id == board.interactorLoadedId) return;
+
+    if ( typeof board.interactorLoaded != "undefined"){
+        board.interactorLoaded.onleave();
     }
 
-    const interactor_to_load = interactor;
-    
-    interactor_loaded = interactor_to_load;
-    board.canvas.style.cursor = interactor_to_load.cursor_style;
-    board.view.is_creating_vertex = false;
-    interactor_to_load.trigger(board, pos);
-    select_interactor_div(interactor_to_load);
-    requestAnimationFrame(function () { board.draw() });
+    board.interactorLoaded = interactor;
+    board.interactorLoadedId = interactor.id;
 
+    board.canvas.style.cursor = interactor.cursor_style;
+    board.view.is_creating_vertex = false;
+    interactor.trigger(board, pos);
+    select_interactor_div(interactor);
+    board.requestDraw();
 }
 
 
@@ -166,7 +165,7 @@ export function setup_interactions(board: ClientBoard) {
     board.canvas.addEventListener('mouseup', function (e) {
         let click_pos = new CanvasCoord(e.pageX, e.pageY);
         click_pos = board.graph.align_position(click_pos, new Set(), board.canvas, board.view);
-        interactor_loaded.mouseup(board,  click_pos);
+        board.interactorLoaded.mouseup(board,  click_pos);
         down_coord = null;
         last_down = null;
         last_down_index = null;
@@ -200,13 +199,13 @@ export function setup_interactions(board: ClientBoard) {
             previous_canvas_shift.set_from(shift);
             board.draw()
         } else {
-            if (interactor_loaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
-                const element = board.get_element_nearby(click_pos, interactor_loaded.interactable_element_type);
+            if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
+                const element = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
                 board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resize_type);
             } else {
                 board.canvas.style.cursor = "default";
             }
-            if (interactor_loaded.mousemove(board, click_pos)) {
+            if (board.interactorLoaded.mousemove(board, click_pos)) {
                 requestAnimationFrame(function () {
                     board.draw()
                 });
@@ -235,12 +234,12 @@ export function setup_interactions(board: ClientBoard) {
             }
             board.draw()
         } else {
-            const element = board.get_element_nearby(down_coord, interactor_loaded.interactable_element_type);
+            const element = board.get_element_nearby(down_coord, board.interactorLoaded.interactable_element_type);
             console.log(element);
             last_down = element.type;
             last_down_index = element.index;
             down_meta_element = element;
-            interactor_loaded.mousedown(board, down_coord)
+            board.interactorLoaded.mousedown(board, down_coord)
             if (element.type != DOWN_TYPE.EMPTY) {
                 requestAnimationFrame(function () { board.draw() });
             }
@@ -251,11 +250,11 @@ export function setup_interactions(board: ClientBoard) {
         console.log("touchstart");
         const click_pos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
 
-        const element = board.get_element_nearby(click_pos, interactor_loaded.interactable_element_type);
+        const element = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
         console.log(element);
         last_down = element.type;
         last_down_index = element.index;
-        interactor_loaded.mousedown(board, click_pos)
+        board.interactorLoaded.mousedown(board, click_pos)
         if (element.type != DOWN_TYPE.EMPTY) {
             requestAnimationFrame(function () { board.draw() });
         }
@@ -263,7 +262,7 @@ export function setup_interactions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchmove', (e) => {
         mouse_pos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
-        if (interactor_loaded.mousemove(board, mouse_pos)) {
+        if (board.interactorLoaded.mousemove(board, mouse_pos)) {
             requestAnimationFrame(function () {
                 board.draw()
             });
@@ -274,7 +273,7 @@ export function setup_interactions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchend', (e) => {
         const click_pos = mouse_pos;
-        interactor_loaded.mouseup(board, click_pos);
+        board.interactorLoaded.mouseup(board, click_pos);
         last_down = null;
         last_down_index = null;
         board.view.alignement_horizontal = false;
@@ -311,15 +310,4 @@ function select_interactor_div(interactor: InteractorV2 ) {
 
 
 
-export function select_interactorV2(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
-    if (interactor_loaded != null && interactor_loaded != interactor) {
-        interactor_loaded.onleave();
-    }
-
-    interactor_loaded = interactor;
-    board.canvas.style.cursor = interactor.cursor_style;
-    board.view.is_creating_vertex = false;
-    interactor.trigger(board, pos);
-    requestAnimationFrame(function () { board.draw() });
-}
 

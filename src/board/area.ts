@@ -3,7 +3,6 @@ import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { ClientBoard } from "./board";
-import { interactor_loaded } from "../interactors/interactor_manager";
 
 
 export enum AREA_CORNER {
@@ -247,7 +246,7 @@ export class ClientArea extends Area{
 
 
 
-        if(interactor_loaded && interactor_loaded.id === "area"){
+        if( board.interactorLoadedId === "area"){
             const top_left = this.canvas_corner_top_left;
             const top_right = this.canvas_corner_top_right;
             const bot_right = this.canvas_corner_bottom_right;

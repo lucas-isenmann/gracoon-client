@@ -6,7 +6,6 @@ import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezie
 import { CanvasVect } from "./vect";
 import { draw_circle, draw_head } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
-import { interactor_loaded } from "../interactors/interactor_manager";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
 import { Color, getCanvasColor } from "../colors_v2";
 import { ClientBoard } from "./board";
@@ -130,7 +129,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
             
         if (typeof poscp != "string"){
-                if ( interactor_loaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
+                if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
                     draw_circle(poscp, "grey", 4, 1, ctx);
                 }
             }

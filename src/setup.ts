@@ -1,5 +1,5 @@
 import { toggle_dark_mode } from "./draw";
-import { setup_interactions, select_interactor } from "./interactors/interactor_manager";
+import { setup_interactions, selectInteractor } from "./interactors/interactor_manager";
 import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
 import { setup_parametors_available } from "./parametors/parametor_manager";
 import { setup_socket, socket } from "./socket";
@@ -289,7 +289,7 @@ function setup() {
     const arcInteractorV3 = createLinkInteractor(local_board, ORIENTATION.DIRECTED);
     edge_side_bar.add_elements(local_board, edgeInteractorV3, arcInteractorV3, createControlPointInteractor(local_board));
 
-    select_interactor(edgeInteractorV3, local_board, null);
+    selectInteractor(edgeInteractorV3, local_board, null);
 
 
     if (ENV.mode == "dev"){

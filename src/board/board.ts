@@ -18,7 +18,6 @@ import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { Color } from "../colors_v2";
-import { interactor_loaded } from "../interactors/interactor_manager";
 import { Self, users } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 
@@ -66,7 +65,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     colorSelected: Color;
     keyPressed: Set<string>;
     interactorLoaded: Option<InteractorV2>;
-    interactorLoadedId: Option<INTERACTOR_TYPE>;
+    interactorLoadedId: Option<string>;
 
     constructor(){
         super();
@@ -285,8 +284,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     drawInteractor() {
-        if (this.view.is_drawing_interactor){
-            interactor_loaded.draw(this)
+        if (this.view.is_drawing_interactor && typeof this.interactorLoaded != "undefined"){
+            this.interactorLoaded.draw(this)
         }
     }
 

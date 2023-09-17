@@ -1,6 +1,6 @@
 import { CanvasCoord } from "../board/canvas_coord";
 import { DOWN_TYPE } from "../interactors/interactor";
-import { select_interactorV2 } from "../interactors/interactor_manager";
+import { selectInteractor } from "../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "./element_side_bar";
 import { ItemSideBar } from "./item_side_bar";
 import { SideBar } from "./side_bar";
@@ -56,7 +56,7 @@ export class InteractorV2 extends ItemSideBar {
         this.dom.classList.add("selected");
         const canvas = document.getElementById('main') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
-        select_interactorV2(this, board, pos);
+        selectInteractor(this, board, pos);
     }
 
     setRootSideBar(rootSideBar: SideBar) {

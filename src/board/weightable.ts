@@ -1,5 +1,4 @@
 import { INTERACTOR_TYPE } from "../interactors/interactor";
-import { interactor_loaded } from "../interactors/interactor_manager";
 import { BoardElementType, ClientBoard } from "./board";
 
 export interface Weightable {
@@ -37,7 +36,7 @@ export function initWeightDiv<R extends Weightable>(element: R, type: BoardEleme
 
         // Prevent other interactors to click on this div (and launch the editor of the weight).
         element.getWeightDiv().onmousedown = (e: MouseEvent) => {
-            if (interactor_loaded.id != INTERACTOR_TYPE.TEXT){
+            if (board.interactorLoadedId != INTERACTOR_TYPE.TEXT){
                 e.preventDefault();
             }
         }

@@ -1,5 +1,4 @@
 import { Coord, TextZone } from "gramoloss";
-import { interactor_loaded } from "../interactors/interactor_manager";
 import renderMathInElement from "../katex-auto-render/auto-render";
 import { BoardElementType, ClientBoard } from "./board";
 import { View } from "./camera";
@@ -63,7 +62,7 @@ export class ClientTextZone extends TextZone {
             }
 
             content.onmousemove = () => {
-                if (interactor_loaded.id == INTERACTOR_TYPE.SELECTION){
+                if (board.interactorLoadedId == INTERACTOR_TYPE.SELECTION){
                     const s = window.getSelection();
                     s.removeAllRanges();
                 }
@@ -71,7 +70,7 @@ export class ClientTextZone extends TextZone {
 
             content.onmousedown = (e: MouseEvent) => {
                 this.last_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
-                if (interactor_loaded.id == INTERACTOR_TYPE.SELECTION){
+                if (board.interactorLoadedId == INTERACTOR_TYPE.SELECTION){
                     function move_div(e: MouseEvent){
                         console.log("moveDiv");
                         const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
@@ -86,13 +85,13 @@ export class ClientTextZone extends TextZone {
                         window.removeEventListener("mousemove", move_div);
                     }
                     window.addEventListener("mouseup", stop_event);
-                } else if (interactor_loaded.id == INTERACTOR_TYPE.ERASER){
+                } else if (board.interactorLoadedId == INTERACTOR_TYPE.ERASER){
                     board.emit_delete_elements([[BoardElementType.TextZone, index]]);
                 }
             }
 
             content.onfocus = (e) => {
-                if ( interactor_loaded.id != INTERACTOR_TYPE.SELECTION){
+                if ( board.interactorLoadedId != INTERACTOR_TYPE.SELECTION){
                     content.innerText = this.text;
                     restoreSelection(content.id);
                 } else {
