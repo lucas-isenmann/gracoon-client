@@ -1,7 +1,7 @@
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
-import { key_states, last_down, last_down_index } from "../../interactors/interactor_manager";
+import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { Color, colorsData, getCanvasColor } from "../../colors_v2";
@@ -59,7 +59,7 @@ export function createColorInteractor(board: ClientBoard): InteractorV2{
         if (typeof colorPicketDiv == "undefined")  return;
     
         if (colorPicketDiv.style.display == "block") {
-            if (key_states.get("Shift")){
+            if (board.keyPressed.has("Shift")){
                 select_previous_color(board, colors_available);
             } else {
                 select_next_color(board, colors_available);

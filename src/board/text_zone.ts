@@ -1,5 +1,5 @@
 import { Coord, TextZone } from "gramoloss";
-import { interactor_loaded, key_states } from "../interactors/interactor_manager";
+import { interactor_loaded } from "../interactors/interactor_manager";
 import renderMathInElement from "../katex-auto-render/auto-render";
 import { BoardElementType, ClientBoard } from "./board";
 import { View } from "./camera";
@@ -132,7 +132,7 @@ export class ClientTextZone extends TextZone {
                 saveSelection();
                 board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
 
-                if (e.key == "Enter" && key_states.get("Control")) {
+                if (e.key == "Enter" && board.keyPressed.has("Control")) {
                     content.blur();
                 }
             }

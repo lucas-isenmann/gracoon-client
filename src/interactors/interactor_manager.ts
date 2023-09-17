@@ -13,29 +13,27 @@ import { InteractorV2 } from '../side_bar/interactor_side_bar';
 
 
 
-export let down_meta_element: any = "";
-export let interactor_loaded: InteractorV2 = null;
-export let down_coord: CanvasCoord = null;
-export let last_down: DOWN_TYPE = null;
-export let last_down_index: number = null;
-export let has_moved: boolean = false;
 export let mouse_pos: CanvasCoord = null;
-export let key_states = new Map<string, boolean>();
 export let mouse_buttons: string | number = "";
+export let down_meta_element: any = "";
+export let last_down_index: number = null;
+export let down_coord: CanvasCoord = null;
+
+export let interactor_loaded: InteractorV2 = null;
+export let last_down: DOWN_TYPE = null;
 let previous_canvas_shift = new CanvasVect(0,0);
 
 // key states
-key_states.set("Control", false);
-key_states.set("Shift", false);
+
 
 
 export function select_interactor(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
+    
     if (interactor_loaded != null && interactor_loaded != interactor) {
         interactor_loaded.onleave();
     }
 
     const interactor_to_load = interactor;
-    // const interactor_to_load = (interactor.subinteractors.length === 0)?interactor:interactor.subinteractors.at(0);
     
     interactor_loaded = interactor_to_load;
     board.canvas.style.cursor = interactor_to_load.cursor_style;
@@ -52,10 +50,10 @@ export function setup_interactions(board: ClientBoard) {
 
     window.addEventListener('keydown', function (e) {
         if (e.key == "Control") {
-            key_states.set("Control", true);
+            board.keyPressed.add("Control");
         }
         if (e.key == "Shift") {
-            key_states.set("Shift", true);
+            board.keyPressed.add("Shift");
         }
 
         if (document.activeElement.nodeName == "BODY") { // otherwise focus is on a text
@@ -116,22 +114,22 @@ export function setup_interactions(board: ClientBoard) {
                 board.emit_delete_elements(data_socket);
                 return;
             }
-            if ( key_states.get("Control") && e.key.toLowerCase() == "c" ){
+            if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
                 const subgraph = board.graph.get_induced_subgraph_from_selection(board.view);
                 if ( subgraph.vertices.size > 0){
                     set_clipboard(subgraph, mouse_pos.copy(), false, board.canvas);
                 }
                 return;
             }
-            if (key_states.get("Control") && e.key.toLowerCase() == "z") {
-                console.log("Request: undo");
+            if (board.keyPressed.has("Control") && e.key.toLowerCase() == "z") {
+                console.log("Emit: undo");
                 board.emit_undo();
             }
-            if (key_states.get("Control") && e.key.toLowerCase() == "y") {
-                console.log("Request: redo");
+            if (board.keyPressed.has("Control") && e.key.toLowerCase() == "y") {
+                console.log("Emit: redo");
                 board.emit_redo();
             }
-            if (key_states.get("Control") && e.key.toLowerCase() == "a") {
+            if (board.keyPressed.has("Control") && e.key.toLowerCase() == "a") {
                 board.selectEverything();
             }
         }
@@ -139,10 +137,10 @@ export function setup_interactions(board: ClientBoard) {
 
     window.addEventListener('keyup', function (e) {
         if (e.key == "Control") {
-            key_states.set("Control", false);
+            board.keyPressed.delete("Control");
         }
         if (e.key == "Shift") {
-            key_states.set("Shift", false);
+            board.keyPressed.delete("Shift");
         }
     })
 
@@ -162,7 +160,7 @@ export function setup_interactions(board: ClientBoard) {
         }
         socket.emit("my_view", board.view.camera.x, board.view.camera.y, board.view.zoom);
 
-        requestAnimationFrame(function () {board.draw() });
+        board.requestDraw();
     });
 
     board.canvas.addEventListener('mouseup', function (e) {
@@ -196,7 +194,6 @@ export function setup_interactions(board: ClientBoard) {
         }
 
         mouse_pos = new CanvasCoord(e.pageX, e.pageY);
-        has_moved = true;
         if (graph_clipboard != null) {
             const shift = CanvasVect.from_canvas_coords(mouse_position_at_generation,click_pos);
             graph_clipboard.translate_by_canvas_vect( shift.sub(previous_canvas_shift), board.view);
@@ -226,11 +223,10 @@ export function setup_interactions(board: ClientBoard) {
         mouse_buttons = e.buttons;
         down_coord = new CanvasCoord(e.pageX, e.pageY);
         down_coord = board.graph.align_position(down_coord, new Set(), board.canvas, board.view);
-        has_moved = false;
 
         if (graph_clipboard != null) {
             paste_generated_graph(board);
-            if( key_states.get("Control") ){
+            if( board.keyPressed.has("Control") ){
                 if (clipboard_comes_from_generator){
                     regenerate_graph(e, board);
                 }                    
@@ -253,7 +249,6 @@ export function setup_interactions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchstart', (et: TouchEvent) => {
         console.log("touchstart");
-        has_moved = false;
         const click_pos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
 
         const element = board.get_element_nearby(click_pos, interactor_loaded.interactable_element_type);
@@ -268,7 +263,6 @@ export function setup_interactions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchmove', (e) => {
         mouse_pos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
-        has_moved = true;
         if (interactor_loaded.mousemove(board, mouse_pos)) {
             requestAnimationFrame(function () {
                 board.draw()

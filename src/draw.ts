@@ -212,9 +212,9 @@ export function drawUsers(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
 
 
 
-export function drawClipboardGraph(ctx: CanvasRenderingContext2D){
+export function drawClipboardGraph(){
     if ( graph_clipboard != null){
-        graph_clipboard.draw(ctx);
+        graph_clipboard.draw();
     }
 }
 

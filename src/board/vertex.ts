@@ -79,7 +79,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
     // clone(): ClientVertex {
-    //     const newVertex = new ClientVertex(this.data.pos.x, this.data.pos.y, this.data.weight, local_board.view);
+    //     const newVertex = new ClientVertex(this.data.pos.x, this.data.pos.y, this.data.weight, board.view);
     //     newVertex.data.color = this.data.color;
     //     newVertex.data.is_selected = this.data.is_selected;
     //     newVertex.data.index_string = this.data.index_string;

@@ -2,7 +2,7 @@ import { ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { draw_circle, drawLine, draw_head } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
-import { key_states, last_down, last_down_index } from "../../interactors/interactor_manager";
+import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { ClientVertexData } from "../../board/vertex";
@@ -43,7 +43,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             if( board.view.is_link_creating){
                 board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
                     board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
-                    if (key_states.get("Control")){
+                    if (board.keyPressed.has("Control")){
                         board.view.is_link_creating = true;
                         linkInteractor.indexLastCreatedVertex = response;
                         board.view.link_creating_start = pos;
@@ -71,7 +71,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             const vertex = board.graph.vertices.get(last_down_index);
             if( board.view.is_link_creating){
                 board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, last_down_index, orientation, "", board.colorSelected), () => {} )
-                if (key_states.get("Control")){
+                if (board.keyPressed.has("Control")){
                     board.view.is_link_creating = true;
                     linkInteractor.indexLastCreatedVertex = last_down_index;
                     board.view.link_creating_start = vertex.data.canvas_pos;
@@ -99,7 +99,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         if (board.view.is_link_creating == false){
             return;
         }
-        if ( key_states.get("Control")){
+        if ( board.keyPressed.has("Control")){
             return;
         }
 
@@ -117,7 +117,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 const aligned_mouse_pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
                 const server_pos = aligned_mouse_pos.toCoord(board.view);
                 board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
-                    if (key_states.get("Control")){
+                    if (board.keyPressed.has("Control")){
                         board.view.is_link_creating = true;
                         linkInteractor.indexLastCreatedVertex = response;
                         board.view.link_creating_start = aligned_mouse_pos;

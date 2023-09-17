@@ -65,9 +65,9 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     /**
      * Draw the graph on the context.
      */
-    draw(ctx: CanvasRenderingContext2D){
-        this.drawLinks(ctx);
-        this.drawVertices(ctx);
+    draw(){
+        this.drawLinks(this.board.ctx);
+        this.drawVertices(this.board.ctx);
     }
 
     /**
@@ -75,7 +75,6 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      */
     drawVertices(ctx: CanvasRenderingContext2D){
         for (const v of this.vertices.values()) {
-            
             v.draw(this.board);
         }
     }

@@ -1,5 +1,5 @@
 import { INTERACTOR_TYPE } from "../interactors/interactor";
-import { interactor_loaded, key_states } from "../interactors/interactor_manager";
+import { interactor_loaded } from "../interactors/interactor_manager";
 import { BoardElementType, ClientBoard } from "./board";
 
 export interface Weightable {
@@ -29,7 +29,7 @@ export function initWeightDiv<R extends Weightable>(element: R, type: BoardEleme
             // saveSelection();
             element.setWeight(element.getWeightDiv().textContent);
             board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
-            if (e.key == "Enter" && key_states.get("Control")) {
+            if (e.key == "Enter" && board.keyPressed.has("Control")) {
                 element.getWeightDiv().blur();
                 element.setAutoWeightDivPos();
             }

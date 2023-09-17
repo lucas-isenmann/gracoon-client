@@ -165,7 +165,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     //     })
 
     //     this.weight_div.onclick = (e) => {
-    //         if( interactor_loaded.id == text_interactorV2.id){
+    //         if( board.interactorLoadedId == text_interactorV2.id){
     //             validate_weight();
     //             display_weight_input(link_index, new CanvasCoord(this.weight_position.x, this.weight_position.y),DOWN_TYPE.LINK);
     //         }

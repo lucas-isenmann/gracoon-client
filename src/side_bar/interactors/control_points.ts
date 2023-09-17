@@ -15,7 +15,7 @@ import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasVect } from "../../board/vect";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
-import { down_coord, key_states, last_down, last_down_index, mouse_buttons } from "../../interactors/interactor_manager";
+import { down_coord, last_down, last_down_index, mouse_buttons } from "../../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 
@@ -53,7 +53,7 @@ export function createControlPointInteractor(board: ClientBoard){
             case DOWN_TYPE.CONTROL_POINT:{
                 if ( board.graph.links.has(last_down_index)){
                     const link = board.graph.links.get(last_down_index);
-                    if ( key_states.get("Control") ){
+                    if ( board.keyPressed.has("Control") ){
                         const v1 = link.startVertex;
                         const v2 = link.endVertex;
     

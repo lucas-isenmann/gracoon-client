@@ -1,6 +1,6 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
 import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawClipboardGraph, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
-import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
+import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
@@ -20,6 +20,7 @@ import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { Color } from "../colors_v2";
 import { interactor_loaded } from "../interactors/interactor_manager";
 import { Self, users } from "../user";
+import { InteractorV2 } from "../side_bar/interactor_side_bar";
 
 
 export enum BoardElementType {
@@ -63,12 +64,18 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     ctx: CanvasRenderingContext2D;
     selfUser: Self;
     colorSelected: Color;
+    keyPressed: Set<string>;
+    interactorLoaded: Option<InteractorV2>;
+    interactorLoadedId: Option<INTERACTOR_TYPE>;
 
     constructor(){
         super();
 
         this.selfUser = new Self();
         this.colorSelected = Color.Neutral;
+        this.keyPressed = new Set<string>();
+        this.interactorLoaded = undefined;
+        this.interactorLoadedId = undefined;
 
         this.canvas = document.createElement("canvas");
         document.body.appendChild(this.canvas);
@@ -317,27 +324,28 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     draw() {
         this.drawBackground();
-        if (this.view.display_triangular_grid){
-            this.drawTriangularGrid();
-        }
-        for (const rep of this.representations.values()){
-            rep.draw(this.ctx, this.view);
-        }
-
-        for (const rect of this.rectangles.values()){
-            rect.draw();
-        }
+        if ( this.view.display_triangular_grid ) this.drawTriangularGrid();
+        this.representations.forEach(rep => rep.draw(this.ctx, this.view));
+        this.rectangles.forEach(rectangle => rectangle.draw());
         this.strokes.forEach(stroke => stroke.draw(this));
         this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
-        this.graph.draw(this.ctx);
+        this.graph.draw();
 
         drawUsers(this.canvas, this.ctx);
         this.drawRectangularSelection();
         this.drawInteractor();
-        drawClipboardGraph(this.ctx);
-
+        drawClipboardGraph();
     }
+
+    /**
+     * Only request a draw.
+     */
+    requestDraw(){
+        const board = this;
+        requestAnimationFrame(function () { board.draw() })
+    }
+    
 
     resizeCanvas() {
         this.canvas.width = window.innerWidth;

@@ -8,7 +8,7 @@ import { resize_corner, resize_side, translate_by_canvas_vect } from "../../boar
 import { CanvasVect } from "../../board/vect";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
-import { down_coord, down_meta_element, has_moved, key_states, last_down, last_down_index } from "../../interactors/interactor_manager";
+import { down_coord, down_meta_element, last_down, last_down_index } from "../../interactors/interactor_manager";
 import { socket } from "../../socket";
 import { update_users_canvas_pos } from "../../user";
 import { ORIENTATION_INFO } from "../element_side_bar";
@@ -23,6 +23,7 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
     let opposite_coord = 0;
     let opposite_corner: CanvasCoord;
     let vertices_contained = new Set<number>();
+    let hasMoved = false;
 
 
     const selectionV2 = new InteractorV2(board, INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", ORIENTATION_INFO.RIGHT, "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
@@ -30,10 +31,11 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
 
 
     selectionV2.mousedown = (( board: ClientBoard, e: CanvasCoord) => {
+        hasMoved = false;
         previous_shift = new Vect(0,0);
         previous_canvas_shift = new CanvasVect(0,0);
         if (last_down === DOWN_TYPE.EMPTY) {
-            if (key_states.get("Control")) {
+            if (board.keyPressed.has("Control")) {
                 board.view.is_rectangular_selecting = true;
                 board.view.selection_corner_1 = e; // peut etre faut copier
                 board.view.selection_corner_2 = e; // peut etre faut copier
@@ -96,6 +98,7 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
     })
 
     selectionV2.mousemove = ((board: ClientBoard, e: CanvasCoord) => {
+        hasMoved = true;
         switch (last_down) {
             case DOWN_TYPE.VERTEX:
                 const v = board.graph.vertices.get(last_down_index)
@@ -230,14 +233,14 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
 
     selectionV2.mouseup = ((board: ClientBoard, e) => {
         if (last_down === DOWN_TYPE.VERTEX) {
-            if (has_moved === false) {
+            if (hasMoved === false) {
                 if (board.graph.vertices.get(last_down_index).data.is_selected) {
-                    if (key_states.get("Control")) { 
+                    if (board.keyPressed.has("Control")) { 
                         board.graph.vertices.get(last_down_index).data.is_selected = false;
                     }
                 }
                 else {
-                    if (key_states.get("Control")) {
+                    if (board.keyPressed.has("Control")) {
                         board.graph.vertices.get(last_down_index).data.is_selected = true;
                     }
                     else {
@@ -257,14 +260,14 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
             }
 
         } else if (last_down === DOWN_TYPE.LINK) {
-            if (has_moved === false) {
+            if (hasMoved === false) {
                 if (board.graph.links.get(last_down_index).data.is_selected) {
-                    if (key_states.get("Control")) { 
+                    if (board.keyPressed.has("Control")) { 
                         board.graph.links.get(last_down_index).data.is_selected = false;
                     }
                 }
                 else {
-                    if (key_states.get("Control")) { 
+                    if (board.keyPressed.has("Control")) { 
                         board.graph.links.get(last_down_index).data.is_selected = true;
                     }
                     else {
@@ -277,14 +280,14 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
         }
         else if (last_down === DOWN_TYPE.STROKE)
         {
-            if (has_moved === false) {
+            if (hasMoved === false) {
                 if (board.strokes.get(last_down_index).is_selected) {
-                    if (key_states.get("Control")) { 
+                    if (board.keyPressed.has("Control")) { 
                         board.strokes.get(last_down_index).is_selected = false;
                     }
                 }
                 else {
-                    if (key_states.get("Control")) { 
+                    if (board.keyPressed.has("Control")) { 
                         board.strokes.get(last_down_index).is_selected = true;
                     }
                     else {
@@ -346,6 +349,8 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
             const esc  = board.view.create_server_coord(e);
             board.emit_resize_element(down_meta_element.element_type, down_meta_element.index, esc, down_meta_element.resize_type);
         }
+        
+        hasMoved = false;
     })
 
     return selectionV2;
