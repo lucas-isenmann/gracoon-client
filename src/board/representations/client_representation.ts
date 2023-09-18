@@ -2,6 +2,7 @@ import { Representation } from "gramoloss";
 import { View } from "../camera";
 import { CanvasVect } from "../vect";
 import { CanvasCoord } from "../canvas_coord";
+import { BoardElementType } from "../board";
 
 
 
@@ -17,4 +18,5 @@ export interface ClientRepresentation extends Representation {
     translate_element_by_canvas_vect(index: number, cshift: CanvasVect, view: View): void;
     onmouseup(view: View): void;
     translate_by_canvas_vect(cshift: CanvasVect, view: View): void;
+    getType(): BoardElementType; // return Representation
 }

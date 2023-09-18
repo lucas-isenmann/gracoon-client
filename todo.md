@@ -9,10 +9,13 @@
 
 ## Refacto
 
+- [ ] mieux gérer les sorties du canvas/ecran
+- [ ] dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
 - [ ] interactor manager : event on window, not on canvas
 
 ## Issues
 
+- [ ] board.drawInteractor: find a way to send the position of the user, ça devrait un Option déjà parce qu'une tablette a pas forcément de pos -> le mettre dans selfUser
 - [ ] representations
 - [ ] bug when undo delete the weights of the links
 

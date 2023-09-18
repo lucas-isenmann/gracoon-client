@@ -26,7 +26,7 @@ export function is_click_over<R extends Resizable>(element: R, pos: CanvasCoord)
     return element.canvas_corner_bottom_left.x <= pos.x && pos.x <= element.canvas_corner_bottom_right.x && element.canvas_corner_top_left.y <= pos.y && pos.y <= element.canvas_corner_bottom_right.y;
 }
 
-export function resize_type_nearby<R extends Resizable>(element: R, pos: CanvasCoord, r?:number): RESIZE_TYPE | number{
+export function resize_type_nearby<R extends Resizable>(element: R, pos: CanvasCoord, r?:number): RESIZE_TYPE | undefined{
     if(r == undefined){
         r = 5;
     }
@@ -73,7 +73,7 @@ export function resize_type_nearby<R extends Resizable>(element: R, pos: CanvasC
         return RESIZE_TYPE.LEFT;
     }
 
-    return 0;
+    return undefined;
 }
 
 

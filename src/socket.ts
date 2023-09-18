@@ -175,7 +175,7 @@ export function setup_socket(board: ClientBoard) {
             } else if ( kind == "Area"){
                 const area = board.areas.get(index);
                 const vertices_contained = g.vertices_contained_by_area(area);
-                board.translate_area(cshift, index,vertices_contained);
+                board.translate_area(cshift, area, vertices_contained);
                 for (const link of g.links.values()){
                     if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
                         link.setAutoWeightDivPos();

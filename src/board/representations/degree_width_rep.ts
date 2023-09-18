@@ -5,7 +5,7 @@ import { ClientLinkData } from "../link";
 import { CanvasVect } from "../vect";
 import { ClientVertex } from "../vertex";
 import { CanvasCoord } from "../canvas_coord";
-import { ClientBoard } from "../board";
+import { BoardElementType, ClientBoard } from "../board";
 
 
 export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLinkData> {
@@ -50,6 +50,10 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         } else {
             return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100), view);
         }
+    }
+
+    getType(): BoardElementType{
+        return BoardElementType.Representation;
     }
 
     draw(ctx: CanvasRenderingContext2D, view: View){

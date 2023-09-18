@@ -20,6 +20,7 @@ import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { Color } from "../colors_v2";
 import { Self, users } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
+import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 
 
 export enum BoardElementType {
@@ -285,7 +286,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     drawInteractor() {
         if (this.view.is_drawing_interactor && typeof this.interactorLoaded != "undefined"){
-            this.interactorLoaded.draw(this)
+            this.interactorLoaded.draw(this, new CanvasCoord(100,100))
         }
     }
 
@@ -510,17 +511,17 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
-    get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>) {
+    get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
 
         if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION_ELEMENT)){
             for (const [index, rep] of this.representations.entries()){
-                const resize_type = resize_type_nearby(rep, pos, 10);
-                if (typeof resize_type != "number"){
-                    return {type: DOWN_TYPE.RESIZE, element_type: "Representation", element: rep, index: index,  resize_type: resize_type};
+                const resizeType = resize_type_nearby(rep, pos, 10);
+                if (typeof resizeType != "undefined"){
+                    return new ELEMENT_DATA_REPRESENTATION(rep, index, resizeType);
                 }
-                const r = rep.click_over(pos, this.view);
-                if (typeof r != "string"){
-                    return { type: DOWN_TYPE.REPRESENTATION_ELEMENT, element_type: "Representation",  element: rep, index: index, element_index: r};
+                const subElementIndex = rep.click_over(pos, this.view);
+                if (typeof subElementIndex != "string"){
+                    return new ELEMENT_DATA_REPRESENTATION_SUBELEMENT(rep, index, subElementIndex)
                 }
             }
         }
@@ -528,22 +529,22 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION)){
             for (const [index, rep] of this.representations.entries()){
                 if ( is_click_over(rep, pos)){
-                    return { type: DOWN_TYPE.REPRESENTATION,  element: rep, index: index};
+                    return new ELEMENT_DATA_REPRESENTATION(rep, index, undefined);
                 }
             }
         }
 
         if (interactable_element_type.has(DOWN_TYPE.RECTANGLE)){
             for (const [index, rect] of this.rectangles.entries()){
-                const resize_type = resize_type_nearby(rect, pos, 10);
-                if (typeof resize_type != "number"){
-                    return {type: DOWN_TYPE.RESIZE, element_type: "Rectangle", element: rect, index: index,  resize_type: resize_type};
+                const resizeType = resize_type_nearby(rect, pos, 10);
+                if (typeof resizeType != "undefined"){
+                    return new ELEMENT_DATA_RECTANGLE(rect, index, resizeType);
                 }
             }
             
             for (const [index, rect] of this.rectangles.entries()){
                 if ( is_click_over(rect, pos)){
-                    return { type: DOWN_TYPE.RECTANGLE,  element: rect, index: index};
+                    return new ELEMENT_DATA_RECTANGLE(rect, index, undefined);
                 }
             }
 
@@ -552,52 +553,52 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         if (interactable_element_type.has(DOWN_TYPE.VERTEX)) {
             for (const [index, v] of this.graph.vertices.entries()) {
                 if (v.is_nearby(pos, 150)) {
-                    return { type: DOWN_TYPE.VERTEX, index: index };
+                    return new ELEMENT_DATA_VERTEX(v);
                 }
             }
         }
        
         for (const [index, link] of this.graph.links.entries()) {
             if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
-                return { type: DOWN_TYPE.CONTROL_POINT, index: index };
+                return new ELEMENT_DATA_CONTROL_POINT(link);
             }
             if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.view)) {
-                return { type: DOWN_TYPE.LINK, index: index };
+                return new ELEMENT_DATA_LINK(link);
             }
         }
 
         if(interactable_element_type.has(DOWN_TYPE.RESIZE)){
             for (const [index, area] of this.areas.entries()){
-                const resize_type = resize_type_nearby(area, pos, 10);
-                if (typeof resize_type != "number"){
-                    return {type: DOWN_TYPE.RESIZE, element_type: "Area", element: area, index: index,  resize_type: resize_type};
+                const resizeType = resize_type_nearby(area, pos, 10);
+                if (typeof resizeType != "undefined"){
+                    return new ELEMENT_DATA_AREA(area, index, resizeType);
                 }
             }
         }        
 
-        for(const [index,a] of this.areas.entries()){
-            if(interactable_element_type.has(DOWN_TYPE.AREA) && is_click_over(a,pos)){
-                return{ type: DOWN_TYPE.AREA, element: a, index: index };
+        for(const [index, area] of this.areas.entries()){
+            if(interactable_element_type.has(DOWN_TYPE.AREA) && is_click_over(area, pos)){
+                return new ELEMENT_DATA_AREA(area, index, undefined);
             }
         }
 
         if (interactable_element_type.has(DOWN_TYPE.STROKE)) {
             for(const [index,s] of this.strokes.entries()){
                 if(typeof s.is_nearby(pos, this.view) == "number"){     
-                    return { type: DOWN_TYPE.STROKE, index: index };
+                    return new ELEMENT_DATA_STROKE(s, index);
                 }
             }
         }
 
         if ( interactable_element_type.has(DOWN_TYPE.TEXT_ZONE)){
-            for (const [index, text_zone] of this.text_zones.entries()){
-                if ( text_zone.is_nearby(pos)){
-                    return {type: DOWN_TYPE.TEXT_ZONE, index: index};
+            for (const [index, textZone] of this.text_zones.entries()){
+                if ( textZone.is_nearby(pos)){
+                    return new ELEMENT_DATA_TEXT_ZONE(textZone, index);
                 }
             }
         }
 
-        return { type: DOWN_TYPE.EMPTY, index: null };
+        return undefined;
     }
 
     deselect_all_strokes() {
@@ -629,38 +630,35 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-    translate_area(shift: CanvasVect, areaIndex: number, verticesContained: Set<number>){
-        const area = this.areas.get(areaIndex);
-        if( typeof area != "undefined" ){
-            this.graph.vertices.forEach((vertex, vertexIndex) => {
-                if (verticesContained.has(vertexIndex)){
-                    vertex.translate_by_canvas_vect(shift, this.view);
+    translate_area(shift: CanvasVect, area: ClientArea, verticesContained: Set<number>){
+        this.graph.vertices.forEach((vertex, vertexIndex) => {
+            if (verticesContained.has(vertexIndex)){
+                vertex.translate_by_canvas_vect(shift, this.view);
+            }
+        })
+        for( const link of this.graph.links.values()){
+            if ( typeof link.data.cp != "undefined"){
+                const v1 = link.startVertex;
+                const v2 = link.endVertex;
+                if(verticesContained.has(link.startVertex.index) && verticesContained.has(link.endVertex.index)){
+                    link.translate_cp_by_canvas_vect(shift, this.view);
                 }
-            })
-            for( const link of this.graph.links.values()){
-                if ( typeof link.data.cp != "undefined"){
-                    const v1 = link.startVertex;
-                    const v2 = link.endVertex;
-                    if(verticesContained.has(link.startVertex.index) && verticesContained.has(link.endVertex.index)){
-                        link.translate_cp_by_canvas_vect(shift, this.view);
-                    }
-                    else if(verticesContained.has(link.startVertex.index)){ // and thus not v2
-                        const newPos = v1.data.pos;
-                        const previousPos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
-                        const fixedPos = v2.data.pos;
-                        link.transformCP(newPos, previousPos, fixedPos);
-                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
-                    }else if(verticesContained.has(link.endVertex.index)) { // and thus not v1
-                        const newPos = v2.data.pos;
-                        const previousPos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
-                        const fixedPos = v1.data.pos;
-                        link.transformCP(newPos, previousPos, fixedPos);
-                        link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
-                    }
+                else if(verticesContained.has(link.startVertex.index)){ // and thus not v2
+                    const newPos = v1.data.pos;
+                    const previousPos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
+                    const fixedPos = v2.data.pos;
+                    link.transformCP(newPos, previousPos, fixedPos);
+                    link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
+                }else if(verticesContained.has(link.endVertex.index)) { // and thus not v1
+                    const newPos = v2.data.pos;
+                    const previousPos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
+                    const fixedPos = v1.data.pos;
+                    link.transformCP(newPos, previousPos, fixedPos);
+                    link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
                 }
             }
-            translate_by_canvas_vect(area, shift, this.view);
         }
+        translate_by_canvas_vect(area, shift, this.view);
     }
 
 

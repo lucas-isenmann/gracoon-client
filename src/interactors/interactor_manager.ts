@@ -8,28 +8,17 @@ import { CanvasVect } from '../board/vect';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
 import { InteractorV2 } from '../side_bar/interactor_side_bar';
+import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, PointedElementData } from './pointed_element_data';
+import { Option } from 'gramoloss';
 
 // INTERACTOR MANAGER
 
 
 
-export let mouse_pos: CanvasCoord = null;
-export let mouse_buttons: string | number = "";
-export let down_meta_element: any = "";
-export let last_down_index: number = null;
-export let down_coord: CanvasCoord = null;
-
-export let last_down: DOWN_TYPE = null;
-
-let previous_canvas_shift = new CanvasVect(0,0);
-
-
 
 
 export function selectInteractor(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
-    if (interactor.id == board.interactorLoadedId) return;
-
-    if ( typeof board.interactorLoaded != "undefined"){
+    if ( typeof board.interactorLoaded != "undefined" && interactor.id != board.interactorLoadedId ){
         board.interactorLoaded.onleave();
     }
 
@@ -44,8 +33,11 @@ export function selectInteractor(interactor: InteractorV2, board: ClientBoard, p
 }
 
 
-export function setup_interactions(board: ClientBoard) {
+export function setupInteractions(board: ClientBoard) {
 
+    let mousePos: Option<CanvasCoord> = undefined;
+    let previous_canvas_shift = new CanvasVect(0,0);
+    let lastPointedElement: Option<PointedElementData> = undefined;
 
     window.addEventListener('keydown', function (e) {
         if (e.key == "Control") {
@@ -116,7 +108,7 @@ export function setup_interactions(board: ClientBoard) {
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
                 const subgraph = board.graph.get_induced_subgraph_from_selection(board.view);
                 if ( subgraph.vertices.size > 0){
-                    set_clipboard(subgraph, mouse_pos.copy(), false, board.canvas);
+                    set_clipboard(subgraph, mousePos.copy(), false, board.canvas);
                 }
                 return;
             }
@@ -163,65 +155,60 @@ export function setup_interactions(board: ClientBoard) {
     });
 
     board.canvas.addEventListener('mouseup', function (e) {
-        let click_pos = new CanvasCoord(e.pageX, e.pageY);
-        click_pos = board.graph.align_position(click_pos, new Set(), board.canvas, board.view);
-        board.interactorLoaded.mouseup(board,  click_pos);
-        down_coord = null;
-        last_down = null;
-        last_down_index = null;
+        mousePos = new CanvasCoord(e.pageX, e.pageY);
+        mousePos = board.graph.align_position(mousePos, new Set(), board.canvas, board.view);
+        board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         board.view.alignement_horizontal = false;
         board.view.alignement_vertical = false;
-        requestAnimationFrame(function () { board.draw() });
-        mouse_buttons = "";
+        board.requestDraw()
+        lastPointedElement = undefined;
     })
 
     board.canvas.addEventListener("mouseout", function(e){
-        down_coord = null;
-        last_down = null;
-        last_down_index = null;
+        lastPointedElement = undefined;
+        mousePos = undefined;
         board.view.alignement_horizontal = false;
         board.view.alignement_vertical = false;
         requestAnimationFrame(function () {board.draw() });
-        mouse_buttons = "";
     })
 
     board.canvas.addEventListener('mousemove', function (e) {
-        const click_pos = new CanvasCoord(e.pageX, e.pageY);
+        mousePos = new CanvasCoord(e.pageX, e.pageY);
         
-        if ( board.updateElementOver(click_pos)){
+        if ( board.updateElementOver(mousePos)){
             requestAnimationFrame(() => board.draw() );
         }
 
-        mouse_pos = new CanvasCoord(e.pageX, e.pageY);
+
+
         if (graph_clipboard != null) {
-            const shift = CanvasVect.from_canvas_coords(mouse_position_at_generation,click_pos);
+            const shift = CanvasVect.from_canvas_coords(mouse_position_at_generation, mousePos);
             graph_clipboard.translate_by_canvas_vect( shift.sub(previous_canvas_shift), board.view);
             previous_canvas_shift.set_from(shift);
             board.draw()
         } else {
+            
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
-                const element = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
-                board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resize_type);
+                const element = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+                if (element instanceof ELEMENT_DATA_AREA || element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
+                    board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
+                }
             } else {
                 board.canvas.style.cursor = "default";
             }
-            if (board.interactorLoaded.mousemove(board, click_pos)) {
-                requestAnimationFrame(function () {
-                    board.draw()
-                });
+            if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
+                board.requestDraw();
             }
+            
         }
 
-        const mouse_server_coord = board.view.create_server_coord(click_pos);
+        const mouse_server_coord = board.view.create_server_coord(mousePos);
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     })
 
     board.canvas.addEventListener('mousedown', function (e) {
-
+        mousePos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
-        mouse_buttons = e.buttons;
-        down_coord = new CanvasCoord(e.pageX, e.pageY);
-        down_coord = board.graph.align_position(down_coord, new Set(), board.canvas, board.view);
 
         if (graph_clipboard != null) {
             paste_generated_graph(board);
@@ -234,15 +221,14 @@ export function setup_interactions(board: ClientBoard) {
             }
             board.draw()
         } else {
-            const element = board.get_element_nearby(down_coord, board.interactorLoaded.interactable_element_type);
-            console.log(element);
-            last_down = element.type;
-            last_down_index = element.index;
-            down_meta_element = element;
-            board.interactorLoaded.mousedown(board, down_coord)
-            if (element.type != DOWN_TYPE.EMPTY) {
-                requestAnimationFrame(function () { board.draw() });
+            if (typeof board.interactorLoaded != "undefined"){
+                const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+                const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.view);
+                lastPointedElement = new PointedElementData(pointedPos, e.buttons, data );
+                board.interactorLoaded.mousedown(board, lastPointedElement);
+                board.requestDraw();
             }
+            
         }
     })
 
@@ -250,35 +236,34 @@ export function setup_interactions(board: ClientBoard) {
         console.log("touchstart");
         const click_pos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
 
-        const element = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
-        console.log(element);
-        last_down = element.type;
-        last_down_index = element.index;
-        board.interactorLoaded.mousedown(board, click_pos)
-        if (element.type != DOWN_TYPE.EMPTY) {
-            requestAnimationFrame(function () { board.draw() });
-        }
+        const data = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
+        const pointedPos = board.graph.align_position(click_pos, new Set(), board.canvas, board.view);
+        lastPointedElement = new PointedElementData(pointedPos, 0, data );
+
+        board.interactorLoaded.mousedown(board, lastPointedElement);
+        board.requestDraw();
     });
 
     board.canvas.addEventListener('touchmove', (e) => {
-        mouse_pos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
-        if (board.interactorLoaded.mousemove(board, mouse_pos)) {
-            requestAnimationFrame(function () {
-                board.draw()
-            });
+        mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
+        if ( typeof lastPointedElement != "undefined"){
+            if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
+                board.requestDraw();
+            }
         }
-        const mouse_server_coord = board.view.create_server_coord(mouse_pos);
+        
+        const mouse_server_coord = board.view.create_server_coord(mousePos);
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     });
 
     board.canvas.addEventListener('touchend', (e) => {
-        const click_pos = mouse_pos;
-        board.interactorLoaded.mouseup(board, click_pos);
-        last_down = null;
-        last_down_index = null;
+        lastPointedElement = undefined;
+        if ( typeof lastPointedElement != "undefined"){
+            board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
+        }
         board.view.alignement_horizontal = false;
         board.view.alignement_vertical = false;
-        requestAnimationFrame(function () { board.draw() });
+        board.requestDraw();
     });
 
 
@@ -299,15 +284,6 @@ function select_interactor_div(interactor: InteractorV2 ) {
         }
     }
 }
-
-
-
-
-
-
-// ------------------------------------------------------
-
-
 
 
 

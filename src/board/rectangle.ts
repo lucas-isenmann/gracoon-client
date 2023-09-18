@@ -3,7 +3,7 @@ import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
-import { ClientBoard } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 
 export class ClientRectangle extends Rectangle {
     color: Color;
@@ -66,5 +66,9 @@ export class ClientRectangle extends Rectangle {
     }
     
     translate_by_canvas_vect(cshift: CanvasVect, view: View){
+    }
+
+    getType(): BoardElementType{
+        return BoardElementType.Rectangle;
     }
 }

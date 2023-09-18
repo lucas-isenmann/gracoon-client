@@ -1,8 +1,7 @@
-import { ORIENTATION } from "gramoloss";
+import { Option, ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { draw_circle, drawLine, draw_head } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
-import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { ClientVertexData } from "../../board/vertex";
@@ -10,6 +9,7 @@ import { LinkPreData } from "../../board/link";
 import { SideBar } from "../side_bar";
 import { getCanvasColor } from "../../colors_v2";
 import { ClientBoard } from "../../board/board";
+import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 
 
 
@@ -35,9 +35,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const linkInteractor = new LinkInteractor(board, id, info, shortcutLetter, ORIENTATION_INFO.RIGHT, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
 
 
-    linkInteractor.mousedown = ((board: ClientBoard, e) => {
-        if (last_down == DOWN_TYPE.EMPTY) {
-            const pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
+    linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+        if ( typeof pointed.data == "undefined" ) {
+            const pos = board.graph.align_position(pointed.pointedPos, new Set(), board.canvas, board.view);
             const server_pos = board.view.create_server_coord(pos);
 
             if( board.view.is_link_creating){
@@ -60,27 +60,27 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { linkInteractor.indexLastCreatedVertex = response } );
             }
         } 
-        else if (last_down == DOWN_TYPE.LINK){
+        else if ( pointed.data instanceof ELEMENT_DATA_LINK ){
             board.view.is_link_creating = true;
-            board.view.link_creating_start = e;
+            board.view.link_creating_start = pointed.pointedPos;
             board.view.link_creating_type = orientation;
-            const pos = board.view.create_server_coord(e);
-            board.emitSubdivideLink( last_down_index, pos, "", board.colorSelected, (response) => { linkInteractor.indexLastCreatedVertex = response } );
+            const pos = board.view.create_server_coord(pointed.pointedPos);
+            board.emitSubdivideLink( pointed.data.element.index, pos, "", board.colorSelected, (response) => { linkInteractor.indexLastCreatedVertex = response } );
         } 
-        else if (last_down === DOWN_TYPE.VERTEX) {
-            const vertex = board.graph.vertices.get(last_down_index);
+        else if ( pointed.data instanceof ELEMENT_DATA_VERTEX) {
+            const vertex = pointed.data.element;
             if( board.view.is_link_creating){
-                board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, last_down_index, orientation, "", board.colorSelected), () => {} )
+                board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.index, orientation, "", board.colorSelected), () => {} )
                 if (board.keyPressed.has("Control")){
                     board.view.is_link_creating = true;
-                    linkInteractor.indexLastCreatedVertex = last_down_index;
+                    linkInteractor.indexLastCreatedVertex = pointed.data.element.index;
                     board.view.link_creating_start = vertex.data.canvas_pos;
                     board.view.link_creating_type = orientation;
                 } else {
                     board.view.is_link_creating = false;
                 }
             } else {
-                linkInteractor.indexLastCreatedVertex = last_down_index;
+                linkInteractor.indexLastCreatedVertex = pointed.data.element.index;
                 board.view.is_link_creating = true;
                 board.view.link_creating_start = vertex.data.canvas_pos;
                 board.view.link_creating_type = orientation;
@@ -90,12 +90,15 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         }
     })
 
-    linkInteractor.mousemove = ((board: ClientBoard, e) => {
+    linkInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         board.view.creating_vertex_pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
         return true;
     })
 
-    linkInteractor.mouseup = ((board: ClientBoard, e) => {
+    linkInteractor.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+        if (typeof pointed == "undefined") return false;
+
+
         if (board.view.is_link_creating == false){
             return;
         }
@@ -103,7 +106,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             return;
         }
 
-        const firstVertexIndex = (last_down == DOWN_TYPE.VERTEX) ? last_down_index : linkInteractor.indexLastCreatedVertex;
+        const firstVertexIndex = (pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.index : linkInteractor.indexLastCreatedVertex;
         
 
         const vertexIndex = board.graph.get_vertex_index_nearby(board.graph.align_position(e, new Set(), board.canvas, board.view));

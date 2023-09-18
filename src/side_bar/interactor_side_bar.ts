@@ -6,15 +6,16 @@ import { ItemSideBar } from "./item_side_bar";
 import { SideBar } from "./side_bar";
 import { ClientBoard } from "../board/board";
 import { Option } from "gramoloss";
+import { PointedElementData } from "../interactors/pointed_element_data";
 
 export class InteractorV2 extends ItemSideBar {
     interactable_element_type: Set<DOWN_TYPE>;
     
-    mousedown: (board: ClientBoard, e: CanvasCoord) => void;
-    mousemove: (board: ClientBoard, e: CanvasCoord) => boolean;
-    mouseup: (board: ClientBoard, e: CanvasCoord) => void;
+    mousedown: (board: ClientBoard, data: PointedElementData) => void;
+    mousemove: (board: ClientBoard, data: Option<PointedElementData>, e: CanvasCoord) => boolean;
+    mouseup: (board: ClientBoard, data: Option<PointedElementData>, e: CanvasCoord) => void;
     onleave: () => void;
-    draw: (board: ClientBoard) => void;
+    draw: (board: ClientBoard, mousePos: CanvasCoord) => void;
 
     constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,interactable_element_type: Set<DOWN_TYPE>, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
@@ -54,8 +55,6 @@ export class InteractorV2 extends ItemSideBar {
             interactor.classList.remove("selected");
         });
         this.dom.classList.add("selected");
-        const canvas = document.getElementById('main') as HTMLCanvasElement;
-        const ctx = canvas.getContext('2d');
         selectInteractor(this, board, pos);
     }
 

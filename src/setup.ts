@@ -1,5 +1,4 @@
 import { toggle_dark_mode } from "./draw";
-import { setup_interactions, selectInteractor } from "./interactors/interactor_manager";
 import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
 import { setup_parametors_available } from "./parametors/parametor_manager";
 import { setup_socket, socket } from "./socket";
@@ -22,12 +21,13 @@ import { createLinkInteractor } from "./side_bar/interactors/link";
 import { ORIENTATION } from "gramoloss";
 import { colorsData, getCanvasColor } from "./colors_v2";
 import { EraserInteractor } from "./side_bar/interactors/eraser";
-import { DetectorInteractor } from "./side_bar/interactors/detector";
 import { createTextInteractor } from "./side_bar/interactors/text";
 import { createSelectionInteractor } from "./side_bar/interactors/selection";
 import { createControlPointInteractor } from "./side_bar/interactors/control_points";
 import { createColorInteractor } from "./side_bar/interactors/color";
 import { createRectangleInteractor } from "./side_bar/interactors/rectangle";
+import { createDetectorInteractor } from "./side_bar/interactors/detector";
+import { selectInteractor, setupInteractions } from "./interactors/interactor_manager";
 
 
 
@@ -63,7 +63,7 @@ function setup() {
         local_board.resizeCanvas(); 
     }, false);
     document.addEventListener('contextmenu', event => event.preventDefault());
-    setup_interactions(local_board);
+    setupInteractions(local_board);
 
     setup_generators_div(local_board.canvas, local_board);
     setup_modifyers_div(local_board);
@@ -293,7 +293,7 @@ function setup() {
 
 
     if (ENV.mode == "dev"){
-        left_side_bar.add_elements(local_board, new DetectorInteractor(local_board));
+        left_side_bar.add_elements(local_board, createDetectorInteractor(local_board));
     }
 
     const eraser_interactorV2 = new EraserInteractor(local_board);

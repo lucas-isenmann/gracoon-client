@@ -1,10 +1,11 @@
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
-import { last_down, last_down_index } from "../../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { Color, colorsData, getCanvasColor } from "../../colors_v2";
+import { ELEMENT_DATA_LINK, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
+import { Option } from "gramoloss";
 
 
 
@@ -52,7 +53,6 @@ export function createColorInteractor(board: ClientBoard): InteractorV2{
     // Interactors methods
     
     color_interactorV2.trigger = (board: ClientBoard, mouse_pos: CanvasCoord) => {
-        console.log("trigger color interactor");
         turn_on_color_picker_div();
         move_back_color_picker_div();
         const colorPicketDiv = document.getElementById("color_picker");
@@ -73,50 +73,48 @@ export function createColorInteractor(board: ClientBoard): InteractorV2{
     }
     
     
-    color_interactorV2.mousedown = (( board: ClientBoard, e: CanvasCoord) => {
-        if (last_down == DOWN_TYPE.VERTEX) {
-            if ( board.graph.vertices.has(last_down_index) && board.graph.vertices.get(last_down_index).data.color != board.colorSelected){
-                // const data_socket = new Array();
-                // data_socket.push({ type: "vertex", index: last_down_index, color: color_selected });
-                board.emit_update_element( BoardElementType.Vertex, last_down_index, "color", board.colorSelected);
+    color_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
+        if ( pointed.data instanceof ELEMENT_DATA_VERTEX  ) {
+            if ( pointed.data.element.data.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Vertex, pointed.data.element.index, "color", board.colorSelected);
             }
         }
-        else if (last_down == DOWN_TYPE.LINK){
-            if ( board.graph.links.has(last_down_index) && board.graph.links.get(last_down_index).data.color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Link,last_down_index, "color", board.colorSelected);
+        else if ( pointed.data instanceof ELEMENT_DATA_LINK ){
+            if ( pointed.data.element.data.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Link, pointed.data.element.index, "color", board.colorSelected);
             }
         }
-        else if (last_down == DOWN_TYPE.STROKE){
-            if ( board.strokes.has(last_down_index) && board.strokes.get(last_down_index).color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Stroke,last_down_index, "color", board.colorSelected);
+        else if ( pointed.data instanceof ELEMENT_DATA_STROKE ){
+            if ( pointed.data.element.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Stroke, pointed.data.index, "color", board.colorSelected);
             }
         }
     })
     
     
-    color_interactorV2.mousemove = ((board: ClientBoard, e: CanvasCoord) => {
-        if (last_down != null) {
-            const elt = board.get_element_nearby(e, color_interactorV2.interactable_element_type);
-            if (elt.type == DOWN_TYPE.VERTEX) {
-                if ( board.graph.vertices.has(elt.index) && board.graph.vertices.get(elt.index).data.color != board.colorSelected){
-                    board.emit_update_element( BoardElementType.Vertex, elt.index, "color", board.colorSelected);
-    
-                }
-                return true;
+    color_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+        if (typeof pointed == "undefined") return false;
+
+        const elt = board.get_element_nearby(e, color_interactorV2.interactable_element_type);
+        if ( elt instanceof ELEMENT_DATA_VERTEX) {
+            if ( elt.element.data.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Vertex, elt.element.index, "color", board.colorSelected);
+
             }
-            else if (elt.type == DOWN_TYPE.LINK) {
-                if ( board.graph.links.has(elt.index) && board.graph.links.get(elt.index).data.color != board.colorSelected){
-                    board.emit_update_element( BoardElementType.Link, elt.index, "color", board.colorSelected);
-                }
-                return true;
-            }
-            else if (elt.type == DOWN_TYPE.STROKE){
-                if ( board.strokes.has(elt.index) && board.strokes.get(elt.index).color != board.colorSelected){
-                    board.emit_update_element( BoardElementType.Stroke, elt.index, "color", board.colorSelected);
-                }
-            }
-            return false;
+            return true;
         }
+        else if ( elt instanceof ELEMENT_DATA_LINK ) {
+            if ( elt.element.data.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Link, elt.element.index, "color", board.colorSelected);
+            }
+            return true;
+        }
+        else if (elt instanceof ELEMENT_DATA_STROKE ){
+            if ( elt.element.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Stroke, elt.index, "color", board.colorSelected);
+            }
+        }
+        return false;
     })
     
     return color_interactorV2;

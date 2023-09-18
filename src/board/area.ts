@@ -2,7 +2,7 @@ import { View } from "./camera";
 import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./vect";
-import { ClientBoard } from "./board";
+import { BoardElementType, ClientBoard } from "./board";
 
 
 export enum AREA_CORNER {
@@ -210,7 +210,9 @@ export class ClientArea extends Area{
         this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
     }
 
-
+    getType(): BoardElementType{
+        return BoardElementType.Area;
+    }
 
 
     // DRAW AREA
