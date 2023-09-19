@@ -18,7 +18,7 @@ export class SideBar {
      * @param active true iff the sidebar is shown. False by default.
      */
     constructor(id: string, orientation:ORIENTATION_SIDE_BAR, active?:boolean){
-        if(active !== undefined){
+        if( typeof active == "undefined"){
             this.active = false;
         }
         else{

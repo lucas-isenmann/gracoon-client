@@ -141,9 +141,12 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     })
 
-    linkInteractor.trigger = (board: ClientBoard, mouse_pos: CanvasCoord) => {
+    linkInteractor.trigger = (board: ClientBoard, mousePos: Option<CanvasCoord>) => {
         board.view.is_creating_vertex = true;
-        board.view.creating_vertex_pos = mouse_pos;
+        if (typeof mousePos != "undefined"){
+            board.view.creating_vertex_pos = mousePos;
+
+        }
     }
 
 

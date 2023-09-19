@@ -88,16 +88,18 @@ export function update_users_canvas_pos(view: View) {
 }
 
 export class Self{
-    label: string;
-    multicolor: Multicolor;
-    id: string;
+    label: Option<string>;
+    multicolor: Option<Multicolor>;
+    id: Option<string>;
     following: string | undefined;
+    canvasPos: Option<CanvasCoord>;
 
     constructor(){
-        this.label = null;
-        this.multicolor = null;
-        this.id = null;
+        this.label = undefined;
+        this.multicolor = undefined;
+        this.id = undefined;
         this.following = undefined;
+        this.canvasPos = undefined;
     }
 
     init(id: string, label: string, color: string){
@@ -106,12 +108,16 @@ export class Self{
         this.id = id;
     }
 
-    update_label(label:string){
+    update_label(label: string){
         this.label = label;
     }
 
-    setColor(color:string){
-        this.multicolor.setColor(color);
+    setColor(color: string){
+        if (typeof this.multicolor == "undefined"){
+            this.multicolor = new Multicolor(color);
+        } else {
+            this.multicolor.setColor(color);
+        }
     }
 
 
@@ -141,7 +147,7 @@ export class Self{
     
     update_self_user_color(){
         const div = document.getElementById('self_user_color');
-        if (div != null){
+        if (div != null && typeof this.multicolor != "undefined"){
             div.style.background = this.multicolor.color;
         }
     }
@@ -193,14 +199,13 @@ export class Self{
     update_self_user_label(){
         let div = document.getElementById('self_user_label');
         if (div == null) return;
+        if (typeof this.label == "undefined") return;
 
         div.textContent = this.label;
-        div.addEventListener('keydown', function(e:KeyboardEvent)
-        {   
+        div.addEventListener('keydown', function(e:KeyboardEvent) {   
             const someKeys: Array<string> = ["Delete", "Backspace", "ArrowLeft", "ArrowRight"];
+            if (div == null || div.textContent == null) return;
 
-
-            // console.log(e.key);
             const prevent = "!@#$%^&*()+=-[]\\\';,./{}|\":<>?";
             if(div.textContent.length > 0 && (e.key == "Escape" || e.key == "Enter")){
                 div.blur();
@@ -210,10 +215,11 @@ export class Self{
             }
         });
 
-        const self_user = this;
-        div.addEventListener('focusout', function()
-        {   
-            socket.emit("update_self_user", div.textContent, self_user.multicolor.color);
+        const selfUser = this;
+        div.addEventListener('focusout', function() { 
+            if (div != null && typeof selfUser.multicolor != "undefined"){
+                socket.emit("update_self_user", div.textContent, selfUser.multicolor.color);
+            }  
         });
 
     }

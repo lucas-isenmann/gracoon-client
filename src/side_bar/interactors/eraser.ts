@@ -38,8 +38,10 @@ export class EraserInteractor extends InteractorV2 {
             interactor.isErasing = false;
         })
 
-        interactor.draw = ((board: ClientBoard, mousePos: CanvasCoord) => {
-            draw_circle(mousePos, "white", interactor.ERASE_DISTANCE, 0.4, board.ctx);
+        interactor.draw = ((board: ClientBoard, mousePos: Option<CanvasCoord>) => {
+            if ( typeof mousePos != "undefined"){
+                draw_circle(mousePos, "white", interactor.ERASE_DISTANCE, 0.4, board.ctx);
+            }
         })
     }
 

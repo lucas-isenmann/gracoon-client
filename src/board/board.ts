@@ -1,6 +1,6 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
 import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawClipboardGraph, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
-import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../interactors/interactor";
+import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
@@ -286,7 +286,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     drawInteractor() {
         if (this.view.is_drawing_interactor && typeof this.interactorLoaded != "undefined"){
-            this.interactorLoaded.draw(this, new CanvasCoord(100,100))
+            this.interactorLoaded.draw(this, this.selfUser.canvasPos)
         }
     }
 

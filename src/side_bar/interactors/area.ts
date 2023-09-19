@@ -15,7 +15,6 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
     let is_creating_area : boolean;
     let last_created_area_index: Option<number> = undefined;
     let is_moving_area : boolean;
-    let first_corner : Coord;
     
     let vertices_contained = new Set<number>();
     let previous_canvas_shift = new CanvasVect(0,0);
@@ -25,7 +24,7 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
     area_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if ( typeof pointed.data == "undefined"){
             is_creating_area = true;
-            first_corner = board.view.create_server_coord(pointed.pointedPos);
+            const first_corner = board.view.create_server_coord(pointed.pointedPos);
             board.emit_add_element(new Area("G", first_corner, first_corner, ""), (response: number) => { last_created_area_index = response });
             opposite_corner = pointed.pointedPos.copy();
         } 
@@ -95,10 +94,9 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
         if (typeof pointed == "undefined") return false;
 
         const esc  = board.view.create_server_coord(e);
-        if (typeof pointed.data == "undefined") {
+        if (typeof pointed.data == "undefined" && typeof last_created_area_index != "undefined") {
             board.emit_resize_element(BoardElementType.Area, last_created_area_index, esc, RESIZE_TYPE.TOP_RIGHT);
             is_creating_area = false;
-            first_corner = null;
         }
         else if ( pointed.data instanceof ELEMENT_DATA_AREA ){
             const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);

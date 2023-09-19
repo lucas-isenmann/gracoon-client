@@ -1,3 +1,4 @@
+import { Option } from "gramoloss";
 import { ClientBoard } from "../board/board";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ORIENTATION_INFO } from "./element_side_bar";
@@ -9,7 +10,7 @@ import { SideBar } from "./side_bar";
  */
 export class SideBarLauncher extends ItemSideBar {
 
-    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, f: (board: ClientBoard, mouse_pos: CanvasCoord) => void, my_sidebar?: SideBar, rootSidebar?: SideBar)
+    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, f: (board: ClientBoard, mouse_pos: Option<CanvasCoord>) => void, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
         super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
         this.trigger = f;

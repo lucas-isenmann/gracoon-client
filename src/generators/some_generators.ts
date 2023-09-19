@@ -1,10 +1,6 @@
-import { ORIENTATION } from "gramoloss";
 import { ClientBoard } from "../board/board";
-import { View } from "../board/camera";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ClientGraph } from "../board/graph";
-import { ClientLinkData } from "../board/link";
-import { Color } from "../colors_v2";
 
 import { Integer, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";

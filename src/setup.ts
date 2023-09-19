@@ -126,18 +126,17 @@ function setup() {
         if(local_board.view.dark_mode){
             toggle_dark_mode(false);
             local_board.view.dark_mode = false;
-            for( const color of colorsData.keys()){
-                document.getElementById("color_choice_" + color).style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
-            } 
         }
         else{
             toggle_dark_mode(true);
             local_board.view.dark_mode = true;
-            for( const color of colorsData.keys()){
-                document.getElementById("color_choice_" + color).style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
-            } 
         }
-
+        for( const color of colorsData.keys()){
+            const colorChoiceDiv = document.getElementById("color_choice_" + color);
+            if (colorChoiceDiv != null){
+                colorChoiceDiv.style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
+            }
+        } 
     }
     ,bottom_side_bar);
 
@@ -200,13 +199,15 @@ function setup() {
         fileInput.type = "file";
         fileInput.style.display = "none";
         fileInput.onchange = function () {
-            let input = fileInput.files[0];
-            popUpDiv.style.display = "none";
-            let reader = new FileReader();
-            reader.readAsText(input);
-            reader.onload = function () {
-                socket.emit(SocketMsgType.LOAD_JSON, reader.result);
-            };
+            if (fileInput.files != null && fileInput.files.length >= 1){
+                const input = fileInput.files[0];
+                popUpDiv.style.display = "none";
+                const reader = new FileReader();
+                reader.readAsText(input);
+                reader.onload = function () {
+                    socket.emit(SocketMsgType.LOAD_JSON, reader.result);
+                };
+            }
         }
         popUpDiv.appendChild(fileInput);
         fileInput.style.display = "inline-block";
@@ -289,7 +290,7 @@ function setup() {
     const arcInteractorV3 = createLinkInteractor(local_board, ORIENTATION.DIRECTED);
     edge_side_bar.add_elements(local_board, edgeInteractorV3, arcInteractorV3, createControlPointInteractor(local_board));
 
-    selectInteractor(edgeInteractorV3, local_board, null);
+    selectInteractor(edgeInteractorV3, local_board, undefined);
 
 
     if (ENV.mode == "dev"){

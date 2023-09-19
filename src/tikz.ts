@@ -15,18 +15,16 @@ function TikZ_credits() {
 
 function TikZ_create_coordinates(g: ClientGraph) {
     let coordinates = "\t\t%Defining the coordinates for the vertices\n";
-    for (const index of g.vertices.keys()) {
-        const v = g.vertices.get(index);
-        coordinates += ("\t\t" + v.tikzify_coordinate(index) + "\n");
+    for (const v of g.vertices.values()) {
+        coordinates += ("\t\t" + v.tikzify_coordinate(v.index) + "\n");
     }
     return coordinates;
 }
 
 function TikZ_create_nodes(g: ClientGraph) {
     let coordinates = `\t\t%Drawing the vertices\n\t\t % HOW TO USE IT: \\node[scale = SCALE_VALUE, nodes={COLOR_OF_THE_NODE}{TEXT_LABEL}{POSITION_LABEL}{SIZE_NODE}] at  (COORDINATE)  {};\n\t\t%e.g. : \\node[scale = 0.5, nodes={red}{$v$}{above left}{}] at  (0,0)  {};\n`;
-    for (let index of g.vertices.keys()) {
-        let v = g.vertices.get(index);
-        coordinates += ("\t\t" + v.tikzify_node(index) + "\n");
+    for (const v of g.vertices.values()) {
+        coordinates += ("\t\t" + v.tikzify_node(v.index) + "\n");
         // coordinates += ("\t\t" + v.tikzify_label() + "\n");
     }
     return coordinates;

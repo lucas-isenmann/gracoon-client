@@ -78,9 +78,10 @@ export function setup_socket(board: ClientBoard) {
 
     function update_other_self_user(id:string, label:string, color:string){
         // console.log(id, label, color);
-        if (users.has(id)) {
-            users.get(id).setColor(color);
-            users.get(id).label = label;
+        const user = users.get(id);
+        if ( typeof user != "undefined") {
+            user.setColor(color);
+            user.label = label;
         }
         else {
             users.set(id, new User(id, label, color, board.view));

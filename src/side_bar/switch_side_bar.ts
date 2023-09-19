@@ -10,11 +10,11 @@ export class SwitchSideBar extends ItemSideBar {
     constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
         super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSidebar);
+        this.selected = false;
     }
 
 
     common_trigger(){
-        console.log("lol");
         console.log(this.rootSidebar);
         if ( typeof this.rootSidebar !== "undefined"){
             console.log("go unselect all")

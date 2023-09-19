@@ -15,7 +15,7 @@ export class InteractorV2 extends ItemSideBar {
     mousemove: (board: ClientBoard, data: Option<PointedElementData>, e: CanvasCoord) => boolean;
     mouseup: (board: ClientBoard, data: Option<PointedElementData>, e: CanvasCoord) => void;
     onleave: () => void;
-    draw: (board: ClientBoard, mousePos: CanvasCoord) => void;
+    draw: (board: ClientBoard, mousePos: Option<CanvasCoord>) => void;
 
     constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string,interactable_element_type: Set<DOWN_TYPE>, my_sidebar?: SideBar, rootSidebar?: SideBar)
     {
@@ -32,7 +32,7 @@ export class InteractorV2 extends ItemSideBar {
             // console.log(`add shortcut ${shortcut}`);
             const interactor = this;
             window.addEventListener('keydown', function (e) {
-                if ( document.activeElement.classList.contains("content_editable") ){
+                if ( document.activeElement != null && document.activeElement.classList.contains("content_editable") ){
                     return;
                 }
                 if (shortcut.toLowerCase() == e.key.toLowerCase()){

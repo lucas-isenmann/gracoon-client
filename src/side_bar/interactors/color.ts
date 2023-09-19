@@ -52,13 +52,12 @@ export function createColorInteractor(board: ClientBoard): InteractorV2{
     
     // Interactors methods
     
-    color_interactorV2.trigger = (board: ClientBoard, mouse_pos: CanvasCoord) => {
+    color_interactorV2.trigger = (board: ClientBoard, mousePos: Option<CanvasCoord>) => {
         turn_on_color_picker_div();
         move_back_color_picker_div();
-        const colorPicketDiv = document.getElementById("color_picker");
-        if (typeof colorPicketDiv == "undefined")  return;
+        const colorPickerDiv = document.getElementById("color_picker");
     
-        if (colorPicketDiv.style.display == "block") {
+        if (colorPickerDiv != null && colorPickerDiv.style.display == "block") {
             if (board.keyPressed.has("Shift")){
                 select_previous_color(board, colors_available);
             } else {
@@ -125,19 +124,19 @@ export function createColorInteractor(board: ClientBoard): InteractorV2{
 
     
 function turn_on_color_picker_div() {
-    const colorPicketDiv = document.getElementById("color_picker");
-    if (typeof colorPicketDiv != "undefined"){
-        colorPicketDiv.style.display = "block";
-        colorPicketDiv.style.opacity = "1";
+    const colorPickerDiv = document.getElementById("color_picker");
+    if (colorPickerDiv != null){
+        colorPickerDiv.style.display = "block";
+        colorPickerDiv.style.opacity = "1";
     }
    
 }
 
 function turn_off_color_picker_div() {
-    const colorPicketDiv = document.getElementById("color_picker");
-    if (typeof colorPicketDiv != "undefined"){
-        colorPicketDiv.style.opacity = "0";
-        setTimeout(() => { colorPicketDiv.style.display = "none" }, 200);
+    const colorPickerDiv = document.getElementById("color_picker");
+    if (colorPickerDiv != null){
+        colorPickerDiv.style.opacity = "0";
+        setTimeout(() => { colorPickerDiv.style.display = "none" }, 200);
     }
     
 }
@@ -146,11 +145,12 @@ function turn_off_color_picker_div() {
     
 function move_back_color_picker_div() {
     const color_interactor_div = document.getElementById( INTERACTOR_TYPE.COLOR );
+    if (color_interactor_div == null) return;
     const offsets = color_interactor_div.getBoundingClientRect();
-    const colorPicketDiv = document.getElementById("color_picker");
-    if (typeof colorPicketDiv != "undefined"){
-        colorPicketDiv.style.top = String(offsets.top) + "px";
-        colorPicketDiv.style.left = "70" + "px";
+    const colorPickerDiv = document.getElementById("color_picker");
+    if ( colorPickerDiv != null){
+        colorPickerDiv.style.top = String(offsets.top) + "px";
+        colorPickerDiv.style.left = "70" + "px";
     }
 }
 
@@ -165,9 +165,9 @@ function add_available_color(board: ClientBoard, color: Color) {
         update_selected_available_color(board);
         move_back_color_picker_div();
     }
-    const colorPicketDiv = document.getElementById("color_picker");
-    if (typeof colorPicketDiv != "undefined"){
-        colorPicketDiv.appendChild(color_div);
+    const colorPickerDiv = document.getElementById("color_picker");
+    if (colorPickerDiv != null){
+        colorPickerDiv.appendChild(color_div);
     }
 }
 

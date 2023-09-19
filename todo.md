@@ -9,13 +9,16 @@
 
 ## Refacto
 
+- mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
+- User and Self must be the same class
+- [ ] pas de variable globales: users et clipboard
 - [ ] mieux gérer les sorties du canvas/ecran
 - [ ] dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
 - [ ] interactor manager : event on window, not on canvas
+- [ ] notion générique d'élement d'un board (pour pouvoir les parcourir)
 
 ## Issues
 
-- [ ] board.drawInteractor: find a way to send the position of the user, ça devrait un Option déjà parce qu'une tablette a pas forcément de pos -> le mettre dans selfUser
 - [ ] representations
 - [ ] bug when undo delete the weights of the links
 

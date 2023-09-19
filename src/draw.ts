@@ -8,7 +8,6 @@ export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
 
 
 import { User, users } from './user';
-import { ClientGraph } from './board/graph';
 import { clamp } from './utils';
 import { Multicolor } from './multicolor';
 import { drawRoundRect} from './draw_basics';
@@ -16,7 +15,9 @@ import { graph_clipboard } from './clipboard';
 
 export function toggle_dark_mode(enable:boolean){
     const action_DOM = document.getElementById("actions");
+    if(action_DOM == null) return;
     const interactor_DOM = document.getElementById("interaction_mode_selector");
+    if (interactor_DOM == null) return;
     const border_DOM = document.getElementById("border"); // TODO: Change border color and check if someone is followed first
     if(enable){
         COLOR_BACKGROUND = "#1e1e1e";

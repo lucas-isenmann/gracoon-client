@@ -1,3 +1,4 @@
+import { Option } from "gramoloss";
 import { ClientBoard } from "../board/board";
 import { CanvasCoord } from "../board/canvas_coord";
 import { ElementSideBar, ORIENTATION_INFO } from "./element_side_bar";
@@ -5,7 +6,7 @@ import { SideBar } from "./side_bar";
 
 
 export abstract class ItemSideBar extends ElementSideBar {
-    trigger: (board: ClientBoard, mousePos: CanvasCoord) => void; 
+    trigger: (board: ClientBoard, mousePos: Option<CanvasCoord>) => void; 
     
     constructor(board: ClientBoard, id:string, info: string,  shortcut: string, orientation_info: ORIENTATION_INFO, img_src: string, cursor_style: string, my_sidebar?: SideBar, rootSideBar?: SideBar) {
         super(board, id, info, shortcut, orientation_info, img_src, cursor_style, my_sidebar, rootSideBar); 
@@ -42,7 +43,7 @@ export abstract class ItemSideBar extends ElementSideBar {
             }
         )
     }
-    abstract common_trigger(board: ClientBoard, mouse_pos:CanvasCoord);
+    abstract common_trigger(board: ClientBoard, mouse_pos: Option<CanvasCoord>): void;
 
 
 }

@@ -17,7 +17,7 @@ import { Option } from 'gramoloss';
 
 
 
-export function selectInteractor(interactor: InteractorV2, board: ClientBoard, pos: CanvasCoord) {
+export function selectInteractor(interactor: InteractorV2, board: ClientBoard, pos: Option<CanvasCoord>) {
     if ( typeof board.interactorLoaded != "undefined" && interactor.id != board.interactorLoadedId ){
         board.interactorLoaded.onleave();
     }
@@ -47,7 +47,7 @@ export function setupInteractions(board: ClientBoard) {
             board.keyPressed.add("Shift");
         }
 
-        if (document.activeElement.nodeName == "BODY") { // otherwise focus is on a text
+        if (document.activeElement != null && document.activeElement.nodeName == "BODY") { // otherwise focus is on a text
             if (e.key == "d"){
                 console.log("add dw representation");
                 const dw_rep = ClientDegreeWidthRep.from_embedding(board, board.view);
@@ -107,7 +107,7 @@ export function setupInteractions(board: ClientBoard) {
             }
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
                 const subgraph = board.graph.get_induced_subgraph_from_selection(board.view);
-                if ( subgraph.vertices.size > 0){
+                if ( subgraph.vertices.size > 0 && typeof mousePos != "undefined"){
                     set_clipboard(subgraph, mousePos.copy(), false, board.canvas);
                 }
                 return;
@@ -156,8 +156,11 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('mouseup', function (e) {
         mousePos = new CanvasCoord(e.pageX, e.pageY);
+        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         mousePos = board.graph.align_position(mousePos, new Set(), board.canvas, board.view);
-        board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
+        if (typeof board.interactorLoaded != "undefined"){
+            board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
+        }
         board.view.alignement_horizontal = false;
         board.view.alignement_vertical = false;
         board.requestDraw()
@@ -169,11 +172,13 @@ export function setupInteractions(board: ClientBoard) {
         mousePos = undefined;
         board.view.alignement_horizontal = false;
         board.view.alignement_vertical = false;
+        board.selfUser.canvasPos = undefined;
         requestAnimationFrame(function () {board.draw() });
     })
 
     board.canvas.addEventListener('mousemove', function (e) {
         mousePos = new CanvasCoord(e.pageX, e.pageY);
+        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         
         if ( board.updateElementOver(mousePos)){
             requestAnimationFrame(() => board.draw() );
@@ -186,12 +191,14 @@ export function setupInteractions(board: ClientBoard) {
             graph_clipboard.translate_by_canvas_vect( shift.sub(previous_canvas_shift), board.view);
             previous_canvas_shift.set_from(shift);
             board.draw()
-        } else {
+        } else if (typeof board.interactorLoaded != "undefined") {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
                 const element = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
                 if (element instanceof ELEMENT_DATA_AREA || element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
-                    board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
+                    if (typeof element.resizeType != "undefined"){
+                        board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
+                    }
                 }
             } else {
                 board.canvas.style.cursor = "default";
@@ -208,6 +215,7 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('mousedown', function (e) {
         mousePos = new CanvasCoord(e.pageX, e.pageY);
+        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
 
         if (graph_clipboard != null) {
@@ -236,17 +244,17 @@ export function setupInteractions(board: ClientBoard) {
         console.log("touchstart");
         const click_pos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
 
+        if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
         const pointedPos = board.graph.align_position(click_pos, new Set(), board.canvas, board.view);
         lastPointedElement = new PointedElementData(pointedPos, 0, data );
-
         board.interactorLoaded.mousedown(board, lastPointedElement);
         board.requestDraw();
     });
 
     board.canvas.addEventListener('touchmove', (e) => {
         mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
-        if ( typeof lastPointedElement != "undefined"){
+        if ( typeof lastPointedElement != "undefined" && typeof board.interactorLoaded != "undefined"){
             if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
                 board.requestDraw();
             }
@@ -258,7 +266,7 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchend', (e) => {
         lastPointedElement = undefined;
-        if ( typeof lastPointedElement != "undefined"){
+        if ( typeof lastPointedElement != "undefined" && typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
         board.view.alignement_horizontal = false;
