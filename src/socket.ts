@@ -1,4 +1,4 @@
-import { Self, update_users_canvas_pos,  User, users } from "./user";
+import { User } from "./user";
 import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
@@ -57,12 +57,12 @@ export function setup_socket(board: ClientBoard) {
 
     function handle_update_view_follower(x:number, y:number, zoom:number, id:string){
         // console.log("FOLLOWING USER:", x,y,zoom, id);
-        if(users.has(id) && board.selfUser.following == id){
+        if(board.otherUsers.has(id) && board.selfUser.following == id){
             // console.log("Following......")
             board.view.camera = new Coord(x, y);
             board.view.zoom = zoom;
             board.update_canvas_pos(board.view);
-            update_users_canvas_pos(board.view);
+            board.updateOtherUsersCanvasPos();
             requestAnimationFrame(function () { board.draw() });
         }
         else{
@@ -78,15 +78,15 @@ export function setup_socket(board: ClientBoard) {
 
     function update_other_self_user(id:string, label:string, color:string){
         // console.log(id, label, color);
-        const user = users.get(id);
+        const user = board.otherUsers.get(id);
         if ( typeof user != "undefined") {
             user.setColor(color);
             user.label = label;
         }
         else {
-            users.set(id, new User(id, label, color, board.view));
+            board.otherUsers.set(id, new User(id, label, color, board.view));
         }
-        board.selfUser.update_user_list_div();
+        board.update_user_list_div();
         requestAnimationFrame(function () { board.draw() });
     }
 
@@ -111,14 +111,14 @@ export function setup_socket(board: ClientBoard) {
         if (board.selfUser.id == null || id == board.selfUser.id){
             return;
         }
-        const user =  users.get(id);
+        const user =  board.otherUsers.get(id);
         if (typeof user != "undefined") {
             user.label = label;
            user.set_pos(newPos, board);
         }
         else {
-            users.set(id, new User(id, label, color, board.view,  newPos));
-            board.selfUser.update_user_list_div();
+            board.otherUsers.set(id, new User(id, label, color, board.view,  newPos));
+            board.update_user_list_div();
         }
         requestAnimationFrame(function () { board.draw() });
     }
@@ -128,21 +128,21 @@ export function setup_socket(board: ClientBoard) {
         if(board.selfUser.following == userid){
             board.selfUser.unfollow(userid);
         }
-        users.delete(userid);
-        board.selfUser.update_user_list_div();
+        board.otherUsers.delete(userid);
+        board.update_user_list_div();
         requestAnimationFrame(function () { board.draw() });
     }
 
     
     function handle_clients(users_entries: Array<[string, {label: string, color: string}]>){
-        users.clear();
+        board.otherUsers.clear();
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 
             const new_user = new User(data[0], data[1].label, data[1].color, board.view, new Coord(-100, -100));
-            users.set(data[0], new_user);
+            board.otherUsers.set(data[0], new_user);
         }
         // console.log(users);
-        requestAnimationFrame(function () { board.selfUser.update_user_list_div() });
+        requestAnimationFrame(function () { board.update_user_list_div() });
     }
 
 
@@ -162,24 +162,30 @@ export function setup_socket(board: ClientBoard) {
     socket.on("translate_elements", handle_translate_elements);
 
 
-    function handle_translate_elements(data, sensibilities){
+    function handle_translate_elements(data: { shift: {x: number, y: number}, indices: [[string, number]]}, sensibilities){
         // console.log("handle_translate_elements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
             if ( kind == "TextZone"){
                 const text_zone = board.text_zones.get(index);
-                text_zone.translate(cshift, board.view);
+                if (typeof text_zone != "undefined") {
+                    text_zone.translate(cshift, board.view);
+                }
             } else if ( kind == "Stroke"){
                 const stroke = board.strokes.get(index);
-                stroke.translate_by_canvas_vect(cshift, board.view);
+                if (typeof stroke != "undefined"){
+                    stroke.translate_by_canvas_vect(cshift, board.view);
+                }
             } else if ( kind == "Area"){
                 const area = board.areas.get(index);
-                const vertices_contained = g.vertices_contained_by_area(area);
-                board.translate_area(cshift, area, vertices_contained);
-                for (const link of g.links.values()){
-                    if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
-                        link.setAutoWeightDivPos();
+                if (typeof area != "undefined"){
+                    const vertices_contained = g.vertices_contained_by_area(area);
+                    board.translate_area(cshift, area, vertices_contained);
+                    for (const link of g.links.values()){
+                        if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
+                            link.setAutoWeightDivPos();
+                        }
                     }
                 }
             } else if (kind == "Vertex"){
@@ -192,12 +198,15 @@ export function setup_socket(board: ClientBoard) {
                 update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             } else if (kind == "ControlPoint"){
                 const link = g.links.get(index);
-                if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
-                    link.data.cp.translate(shift);
-                    link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
+                if (typeof link != "undefined"){
+                    if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
+                        link.data.cp.translate(shift);
+                        link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
+                    }
+                    link.setAutoWeightDivPos();
+                    update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
                 }
-                link.setAutoWeightDivPos();
-                update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
+                
             } else {
                 console.log(`translate element: kind ${kind} not supported`);
             }

@@ -1,5 +1,5 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
-import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
+import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -18,7 +18,7 @@ import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { Color } from "../colors_v2";
-import { Self, users } from "../user";
+import { Self, User } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 
@@ -72,17 +72,20 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
 
+    otherUsers: Map<string, User>;
+
 
 
     constructor(){
         super();
 
         this.selfUser = new Self();
+        this.otherUsers = new Map();
         this.colorSelected = Color.Neutral;
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
         this.interactorLoadedId = undefined;
-        this.isGraphClipboardGenerated = false;
+        this.isGraphClipboardGenerated = false;        
 
         this.canvas = document.createElement("canvas");
         document.body.appendChild(this.canvas);
@@ -315,8 +318,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     drawFollowing(){
         if( typeof this.selfUser.following != "undefined"){
-            const following_user = users.get(this.selfUser.following);
-            if(following_user){
+            const following_user = this.otherUsers.get(this.selfUser.following);
+            if( typeof following_user != "undefined"){
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = following_user.multicolor.color;
                 this.ctx.lineWidth = 10;
@@ -340,7 +343,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.drawAlignements();
         this.graph.draw();
 
-        drawUsers(this.canvas, this.ctx);
+        this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
         this.drawRectangularSelection();
         this.drawInteractor();
         if (typeof this.graphClipboard != "undefined"){
@@ -782,5 +785,57 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.view);
         previousCanvasShift.set_from(shift);
         this.draw()
+    }
+
+
+
+    /**
+     * Set the the canvasPos of users from their ServerPos in function of the camera.
+     */
+    updateOtherUsersCanvasPos() {
+        for (const user of this.otherUsers.values()){
+            if ( typeof user.pos != "undefined"){
+                user.canvas_pos = this.view.create_canvas_coord(user.pos);
+            }
+        }
+    }
+
+
+    update_user_list_div() {
+        const div = document.getElementById("user_list");
+        if (div == null) return;
+        div.innerHTML = "";
+        if (this.otherUsers.size === 0) {
+            div.style.visibility = "hidden";
+            // div.style.marginLeft = "0px";
+            div.style.padding = "0px";
+        }
+        else {
+            div.style.visibility = "visible";
+            div.style.padding = "2px";
+            // div.style.marginLeft = "10px";
+        }
+    
+        for (let u of this.otherUsers.values()) {
+            let newDiv = document.createElement("div");
+            newDiv.classList.add("user");
+            newDiv.style.color = u.multicolor.contrast;
+            newDiv.innerHTML = u.label.substring(0, 1);
+            newDiv.title = "Click to follow " + u.label;
+            newDiv.style.background = u.multicolor.color;
+            newDiv.style.borderColor = u.multicolor.color;
+            newDiv.dataset.label = u.label;
+    
+            const board = this;
+            newDiv.onclick = function () {
+                if(board.selfUser.following === u.id){
+                    board.selfUser.unfollow(u.id);
+                }
+                else{
+                    board.selfUser.follow(u.id, board.otherUsers);
+                }
+            }
+            div.appendChild(newDiv);
+        }
     }
 }

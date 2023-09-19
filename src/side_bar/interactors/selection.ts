@@ -9,7 +9,6 @@ import { CanvasVect } from "../../board/vect";
 import { CanvasCoord } from "../../board/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { socket } from "../../socket";
-import { update_users_canvas_pos } from "../../user";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
@@ -33,7 +32,6 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
 
 
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
-        console.log("selection down");
 
         hasMoved = false;
         previous_shift = new Vect(0,0);
@@ -140,7 +138,7 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                 previous_canvas_shift.set_from(shift);
                 board.update_after_camera_change();
                 board.update_canvas_pos(board.view);
-                update_users_canvas_pos(board.view);
+                board.updateOtherUsersCanvasPos();
                 
                 if(typeof board.selfUser.following != "undefined"){
                     board.selfUser.unfollow(board.selfUser.following);

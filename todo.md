@@ -10,8 +10,7 @@
 ## Refacto
 
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
-- User and Self must be the same class
-- [ ] pas de variable globales: users
+- User and Self must be quasi the same class
 - [ ] mieux gérer les sorties du canvas/ecran
 - [ ] dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
 - [ ] interactor manager : event on window, not on canvas
@@ -26,7 +25,6 @@
 
 ## Old TODO List
 
-
 - stroke
   - [ ] effacer mieux (plus tard)
   - [ ] création et translation en live (plus tard, interet ??)
@@ -38,14 +36,13 @@
   - [ ] import à partir d'une fonction de gramoloss
 
 - grid
-  - [ ] vertical triangular grid 
+  - [ ] vertical triangular grid
   - [ ] polar grid
   - [ ] hexagonal grid ???
 
-
 - [ ] gestion tablette
 - [ ] optimisation possible en Math.floor() dans view.canvasCoord
-- [ ] 
+
 - quand on déplace un sommet sur un autre ça les fusionne
   - [X] ça marche
   - [ ] visuel qui dit que ça va fusionner quand on déplace
@@ -79,12 +76,10 @@
   - [ ] est ce que faut prendre les aretes induites meme si elles sont pas séléctionnées ?
   - [ ] est ce que faudrait pas un autre type de dupliquer qui conserve les links avec le reste ?
 
-
 - [ ] load/export json
 
 - control Z
   - [ ] load_json
-
 
 - server API
   - [ ] fix sensibilities and Return of Modifications
@@ -114,7 +109,7 @@
 
 - graph moving modifyer
   - modifie automatiquement le graphe en fonction du placement des sommets
-  - exemples 
+  - exemples
     - [ ] degreewidth
     - [ ] unit disk graph (v est relié w ssi la distance graphique <= 1 )
 
@@ -130,8 +125,6 @@
   - [ ] bottom_side_bar
   - [ ] change label action to graph modifyer
 
-
-
 - [ ] code break dans les compute function (voir la note dans le fichier parametor.ts)
 - [ ] copier/coller le sous-graphe induit par la sélection de sommets
 - [ ] turoriel
@@ -141,10 +134,9 @@
 - [ ] chat vocal
 - [ ] chat écrit
 
+## Known issues
 
-## Known issues 
-
-- Chrome : no export to file? 
+- Chrome : no export to file?
 - Diameter : Only non oriented
 - zoom and create links
     solution : changer les canvasCoord en serverCoord (genre link_creating_start) puis au zoom mettre à jour les serverCoord dans view
@@ -153,4 +145,3 @@
 - start resizing area, then leave mouse out of window, stop clicking, then mouse back on window = bug -> pareil avec création de link, couleur, pen ... solution avec événement outofscreen si existe ?
 - bug avec param Geometric et sommet qui rentre dans area
 - vertex align crée des sommets sur d'autres sommets
-

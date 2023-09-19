@@ -1,6 +1,5 @@
 import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { socket } from '../socket';
-import { update_users_canvas_pos } from '../user';
 import { regenerate_graph } from '../generators/dom';
 import { CanvasCoord } from '../board/canvas_coord';
 import { CanvasVect } from '../board/vect';
@@ -142,7 +141,7 @@ export function setupInteractions(board: ClientBoard) {
         }
         board.update_after_camera_change();
         board.update_canvas_pos(board.view);
-        update_users_canvas_pos(board.view);
+        board.updateOtherUsersCanvasPos();
 
 
         if ( typeof board.selfUser.following != "undefined") {

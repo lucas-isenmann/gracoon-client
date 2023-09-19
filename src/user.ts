@@ -3,8 +3,10 @@ import { ClientBoard } from "./board/board";
 import { View } from "./board/camera";
 import { CanvasCoord } from "./board/canvas_coord";
 import { COLOR_BACKGROUND} from "./draw";
+import { draw_user_label } from "./draw_basics";
 import { Multicolor } from "./multicolor";
 import { socket } from "./socket";
+import { clamp } from "./utils";
 
 
 export class User {
@@ -72,20 +74,118 @@ export class User {
     }
     
 
-}
-
-export let users = new Map<string, User>();
 
 
 
 
-export function update_users_canvas_pos(view: View) {
-    for (const user of users.values()){
-        if ( typeof user.pos != "undefined"){
-            user.canvas_pos = view.create_canvas_coord(user.pos);
-        }
+
+    draw_user_arrow(ctx: CanvasRenderingContext2D){
+        if ( typeof this.canvas_pos == "undefined") return;
+        
+        // Background
+        ctx.beginPath();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = this.multicolor.darken;
+        ctx.moveTo(this.canvas_pos.x - 2, this.canvas_pos.y + 1);
+        ctx.lineTo(this.canvas_pos.x - 2, this.canvas_pos.y + 21);
+        ctx.globalAlpha = 0.35;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        //Arrow
+        ctx.beginPath();
+        ctx.fillStyle = this.multicolor.color;
+        ctx.moveTo(this.canvas_pos.x, this.canvas_pos.y);
+        ctx.lineTo(this.canvas_pos.x + 13, this.canvas_pos.y + 13);
+        ctx.lineTo(this.canvas_pos.x + 5, this.canvas_pos.y + 13);
+        ctx.lineTo(this.canvas_pos.x, this.canvas_pos.y + 20);
+        ctx.closePath();
+        ctx.fill();
+
+        // Bright sides
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = this.multicolor.lighten;
+        ctx.moveTo(this.canvas_pos.x, this.canvas_pos.y);
+        ctx.lineTo(this.canvas_pos.x + 13, this.canvas_pos.y + 13);
+        ctx.lineTo(this.canvas_pos.x + 5, this.canvas_pos.y + 13);
+        ctx.lineTo(this.canvas_pos.x, this.canvas_pos.y + 20);
+        ctx.stroke();
     }
+
+
+    draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+        if ( typeof this.canvas_pos == "undefined") return;
+        
+        if(this.canvas_pos.x > canvas.width || this.canvas_pos.x < 0 || this.canvas_pos.y > canvas.height  || this.canvas_pos.y < 0 ){
+            const x = clamp(this.canvas_pos.x, 0, canvas.width);
+            const y = clamp(this.canvas_pos.y, 0, canvas.height);
+
+            ctx.beginPath();
+            ctx.fillStyle = this.multicolor.color;
+            ctx.arc(x, y, 10, 0, 2*Math.PI);
+            ctx.fill();
+
+            ctx.font = "400 17px Arial";
+            const text = ctx.measureText(this.label);
+
+            let shift_x = 0;
+            let shift_y = 0;
+            if(this.canvas_pos.x > canvas.width){
+                shift_x = - text.width - 23 ;
+                shift_y = -10;
+            }
+            if(this.canvas_pos.x < 0){
+                shift_x = 13 ;
+                shift_y = -10;
+            }
+            if(this.canvas_pos.y > canvas.height){
+                shift_x = - text.width/2 - 5;
+                shift_y = - 34 ;
+
+                if(this.canvas_pos.x < 0){
+                    shift_x = 10;
+                }
+                if(this.canvas_pos.x > canvas.width){
+                    shift_x = - text.width - 13;
+                }
+            }
+            if(this.canvas_pos.y < 0){
+                shift_x = - text.width/2 - 5;
+                shift_y = 13 ;
+
+                if(this.canvas_pos.x < 0){
+                    shift_x = 10;
+                }
+                if(this.canvas_pos.x > canvas.width){
+                    shift_x = - text.width - 13;
+                }
+            }
+
+            // Date.now() is to prevent the label to fade when shown on the side of the screen
+            // TODO: Change this.
+            draw_user_label(x + shift_x, y + shift_y, this.label, this.multicolor, Date.now(), ctx);
+            
+
+        }
+        else{
+            // DRAW USERNAME 
+            draw_user_label(this.canvas_pos.x + 10, this.canvas_pos.y + 17, this.label, this.multicolor, this.timer_refresh, ctx);
+        
+
+            // DRAW ARROW
+            this.draw_user_arrow(ctx);
+        }
+        
+    }
+
+
+
+
 }
+
+
+
 
 export class Self{
     label: Option<string>;
@@ -121,12 +221,11 @@ export class Self{
     }
 
 
-    follow(id: string){
-        if(users.has(id)){
+    follow(id: string, users: Map<string, User>){
+        const u = users.get(id);
+        if( typeof u != "undefined" ){
             const borderDIV = document.getElementById("border");
             if (borderDIV == null) return;
-            const u = users.get(id);
-            if (typeof u == "undefined") return;
             this.following = id;
             borderDIV.style.borderColor = u.multicolor.color;
             socket.emit("follow", id);
@@ -157,43 +256,7 @@ export class Self{
         this.update_self_user_label();
     }
     
-    update_user_list_div() {
-        const div = document.getElementById("user_list");
-        if (div == null) return;
-        div.innerHTML = "";
-        if (users.size === 0) {
-            div.style.visibility = "hidden";
-            // div.style.marginLeft = "0px";
-            div.style.padding = "0px";
-        }
-        else {
-            div.style.visibility = "visible";
-            div.style.padding = "2px";
-            // div.style.marginLeft = "10px";
-        }
     
-        for (let u of users.values()) {
-            let newDiv = document.createElement("div");
-            newDiv.classList.add("user");
-            newDiv.style.color = u.multicolor.contrast;
-            newDiv.innerHTML = u.label.substring(0, 1);
-            newDiv.title = "Click to follow " + u.label;
-            newDiv.style.background = u.multicolor.color;
-            newDiv.style.borderColor = u.multicolor.color;
-            newDiv.dataset.label = u.label;
-    
-            const self_user = this;
-            newDiv.onclick = function () {
-                if(self_user.following === u.id){
-                    self_user.unfollow(u.id);
-                }
-                else{
-                    self_user.follow(u.id);
-                }
-            }
-            div.appendChild(newDiv);
-        }
-    }
 
 
     update_self_user_label(){

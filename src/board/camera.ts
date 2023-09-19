@@ -1,5 +1,4 @@
 import { Coord, ORIENTATION, Vect } from "gramoloss";
-import { update_users_canvas_pos } from "../user";
 import { ClientBoard } from "./board";
 import { CanvasCoord } from "./canvas_coord";
 import { CanvasVect } from "./vect";
@@ -144,23 +143,23 @@ export class View {
 export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot_right:CanvasCoord, board: ClientBoard){
     const w = bot_right.x - top_left.x;
     const h = bot_right.y - top_left.y;
-    const shift_x = (this.canvas.width - w)/2 - top_left.x;
-    const shift_y = (this.canvas.height - h)/2 - top_left.y;
+    const shift_x = (board.canvas.width - w)/2 - top_left.x;
+    const shift_y = (board.canvas.height - h)/2 - top_left.y;
 
     view.translate_camera(new Vect(shift_x, shift_y));
 
     if ( w <= 0 || h <= 0 ){
         board.update_canvas_pos(view);
-        update_users_canvas_pos(view);
+        board.updateOtherUsersCanvasPos();
         return;
     }
 
-    const ratio_w = this.canvas.width/w;
-    const ratio_h = this.canvas.height/h;
+    const ratio_w = board.canvas.width/w;
+    const ratio_h = board.canvas.height/h;
 
-    const center = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
+    const center = new CanvasCoord(board.canvas.width/2, board.canvas.height/2);
     view.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
     board.update_canvas_pos(view);
-    update_users_canvas_pos(view);
+    board.updateOtherUsersCanvasPos();
 }
 
