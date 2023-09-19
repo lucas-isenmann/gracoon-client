@@ -11,7 +11,6 @@ import { User, users } from './user';
 import { clamp } from './utils';
 import { Multicolor } from './multicolor';
 import { drawRoundRect} from './draw_basics';
-import { graph_clipboard } from './clipboard';
 
 export function toggle_dark_mode(enable:boolean){
     const action_DOM = document.getElementById("actions");
@@ -212,11 +211,5 @@ export function drawUsers(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
 
 
 
-
-export function drawClipboardGraph(){
-    if ( graph_clipboard != null){
-        graph_clipboard.draw();
-    }
-}
 
 

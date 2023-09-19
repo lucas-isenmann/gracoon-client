@@ -2,7 +2,6 @@ import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { socket } from '../socket';
 import { update_users_canvas_pos } from '../user';
 import { regenerate_graph } from '../generators/dom';
-import { clear_clipboard, clipboard_comes_from_generator, graph_clipboard, mouse_position_at_generation, paste_generated_graph, set_clipboard } from '../clipboard';
 import { CanvasCoord } from '../board/canvas_coord';
 import { CanvasVect } from '../board/vect';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
@@ -108,7 +107,7 @@ export function setupInteractions(board: ClientBoard) {
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
                 const subgraph = board.graph.get_induced_subgraph_from_selection(board.view);
                 if ( subgraph.vertices.size > 0 && typeof mousePos != "undefined"){
-                    set_clipboard(subgraph, mousePos.copy(), false, board.canvas);
+                    board.setGraphClipboard(subgraph, mousePos.copy(), false);
                 }
                 return;
             }
@@ -178,7 +177,11 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('mousemove', function (e) {
         mousePos = new CanvasCoord(e.pageX, e.pageY);
-        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
+        if ( typeof board.selfUser.canvasPos != "undefined"){
+            board.selfUser.canvasPos.copy_from(mousePos);
+        } else {
+            board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
+        }
         
         if ( board.updateElementOver(mousePos)){
             requestAnimationFrame(() => board.draw() );
@@ -186,11 +189,8 @@ export function setupInteractions(board: ClientBoard) {
 
 
 
-        if (graph_clipboard != null) {
-            const shift = CanvasVect.from_canvas_coords(mouse_position_at_generation, mousePos);
-            graph_clipboard.translate_by_canvas_vect( shift.sub(previous_canvas_shift), board.view);
-            previous_canvas_shift.set_from(shift);
-            board.draw()
+        if ( typeof board.graphClipboard != "undefined") {
+            board.translateGraphClipboard(previous_canvas_shift, mousePos);
         } else if (typeof board.interactorLoaded != "undefined") {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
@@ -218,14 +218,14 @@ export function setupInteractions(board: ClientBoard) {
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
 
-        if (graph_clipboard != null) {
-            paste_generated_graph(board);
+        if (typeof board.graphClipboard != "undefined") {
+            board.pasteGeneratedGraph();
             if( board.keyPressed.has("Control") ){
-                if (clipboard_comes_from_generator){
+                if (board.isGraphClipboardGenerated){
                     regenerate_graph(e, board);
                 }                    
-            }else {
-                clear_clipboard(board.canvas);
+            } else {
+                board.clearGraphClipboard();
             }
             board.draw()
         } else {

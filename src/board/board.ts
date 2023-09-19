@@ -1,5 +1,5 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
-import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawClipboardGraph, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
+import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, drawUsers, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -68,6 +68,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     interactorLoaded: Option<InteractorV2>;
     interactorLoadedId: Option<string>;
 
+    graphClipboard: Option<ClientGraph>;
+    isGraphClipboardGenerated: boolean;
+    clipboardInitPos: Option<CanvasCoord>;
+
+
+
     constructor(){
         super();
 
@@ -76,6 +82,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
         this.interactorLoadedId = undefined;
+        this.isGraphClipboardGenerated = false;
 
         this.canvas = document.createElement("canvas");
         document.body.appendChild(this.canvas);
@@ -323,6 +330,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     draw() {
+        // console.time("draw")
         this.drawBackground();
         if ( this.view.display_triangular_grid ) this.drawTriangularGrid();
         this.representations.forEach(rep => rep.draw(this.ctx, this.view));
@@ -335,7 +343,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         drawUsers(this.canvas, this.ctx);
         this.drawRectangularSelection();
         this.drawInteractor();
-        drawClipboardGraph();
+        if (typeof this.graphClipboard != "undefined"){
+            this.graphClipboard.draw();
+        }
+        // console.timeEnd("draw");
     }
 
     /**
@@ -741,4 +752,35 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     // method change_camera -> update_canvas_pos de tous les éléments
+
+
+
+    
+    setGraphClipboard(graph: ClientGraph, pos_at_click: CanvasCoord, is_coming_from_clipboard: boolean){
+        this.graphClipboard = graph;
+        this.clipboardInitPos = pos_at_click;
+        this.isGraphClipboardGenerated = is_coming_from_clipboard;
+        this.canvas.style.cursor = "grab";
+    }
+    
+   pasteGeneratedGraph() {
+        if ( typeof this.graphClipboard != "undefined"){
+            this.emit_paste_graph(this.graphClipboard);
+        }
+    }
+    
+    clearGraphClipboard(){
+        this.graphClipboard = undefined;
+        this.canvas.style.cursor = "auto";
+        this.isGraphClipboardGenerated = false;
+        this.clipboardInitPos = undefined;
+    }
+
+    translateGraphClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
+        if (typeof this.graphClipboard == "undefined" || typeof this.clipboardInitPos == "undefined") return;
+        const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
+        this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.view);
+        previousCanvasShift.set_from(shift);
+        this.draw()
+    }
 }

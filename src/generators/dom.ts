@@ -1,7 +1,5 @@
 import { ClientBoard } from "../board/board";
-import { View } from "../board/camera";
 import { CanvasCoord } from "../board/canvas_coord";
-import { set_clipboard } from "../clipboard";
 import { createPopup } from "../popup";
 import { GraphGenerator } from "./generator";
 import { generators_available } from "./some_generators";
@@ -60,15 +58,20 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
 }
 
 function turn_off_generators_div() {
-    document.getElementById("generators_div").style.display = "none";
+    const div =  document.getElementById("generators_div");
+    if (div == null) return;
+    div.style.display = "none";
 }
 
 export function turn_on_generators_div() {
-    document.getElementById("generators_div").style.display = "flex";
+    const div =  document.getElementById("generators_div");
+    if (div == null) return;
+    div.style.display = "flex";
 }
 
 function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, board: ClientBoard) {
     const div = document.getElementById("generator_configuration");
+    if (div == null) return;
     div.innerHTML = ""; // TODO clear better ??
 
     const title = document.createElement("h2");
@@ -99,7 +102,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
                 return;
             }
         }
-        set_clipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true, canvas);
+        board.setGraphClipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true);
         last_generator = gen;
         turn_off_generators_div();
     }
@@ -111,7 +114,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
 
 export function regenerate_graph(e: MouseEvent, board: ClientBoard){
     if ( last_generator !== null){
-        set_clipboard(last_generator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true, board.canvas);
+        board.setGraphClipboard(last_generator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true);
     }
 }
 
@@ -120,6 +123,7 @@ function handle_search_onkeyup() {
     const input = <HTMLInputElement>document.getElementById('generator_search_input');
     const filter = input.value.toUpperCase();
     const div_content = document.getElementById("generators_div_content");
+    if (div_content == null) return;
     const param_list = <HTMLCollectionOf<HTMLDivElement>>div_content.getElementsByClassName('generator_item');
 
     for (let i = 0; i < param_list.length; i++) {

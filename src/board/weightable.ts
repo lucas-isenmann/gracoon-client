@@ -15,33 +15,37 @@ export interface Weightable {
  */
 export function initWeightDiv<R extends Weightable>(element: R, type: BoardElementType, board: ClientBoard){
     if (typeof element.getIndex() !== "undefined"){
-        element.setWeightDiv(document.createElement("div"));
-        element.getWeightDiv().contentEditable = "true";    
-        element.getWeightDiv().id = type + "_weight_" + element.getIndex();
-        element.getWeightDiv().classList.add("element-label", "content_editable");
-        document.body.appendChild(element.getWeightDiv());
-        element.getWeightDiv().innerHTML = element.getWeight();
+        const div = document.createElement("div");
+        element.setWeightDiv(div);
+
+        div.contentEditable = "true";    
+        div.id = type + "_weight_" + element.getIndex();
+        div.classList.add("element-label", "content_editable");
+        document.body.appendChild(div);
+        div.innerHTML = element.getWeight();
         // element.weightDiv.innerHTML = katex.renderToString(element.weight);
         element.setAutoWeightDivPos();
 
-        element.getWeightDiv().onkeyup = (e) => {
+        div.onkeyup = (e) => {
             // saveSelection();
-            element.setWeight(element.getWeightDiv().textContent);
+            if ( div.textContent != null){
+                element.setWeight(div.textContent);
+            }
             board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
             if (e.key == "Enter" && board.keyPressed.has("Control")) {
-                element.getWeightDiv().blur();
+                div.blur();
                 element.setAutoWeightDivPos();
             }
         }
 
         // Prevent other interactors to click on this div (and launch the editor of the weight).
-        element.getWeightDiv().onmousedown = (e: MouseEvent) => {
+        div.onmousedown = (e: MouseEvent) => {
             if (board.interactorLoadedId != INTERACTOR_TYPE.TEXT){
                 e.preventDefault();
             }
         }
 
-        element.getWeightDiv().addEventListener("wheel", function (e) {
+        div.addEventListener("wheel", function (e) {
             const weightNumberValue = parseInt(element.getWeight());
             if ( isNaN(weightNumberValue) == false){
                 if (e.deltaY < 0) {
