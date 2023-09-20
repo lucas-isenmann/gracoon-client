@@ -16,6 +16,10 @@
 - interactor manager : event on window, not on canvas
 - notion générique d'élement d'un board (pour pouvoir les parcourir)
 
+## Unifier
+
+- tout élement de board doit avoir index, clearDOM
+
 ## Issues
 
 - representations

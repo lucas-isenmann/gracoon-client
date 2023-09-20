@@ -4,7 +4,7 @@ import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
-import { View } from "./camera";
+import { center_canvas_on_rectangle, View } from "./camera";
 import { ClientGraph } from "./graph";
 import { ClientLink, ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
@@ -22,6 +22,7 @@ import { Self, User } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { AreaChoice, AreaIndex } from "../generators/attribute";
+import { setupLoadedParam } from "./area_div";
 
 
 export enum BoardElementType {
@@ -75,6 +76,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     otherUsers: Map<string, User>;
 
+    paramsLoadedContainerEverything: HTMLDivElement;
+
 
 
     constructor(){
@@ -105,6 +108,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.variablesDiv = document.createElement("div");
         this.variablesDiv.id = "variablesDiv";
         document.body.appendChild(this.variablesDiv);
+
+        // setup the div of the loaded params of the whole graph
+        this.paramsLoadedContainerEverything = document.createElement("div");
+        setupLoadedParam(this, document.createElement("div"), this.paramsLoadedContainerEverything, "", "");
+        
 
         // this.addVariable("h", 0, 20, 50, 0.1, () => {
         //     this.afterVariableChange()
@@ -440,8 +448,15 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         return false;
     }
 
+    clearAreas(){
+        for (const area of this.areas.values()){
+            area.clearDOM();
+        }
+        this.areas.clear();
+    }
 
     clear() {
+        this.clearAreas();
         for( const text_zone of this.text_zones.values()){
             text_zone.div.remove();
         }
@@ -856,5 +871,44 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             }
             div.appendChild(newDiv);
         }
+    }
+
+
+
+    /**
+     * For the moment it only center the view on the vertices
+     */
+    centerViewOnEverything(){
+        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
+        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
+
+        if(this.graph.vertices.size > 1){
+            const v : ClientVertex = this.graph.vertices.values().next().value;
+            let xMin = v.data.canvas_pos.x;
+            let yMin = v.data.canvas_pos.y;
+            let xMax = v.data.canvas_pos.x;
+            let yMax = v.data.canvas_pos.y;
+
+            for(const u of this.graph.vertices.values()){
+                xMin = Math.min(xMin, u.data.canvas_pos.x);
+                yMin = Math.min(yMin, u.data.canvas_pos.y);
+                xMax = Math.max(xMax, u.data.canvas_pos.x);
+                yMax = Math.max(yMax, u.data.canvas_pos.y);
+            }
+
+            top_left_corner = new CanvasCoord(xMin, yMin);
+            bot_right_corner = new CanvasCoord(xMax, yMax);
+        }
+        else if(this.graph.vertices.size === 1){
+            const v: ClientVertex = this.graph.vertices.values().next().value;
+            let xMin = v.data.canvas_pos.x - this.canvas.width/2;
+            let yMin = v.data.canvas_pos.y - this.canvas.height/2;
+            let xMax = v.data.canvas_pos.x + this.canvas.width/2;
+            let yMax = v.data.canvas_pos.y + this.canvas.height/2;
+            top_left_corner = new CanvasCoord(xMin, yMin);
+            bot_right_corner = new CanvasCoord(xMax, yMax);
+        }
+
+        center_canvas_on_rectangle(this.view, top_left_corner, bot_right_corner, this);
     }
 }

@@ -3,10 +3,11 @@ import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
 import { ClientBoard } from '../board/board';
+import { ParametorLoaded } from './param_loaded';
 
 
 
-export let params_loaded = new Array<Parametor>();
+export let params_loaded = new Array<ParametorLoaded>();
 export let params_available = new Array<Parametor>();
 
 
@@ -40,23 +41,20 @@ export function setup_parametors_available() {
 
 
 
-export function load_param(param: Parametor, board: ClientBoard, area_id: number) {
-    const html_id =  param.id + "_area_" + area_id;
-    const param_to_load = {parametor:param, html_id:html_id, area_id : area_id};
-
-    let div_parametor = document.getElementById("param_" + html_id);
-    if(div_parametor !== null){
-        params_loaded.push(param_to_load);
-        div_parametor.classList.remove("inactive_parametor");
-
-        if(param.is_live){
-            update_parametor(board.graph, param_to_load);
-            requestAnimationFrame(function () {board.draw() })
-        }
-        
-        toggle_list_separator(area_id, true);
-    }
+export function load_param(param: Parametor, board: ClientBoard, areaId: string | number) {
+    console.log("load_param", param, areaId);
+    // const html_id =  param.id + "_area_" + areaId;
+    const paramLoaded = new ParametorLoaded(param, areaId, board)
     
+    params_loaded.push(paramLoaded);
+    paramLoaded.div.classList.remove("inactive_parametor");
+
+    if(param.is_live){
+        update_parametor(board.graph, paramLoaded);
+        board.requestDraw();
+    }
+        
+    toggle_list_separator(areaId, true);
 }
 
 
@@ -68,9 +66,8 @@ export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILIT
         force_compute = false;
     }
 
-    for (let param of params_loaded) {
+    for (const param of params_loaded) {
         if(!param.parametor.is_live && param.parametor.is_sensible(sensibilities)){
-            const result_span = document.getElementById("span_result_" + param.html_id);
             invalid_parametor(param);
         }
         if((force_compute || param.parametor.is_live) && param.parametor.is_sensible(sensibilities)){
@@ -80,31 +77,31 @@ export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILIT
     }
 }
 
-function invalid_parametor(param){
-    const result_span = document.getElementById("span_result_" + param.html_id);
-    update_result_span("", param.parametor, result_span, true);
+function invalid_parametor(param: ParametorLoaded){
+    update_result_span("", param.parametor, param.resultSpan, true);
 }
 
 
-export function update_parametor(g:ClientGraph, param){
-    const result_span = document.getElementById("span_result_" + param.html_id);
-    if(param.area_id == -1){
-        var result = param.parametor.compute(g, true);
-        update_result_span(result, param.parametor, result_span);
+export function update_parametor(g:ClientGraph, param: ParametorLoaded){
+    const result_span = document.getElementById("span_result_" + param.id);
+    if (typeof param.areaId == "string" ){
+        const result = param.parametor.compute(g, true);
+        update_result_span(result, param.parametor, param.resultSpan);
     }
     else{
-        if(g.board.areas.has(param.area_id)){
-            var result = param.parametor.compute(g.board.get_subgraph_from_area(param.area_id), true);
-            update_result_span(result, param.parametor, result_span);
+        const area = g.board.areas.get(param.areaId);
+        if( typeof area != "undefined"){
+            const result = param.parametor.compute(g.board.get_subgraph_from_area(param.areaId), true);
+            update_result_span(result, param.parametor, param.resultSpan);
         }
         else{
-            remove_loaded_param(param.html_id, param.area_id);
+            remove_loaded_param(param);
         }
     }
 }
 
 
-function update_result_span(result:string, param, result_span:HTMLElement, invalid?:boolean){
+function update_result_span(result:string, param: Parametor, result_span:HTMLElement, invalid?:boolean){
     if(invalid == undefined){
         invalid = false;
     }
@@ -140,27 +137,22 @@ function update_result_span(result:string, param, result_span:HTMLElement, inval
 
 
 
-function toggle_list_separator(area_id:number, toggle:boolean){
-    const list_container_DOM = document.getElementById("param_list_container_area_"+area_id);
-    if(list_container_DOM){
-       if(toggle){
-        list_container_DOM.style.display = "flex";
-       }
-       else{
-        list_container_DOM.style.display = "none";
-       }
+function toggle_list_separator(area_id: string | number, toggle:boolean){
+    const listContainerDiv = document.getElementById("param_list_container_area_"+area_id);
+    if (listContainerDiv){
+        if (toggle){
+            listContainerDiv.style.display = "flex";
+        } else{
+            listContainerDiv.style.display = "none";
+        }
     }
 }
 
 
-export function remove_loaded_param(param_id: string, area_id:number) {
-    for (var i = 0; i < params_loaded.length; i++) {
-        if (params_loaded[i].parametor.id == param_id && area_id == params_loaded[i].area_id) {
-            const DOM = document.getElementById("param_" + params_loaded[i].html_id);
-            //Removing DOM
-            if(DOM !== null){
-                DOM.classList.add("inactive_parametor");
-            }
+export function remove_loaded_param(loadedParam: ParametorLoaded) {
+    for (let i = 0; i < params_loaded.length; i++) {
+        if (params_loaded[i].id == loadedParam.id ) {
+            params_loaded[i].div.classList.add("inactive_parametor");
             params_loaded.splice(i, 1);
             break;
         }
@@ -168,11 +160,12 @@ export function remove_loaded_param(param_id: string, area_id:number) {
       
     // Checking if there are loaded parametors for the area
     for (var j = 0; j < params_loaded.length; j++) {
-        if (area_id == params_loaded[j].area_id) {
+        if (loadedParam.areaId == params_loaded[j].areaId) {
             return
         }
     }
-    toggle_list_separator(area_id, false);
+    // If there are no more loadedParam 
+    toggle_list_separator(loadedParam.areaId, false);
 }
 
 

@@ -3,7 +3,6 @@ import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
-import { init_list_parametors_for_area } from "./board/area_div";
 import { get_sensibilities, SENSIBILITY } from "./parametors/parametor";
 import { ClientVertexData } from "./board/vertex";
 import { Coord, ORIENTATION, Vect } from "gramoloss";
@@ -232,7 +231,7 @@ export function setupHandlers(board: ClientBoard) {
         for(const data of datas){
             if (data.kind == "Stroke"){
                 const positions = new Array<Coord>();
-                data.element.positions.forEach(e => {
+                data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
                 const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.view);
@@ -246,9 +245,8 @@ export function setupHandlers(board: ClientBoard) {
             } else if (data.kind == "Area"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
                 const c2 = new Coord(data.element.c2.x,data.element.c2.y);
-                const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board.view);
+                const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board, data.index);
                 board.areas.set(data.index, new_area);
-                init_list_parametors_for_area(board, data.index);
                 //TO CHECK: I added this line here because the panels were not updated when creating a new area. Is it still how we are supposed to do it now ? 
                 update_options_graphs(board);
        
@@ -428,39 +426,19 @@ export function setupHandlers(board: ClientBoard) {
 
 
     function handleAreas(data: [[number, {c1: {x: number, y: number}, c2: {x: number, y: number}, color: string, label: string}]]){
-        let old_area_ids = new Set<number>();
-        for ( const index of board.areas.keys()){
-            old_area_ids.add(index);
-        }
-
-        board.areas.clear();
-        for(const s of data){
-            const c1 = new Coord(s[1].c1.x, s[1].c1.y);
-            const c2 = new Coord(s[1].c2.x, s[1].c2.y);
-            const new_area = new ClientArea( s[1].label, c1, c2, s[1].color, board.view);
-            board.areas.set(s[0], new_area);
-            init_list_parametors_for_area(board, s[0]);
-        }
-
-        let new_area_ids = new Set<number>();
-        for ( const index of board.areas.keys()){
-            new_area_ids.add(index);
-        }
-
-        for ( const index of old_area_ids){
-            if (new_area_ids.has(index) == false){
-                const div = document.getElementById("area_"+ index);
-               if (div != null) div.remove();
-            }
+        console.log("Handle: reset areas")
+        board.clearAreas();
+        for(const [index,rawArea] of data){
+            const c1 = new Coord(rawArea.c1.x, rawArea.c1.y);
+            const c2 = new Coord(rawArea.c2.x, rawArea.c2.y);
+            const new_area = new ClientArea( rawArea.label, c1, c2, rawArea.color, board, index);
+            board.areas.set(index, new_area);
         }
         
         update_params_loaded(g, new Set([SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.GEOMETRIC]), false);
         update_options_graphs(board);
         // console.log("update???")
-        // make_list_areas(canvas, ctx, g);
-        requestAnimationFrame(function () { 
-            board.draw()
-        });
+        board.requestDraw();
     }
 
 
@@ -516,12 +494,11 @@ export function setupHandlers(board: ClientBoard) {
 
         g.compute_vertices_index_string(board.view);
 
-        init_list_parametors_for_area(board, -1);
 
         const sensi = get_sensibilities(sensibilities);
         update_params_loaded(g, sensi, false);
         console.timeEnd('resetGraph')
-        requestAnimationFrame(function () { board.draw() });
+        board.requestDraw();
     }
 
 }

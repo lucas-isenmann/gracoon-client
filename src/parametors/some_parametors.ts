@@ -65,7 +65,7 @@ param_number_connected_comp.compute = ((g: ClientGraph) => {
 
     while (!all_visited) {
         all_visited = true;
-        let first_vertex_index;
+        let first_vertex_index = 0;
 
         for (const index of g.vertices.keys()) {
             if (visited.get(index) === false) {
@@ -119,7 +119,9 @@ param_min_degree.compute = ((g: ClientGraph, verbose) => {
     if (verbose) {
         for (const vertex_index of data.min_vertices) {
             const vertex = g.vertices.get(vertex_index);
-            vertex.data.color = Color.Red;
+            if (typeof vertex != "undefined"){
+                vertex.data.color = Color.Red;
+            }
         }
         g.vertices.forEach((vertex, vertex_index) => {
             vertex.data.update_param(param_min_degree.id, String(g.get_neighbors_list(vertex_index).length));
@@ -164,34 +166,25 @@ param_has_proper_coloring.compute = ((g: ClientGraph) => {
         return "true";
     }
 
-    const visited = new Map();
-    for (const index of g.vertices.keys()) {
-        visited.set(index, false);
-    }
-
-    const v_index = g.vertices.keys().next().value;
-
-    const S = Array();
-    S.push(v_index);
+    const visited = new Set<number>();
+    const [vStart] = g.vertices.values(); 
+    const S = Array<ClientVertex>(vStart);
 
     while (S.length !== 0) {
-        const v_index = S.pop();
-        if (!visited.get(v_index)) {
-            visited.set(v_index, true);
-            const v = g.vertices.get(v_index);
-            const neighbors = g.get_neighbors_list(v_index);
-            for (const u_index of neighbors) {
-                const u = g.vertices.get(u_index);
+        const v = S.pop();
+        if (typeof v != "undefined" && !visited.has(v.index)) {
+            visited.add(v.index);
+            const neighbors = g.getNeighbors(v);
+            for (const u of neighbors) {
                 if (u.data.color === v.data.color) {
                     return "false";
                 }
-                S.push(u_index);
+                S.push(u);
             }
         }
     }
 
     return "true";
-
 });
 
 
@@ -204,8 +197,12 @@ param_diameter.compute = ((g: ClientGraph) => {
 
     for (const v_index of g.vertices.keys()) {
         for (const u_index of g.vertices.keys()) {
-            if (diameter < FW.distances.get(v_index).get(u_index)) {
-                diameter = FW.distances.get(v_index).get(u_index);
+            const vDist = FW.distances.get(v_index);
+            if (typeof vDist != "undefined"){
+                const dist = vDist.get(u_index);
+                if (typeof dist != "undefined" && diameter < dist ) {
+                    diameter = dist;
+                }
             }
         }
     }
@@ -231,7 +228,12 @@ paramDelaunayConstructor.compute = ((g: ClientGraph) => {
 export const paramStretch = new Parametor("Stretch", "stretch", "stretch", "Computes the stretch", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
 paramStretch.compute = ((g: ClientGraph) => {
-    return String(g.stretch().toFixed(3));
+    const stretch = g.stretch();
+    if (typeof stretch != "undefined"){
+        return String(stretch.toFixed(3));
+    } else {
+        return ("NAN")
+    }
 });
 
 
@@ -373,15 +375,18 @@ export let param_is_good_weight = new Parametor("Is good weight for our problem 
 param_is_good_weight.compute = ((g: ClientGraph) => {
     const FW = g.Floyd_Warhall( true);
 
-    for (const v_index of g.vertices.keys()) {
-        for (const u_index of g.vertices.keys()) {
-            if (u_index != v_index) {
-                for (const w_index of g.vertices.keys()) {
-                    if (w_index != u_index && w_index != v_index) {
-                        if (FW.distances.get(u_index).get(v_index) == FW.distances.get(v_index).get(w_index)) {
-                            g.vertices.get(v_index).data.color = Color.Red;
-                            g.vertices.get(u_index).data.color = Color.Purple;
-                            g.vertices.get(w_index).data.color = Color.Purple;
+    for (const v of g.vertices.values()) {
+        for (const u of g.vertices.values()) {
+            if (u.index != v.index) {
+                for (const w of g.vertices.values()) {
+                    if (w.index != u.index && w.index != v.index) {
+                        const uDist = FW.distances.get(u.index);
+                        const vDist = FW.distances.get(v.index);
+                        if (typeof uDist == "undefined" || typeof vDist == "undefined") continue;
+                        if (uDist.get(v.index) == vDist.get(w.index)) {
+                            v.data.color = Color.Red;
+                            u.data.color = Color.Purple;
+                            w.data.color = Color.Purple;
                             return "false";
                         }
                     }
@@ -669,8 +674,7 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
 
     for (const v of g.vertices.values()){
         if (v.data.color != Color.Neutral){
-            for ( const neighborId of g.get_out_neighbors_list(v.index)){
-                const neighbor = g.vertices.get(neighborId);
+            for ( const neighbor of g.getOutNeighbors(v)){
                 if (neighbor.data.color != Color.Neutral){
                     return "false";
                 }
@@ -678,14 +682,12 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
             continue;
         }
         let covered = false;
-        for ( const neighborId of g.get_out_neighbors_list(v.index)){
-            const neighbor = g.vertices.get(neighborId);
+        for ( const neighbor of g.getOutNeighbors(v)){
             if (neighbor.data.color != Color.Neutral){
                 covered = true;
                 break;
             }
-            for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
-                const neighbor2 = g.vertices.get(neighbor2Id);
+            for (const neighbor2 of g.getOutNeighbors(neighbor)){
                 if (neighbor2.data.color != Color.Neutral){
                     covered = true;
                     break;
@@ -718,14 +720,12 @@ function getUncoveredVertex(g: ClientGraph): ClientVertex | undefined{
             continue;
         }
         let covered = false;
-        for ( const neighborId of g.get_out_neighbors_list(v.index)){
-            const neighbor = g.vertices.get(neighborId);
+        for ( const neighbor of g.getOutNeighbors(v)){
             if (neighbor.data.color != Color.Neutral){
                 covered = true;
                 break;
             }
-            for (const neighbor2Id of g.get_out_neighbors_list(neighborId)){
-                const neighbor2 = g.vertices.get(neighbor2Id);
+            for (const neighbor2 of g.getOutNeighbors(neighbor)){
                 if (neighbor2.data.color != Color.Neutral){
                     covered = true;
                     break;

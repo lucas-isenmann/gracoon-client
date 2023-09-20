@@ -64,7 +64,9 @@ export class ClientTextZone extends TextZone {
             content.onmousemove = () => {
                 if (board.interactorLoadedId == INTERACTOR_TYPE.SELECTION){
                     const s = window.getSelection();
-                    s.removeAllRanges();
+                    if (s){
+                        s.removeAllRanges();
+                    }
                 }
             }
 
@@ -115,15 +117,17 @@ export class ClientTextZone extends TextZone {
                     e.preventDefault(); 
 
                     const sel = window.getSelection();
-                    const range = sel.getRangeAt(0);
-                    // \u0009 = Tab but not displayed in div
-                    // \u00a0 = Space
-                    const tabNode = document.createTextNode("\u00a0");
-                    range.insertNode(tabNode);
-                    range.setStartAfter(tabNode);
-                    range.setEndAfter(tabNode); 
-                    sel.removeAllRanges();
-                    sel.addRange(range);
+                    if (sel){
+                        const range = sel.getRangeAt(0);
+                        // \u0009 = Tab but not displayed in div
+                        // \u00a0 = Space
+                        const tabNode = document.createTextNode("\u00a0");
+                        range.insertNode(tabNode);
+                        range.setStartAfter(tabNode);
+                        range.setEndAfter(tabNode); 
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
                 }
             }
 
@@ -181,24 +185,28 @@ export class ClientTextZone extends TextZone {
 // Saving caret position when editing
 
 
-let savedRange: Range = null;
+let savedRange: Range | null = null;
 
 function saveSelection() {
-    if(window.getSelection)//non IE Browsers
+    if(window.getSelection)//non IE Browsers 
     {
         savedRange = window.getSelection().getRangeAt(0);
     }
 }
 
 function restoreSelection(div_id: string) {
-    document.getElementById(div_id).focus();
+    const div = document.getElementById(div_id);
+    if (div) div.focus;
+
     if (savedRange != null) {
         if (window.getSelection)//non IE and there is already a selection
         {
             const s = window.getSelection();
-            if (s.rangeCount > 0) 
+            if (s != null ){
+                if ( s.rangeCount > 0) 
                 s.removeAllRanges();
             s.addRange(savedRange);
+            }
         }
         else if (document.createRange)//non IE and no selection
         {

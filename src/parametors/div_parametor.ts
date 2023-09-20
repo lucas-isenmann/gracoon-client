@@ -93,7 +93,7 @@ export function update_options_graphs(board: ClientBoard){
             gDiv.textContent = "Everything";
             newDiv.appendChild(gDiv);
             gDiv.addEventListener('click', function () {   
-                load_param(param, board, -1); 
+                load_param(param, board, ""); 
                 params_available_turn_off_div();
             });
 
@@ -114,12 +114,14 @@ export function update_options_graphs(board: ClientBoard){
 
 
 export function params_available_turn_off_div() {
-    var div = document.getElementById("params_available")
+    var div = document.getElementById("params_available");
+    if (div == null) return;
     div.style.display = "none"
 }
 
 export function params_available_turn_on_div() {
-    var div = document.getElementById("params_available")
+    var div = document.getElementById("params_available");
+    if (div == null) return;
     div.style.display = "block"
 }
 
@@ -130,14 +132,14 @@ function toggle_list_graph_option(param:Parametor, board: ClientBoard){
 
     // if there is no area, click on the parametor just computes it on the full graph
     if(board.areas.size == 0){
-        load_param(param, board, -1);
+        load_param(param, board, "");
         params_available_turn_off_div(); 
     }
     else{
 
         // We get the container of the list
         const containerDOM = document.getElementById(`param_div_${param.id}_list_graph_container`);
-
+        if (containerDOM == null) return;
 
         // We toggle its visibility
         // console.log("AVANT", containerDOM.style.display)

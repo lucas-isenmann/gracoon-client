@@ -3,6 +3,7 @@ import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { BoardElementType, ClientBoard } from "./board";
+import { setupLoadedParam } from "./area_div";
 
 
 export enum AREA_CORNER {
@@ -26,14 +27,30 @@ export class ClientArea extends Area{
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
+    paramsLoadedDiv: HTMLDivElement;
+    paramsLoadedContainer: HTMLDivElement;
 
-    constructor(label:string, c1:Coord, c2:Coord, color:string, view: View){
+    constructor(label:string, c1:Coord, c2:Coord, color:string, board: ClientBoard, index: number){
         super(label, c1, c2, color);
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = board.view.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = board.view.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = board.view.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = board.view.create_canvas_coord(this.top_right_corner());
+        this.paramsLoadedDiv = document.createElement("div");
+        this.paramsLoadedContainer = document.createElement("div");
+
+        this.setupDOM(board, index);
     }
+
+    setupDOM(board: ClientBoard, index: number){
+        setupLoadedParam(board, this.paramsLoadedDiv, this.paramsLoadedContainer, this, index);
+    }
+
+
+    clearDOM(){
+        this.paramsLoadedDiv.remove();
+    }
+
 
     is_on_label(pos:CanvasCoord, r?:number){ 
         // ____________________
