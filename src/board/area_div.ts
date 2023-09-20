@@ -1,7 +1,6 @@
 import { center_canvas_on_rectangle } from "./camera";
-import { COLOR_BACKGROUND } from "../draw";
 import { params_available_turn_on_div } from "../parametors/div_parametor";
-import { ClientBoard } from "./board";
+import { ClientBoard, COLOR_BACKGROUND } from "./board";
 
 import svgParamIcons from '../img/parametor/*.svg';
 import { ClientArea } from "./area";

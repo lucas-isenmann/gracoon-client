@@ -1,5 +1,5 @@
+import { VERTEX_RADIUS } from "./board/board";
 import { INDEX_TYPE } from "./board/camera";
-import { VERTEX_RADIUS } from "./draw";
 import { CanvasCoord } from "./board/canvas_coord";
 import { Multicolor } from "./multicolor";
 

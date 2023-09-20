@@ -3,8 +3,7 @@ import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
-import { SELECTION_COLOR } from "../draw";
-import { ClientBoard } from "./board";
+import { ClientBoard, SELECTION_COLOR } from "./board";
 
 export class ClientStroke extends Stroke{
     color: Color;

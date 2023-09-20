@@ -1,5 +1,4 @@
 import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
-import { COLOR_ALIGNEMENT_LINE, COLOR_BACKGROUND, GRID_COLOR, SELECTION_COLOR, VERTEX_RADIUS } from "../draw";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -18,12 +17,25 @@ import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
 import { Color } from "../colors_v2";
-import { Self, User } from "../user";
+import { User } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { AreaChoice, AreaIndex } from "../generators/attribute";
-import { setupLoadedParam } from "./area_div";
 import { EntireZone } from "../parametors/zone";
+import { Self } from "../self_user";
+
+
+export const SELECTION_COLOR = 'green' // avant c'était '#00ffff'
+export let COLOR_BACKGROUND = "#1e1e1e";
+export const GRID_COLOR = '#777777';
+export const VERTEX_RADIUS = 8;
+export const COLOR_ALIGNEMENT_LINE = "#444444";
+export let COLOR_BORDER_VERTEX = "#ffffff";
+export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
+
+
+
+
 
 
 export enum BoardElementType {
@@ -921,5 +933,39 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         center_canvas_on_rectangle(this.view, top_left_corner, bot_right_corner, this);
         this.update_after_camera_change();
+    }
+
+
+
+
+
+
+
+    toggle_dark_mode(){
+        if(this.view.dark_mode == false){
+            this.view.dark_mode = true;
+            COLOR_BACKGROUND = "#1e1e1e";
+            COLOR_BORDER_VERTEX = "#ffffff";
+            document.documentElement.style.setProperty(`--background_color_div`, "#ffffff"); 
+            document.documentElement.style.setProperty(`--color_div`, "#000000"); 
+            document.documentElement.style.setProperty(`--background_color_page`, COLOR_BACKGROUND); 
+            
+            document.querySelectorAll("img").forEach( img => {
+                img.style.filter = "";
+            })
+        }
+        else{
+            this.view.dark_mode = false;
+            COLOR_BACKGROUND = "#fafafa";
+            COLOR_BORDER_VERTEX = "#000000";
+            
+            document.documentElement.style.setProperty(`--background_color_div`, "#202124"); 
+            document.documentElement.style.setProperty(`--color_div`, "#ffffff"); 
+            document.documentElement.style.setProperty(`--background_color_page`, COLOR_BACKGROUND); 
+    
+            document.querySelectorAll("img").forEach( img => {
+                img.style.filter = "invert(100%) sepia(0%) saturate(2%) hue-rotate(115deg) brightness(102%) contrast(100%)";
+            })
+        }
     }
 }

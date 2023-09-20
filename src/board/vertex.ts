@@ -1,10 +1,9 @@
 import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
-import { VERTEX_RADIUS } from "../draw";
 import { draw_circle } from "../draw_basics";
 import { INDEX_TYPE, View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
-import { BoardElementType, ClientBoard } from "./board";
+import { BoardElementType, ClientBoard, VERTEX_RADIUS } from "./board";
 import { initWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "../colors_v2";
 

@@ -283,14 +283,14 @@ export function setupInteractions(board: ClientBoard) {
 
 
 function select_interactor_div(interactor: InteractorV2 ) {
-    for (let div of document.getElementsByClassName("interactor")) {
+    document.querySelectorAll(".interactor").forEach( div => {
         if (div.id == interactor.id) {
             div.classList.add("selected");
         }
         else {
             div.classList.remove("selected");
         }
-    }
+    })
 }
 
 

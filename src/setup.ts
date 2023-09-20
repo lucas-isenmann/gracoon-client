@@ -1,4 +1,3 @@
-import { toggle_dark_mode } from "./draw";
 import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
 import { setup_parametors_available } from "./parametors/parametor_manager";
 import { setupHandlers, socket } from "./socket";
@@ -123,14 +122,8 @@ function setup() {
 
     const dark_mode_launcher = new SideBarLauncher(local_board, "dark_mode", "Toggle dark mode", "", ORIENTATION_INFO.BOTTOM, "dark_mode", "pointer", 
     () => {
-        if(local_board.view.dark_mode){
-            toggle_dark_mode(false);
-            local_board.view.dark_mode = false;
-        }
-        else{
-            toggle_dark_mode(true);
-            local_board.view.dark_mode = true;
-        }
+        local_board.toggle_dark_mode();
+        
         for( const color of colorsData.keys()){
             const colorChoiceDiv = document.getElementById("color_choice_" + color);
             if (colorChoiceDiv != null){
