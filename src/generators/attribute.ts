@@ -1,4 +1,3 @@
-import { Area } from "gramoloss";
 import { ClientBoard } from "../board/board";
 
 export class Integer {

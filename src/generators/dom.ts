@@ -1,3 +1,4 @@
+import { Option } from "gramoloss";
 import { ClientBoard } from "../board/board";
 import { CanvasCoord } from "../board/canvas_coord";
 import { createPopup } from "../popup";
@@ -5,13 +6,14 @@ import { GraphGenerator } from "./generator";
 import { generators_available } from "./some_generators";
 
 
-let last_generator: GraphGenerator = null;
+let lastGenerator: Option<GraphGenerator>;
 
 
 
 export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoard) {
     const main_div = createPopup("generators_div", "Generators");
     const popup_content = document.getElementById("generators_div_content");
+    if (popup_content == null) return;
     popup_content.style.display = "flex";
     popup_content.classList.add("scrolling_y","non_scrolling_bar");
 
@@ -103,7 +105,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
             }
         }
         board.setGraphClipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true);
-        last_generator = gen;
+        lastGenerator = gen;
         turn_off_generators_div();
     }
     div.appendChild(generate_button);
@@ -113,8 +115,8 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
 
 
 export function regenerate_graph(e: MouseEvent, board: ClientBoard){
-    if ( last_generator !== null){
-        board.setGraphClipboard(last_generator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true);
+    if ( typeof lastGenerator != "undefined"){
+        board.setGraphClipboard(lastGenerator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true);
     }
 }
 
