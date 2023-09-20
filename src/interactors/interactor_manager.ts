@@ -186,8 +186,6 @@ export function setupInteractions(board: ClientBoard) {
             requestAnimationFrame(() => board.draw() );
         }
 
-
-
         if ( typeof board.graphClipboard != "undefined") {
             board.translateGraphClipboard(previous_canvas_shift, mousePos);
         } else if (typeof board.interactorLoaded != "undefined") {
@@ -197,7 +195,11 @@ export function setupInteractions(board: ClientBoard) {
                 if (element instanceof ELEMENT_DATA_AREA || element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
                     if (typeof element.resizeType != "undefined"){
                         board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
+                    } else {
+                        board.canvas.style.cursor = "grab";
                     }
+                } else {
+                    board.canvas.style.cursor = "default";
                 }
             } else {
                 board.canvas.style.cursor = "default";
@@ -205,7 +207,6 @@ export function setupInteractions(board: ClientBoard) {
             if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
                 board.requestDraw();
             }
-            
         }
 
         const mouse_server_coord = board.view.create_server_coord(mousePos);

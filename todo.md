@@ -23,9 +23,6 @@
 
 ## Issues
 
-- textZone interactor: clic on background should just validate, not create a textZone
-- les curseurs sont faux quand on passe sur un area
-- redimensionner les area c'est galère
 - representations
 - bug when undo delete the weights of the links
 

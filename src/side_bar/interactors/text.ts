@@ -26,8 +26,14 @@ export function createTextInteractor(board: ClientBoard): InteractorV2{
             }
         }
         else if ( typeof pointed.data == "undefined" ){
+            if (document.activeElement){ // If there is an active content editable, then do not create a textZone 
+                if (document.activeElement.classList.contains("content_editable")){
+                    return;
+                }
+            }
+
             const coord = board.view.create_server_coord(pointed.pointedPos);
-            board.emit_add_element(new TextZone(coord, 100, ""),(response: number) => { 
+            board.emit_add_element(new TextZone(coord, 100, "", board.get_next_available_index_text_zone()),(response: number) => { 
                 setTimeout(() => {
                     const textZone = board.text_zones.get(response);
                     if ( typeof textZone != "undefined" ){
@@ -38,11 +44,6 @@ export function createTextInteractor(board: ClientBoard): InteractorV2{
         }
     })
 
-
-    text_interactorV2.onleave = () => {
-        // current_index = null;
-        // turn_off_weight_input();
-    }
 
     return text_interactorV2;
 } 
