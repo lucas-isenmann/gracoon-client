@@ -11,15 +11,15 @@
 
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
 - User and Self must be quasi the same class
-- [ ] mieux gérer les sorties du canvas/ecran
-- [ ] dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
-- [ ] interactor manager : event on window, not on canvas
-- [ ] notion générique d'élement d'un board (pour pouvoir les parcourir)
+- mieux gérer les sorties du canvas/ecran
+- dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
+- interactor manager : event on window, not on canvas
+- notion générique d'élement d'un board (pour pouvoir les parcourir)
 
 ## Issues
 
-- [ ] representations
-- [ ] bug when undo delete the weights of the links
+- representations
+- bug when undo delete the weights of the links
 
 ------------------------------------------------------
 

@@ -21,6 +21,7 @@ import { Color } from "../colors_v2";
 import { Self, User } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
+import { AreaChoice, AreaIndex } from "../generators/attribute";
 
 
 export enum BoardElementType {
@@ -714,11 +715,29 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emit_apply_modifyer(modifyer: GraphModifyer){
+        console.log("Emit: apply modifier")
         const attributes_data = new Array<string | number>();
+        let sendVerticesSelection = false;
         for (const attribute of modifyer.attributes){
+            if ( attribute instanceof AreaIndex ){
+                if (attribute.value == AreaChoice.INDUCED_GRAPH_BY_SELECTED_VERTICES){
+                    sendVerticesSelection = true;
+                }
+            }
             attributes_data.push(attribute.value);
         }
-        socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data);
+        if ( sendVerticesSelection){
+            const verticesSelection = new Array<number>();
+            for (const vertex of this.graph.vertices.values()){
+                if (vertex.data.is_selected){
+                    verticesSelection.push(vertex.index);
+                }
+            }
+            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data, verticesSelection);
+        }
+        else {
+            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data);
+        }
     }
 
     // Note: sometimes element is a server class, sometimes a client

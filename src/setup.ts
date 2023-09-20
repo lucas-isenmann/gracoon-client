@@ -1,7 +1,7 @@
 import { toggle_dark_mode } from "./draw";
 import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
 import { setup_parametors_available } from "./parametors/parametor_manager";
-import { setup_socket, socket } from "./socket";
+import { setupHandlers, socket } from "./socket";
 import { setup_generators_div, turn_on_generators_div } from "./generators/dom";
 import { ClientBoard, SocketMsgType } from "./board/board";
 import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
@@ -55,7 +55,7 @@ function setup() {
         local_board.draw();
     })
 
-    setup_socket(local_board);
+    setupHandlers(local_board);
 
     local_board.ctx.canvas.width = window.innerWidth;
     local_board.ctx.canvas.height = window.innerHeight;

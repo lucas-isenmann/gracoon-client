@@ -8,7 +8,7 @@ export enum SENSIBILITY {
 }
 
 
-function get_sensibility(s: string){
+function getSensibility(s: string){
     switch(s){
         case "ELEMENT":
             return SENSIBILITY.ELEMENT;
@@ -22,7 +22,7 @@ function get_sensibility(s: string){
 }
 
 export function get_sensibilities(s:Array<string>) : Set<SENSIBILITY>{
-    return new Set(s.map(e => get_sensibility(e)));
+    return new Set(s.map(e => getSensibility(e)));
 }
 
 export class Parametor {
@@ -48,6 +48,8 @@ export class Parametor {
         this.is_boolean = is_boolean;
         this.sensibility = new Set(sensibility);
         this.has_info = has_info;
+        this.is_verbose = false;
+        this.compute = () => "";
     }
 
     static from_function(f: (g: ClientGraph, verbose: boolean) => string, name: string, id: string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean): Parametor {

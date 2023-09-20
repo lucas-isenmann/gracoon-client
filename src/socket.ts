@@ -27,35 +27,42 @@ export const socket = io(adress);
 // export const socket = new WebSocket("ws://" + ENV.serverAdress + ":" + ENV.port);
 
 
-export function setup_socket(board: ClientBoard) {
+export function setupHandlers(board: ClientBoard) {
     const g = board.graph;
     
     // USERS
     socket.on('server-version', handleServerVersion);
-    socket.on('myId', handle_my_id);
-    socket.on('room_id', handle_room_id);
-    socket.on('update_room_id', handle_update_room_id);
+    socket.on('myId', handleMyId);
+    socket.on('room_id', handleRoomId);
+    socket.on('update_room_id', handleUpdateRoomId);
     socket.on('update_user', update_user);
-    socket.on('remove_user', remove_user);
-    socket.on('clients', handle_clients);
-    socket.on('update_other_self_user', update_other_self_user);
-    socket.on('send_view', handle_send_view);
-    socket.on('view_follower', handle_update_view_follower);
+    socket.on('remove_user', handleRemoveUser);
+    socket.on('clients', handleClients);
+    socket.on('update_other_self_user', handleUpdateOtherUsers);
+    socket.on('send_view', handleSendView);
+    socket.on('view_follower', handleUpdateViewFollower);
 
-    function handle_room_id(romm_id: number){
-        let url = new URL(document.URL);
-        let urlsp = url.searchParams;
-        let room_id = encodeURI(urlsp.get("room_id"));
-        if (room_id === "null") {
-            window.history.replaceState(null, null, "?room_id="+romm_id);
+    function handleRoomId(currentRoomId: number){
+        console.log( `Handle: room id: ${currentRoomId}` )
+        const url = new URL(document.URL);
+        const uri = url.searchParams.get("room_id");
+        if (uri == null) {
+            window.history.replaceState(null, "", "?room_id="+currentRoomId);
+        } else {
+            const room_id = encodeURI(uri);
+            if (room_id === "null") {
+                window.history.replaceState(null, "", "?room_id="+currentRoomId);
+            }
         }
+        
     }
 
-    function handle_update_room_id(new_romm_id:number){
-            window.history.replaceState(null, null, "?room_id="+new_romm_id);
+    function handleUpdateRoomId(newRoomId: number){
+        console.log(`Handle: update room id ${newRoomId}`);
+        window.history.replaceState(null, "", "?room_id="+newRoomId);
     }
 
-    function handle_update_view_follower(x:number, y:number, zoom:number, id:string){
+    function handleUpdateViewFollower(x:number, y:number, zoom:number, id:string){
         // console.log("FOLLOWING USER:", x,y,zoom, id);
         if(board.otherUsers.has(id) && board.selfUser.following == id){
             // console.log("Following......")
@@ -71,12 +78,12 @@ export function setup_socket(board: ClientBoard) {
         }
     }
 
-    function handle_send_view(){
+    function handleSendView(){
         // console.log("SENDING MY VIEW");
         socket.emit("my_view", board.view.camera.x, board.view.camera.y, board.view.zoom);
     }
 
-    function update_other_self_user(id:string, label:string, color:string){
+    function handleUpdateOtherUsers(id:string, label:string, color:string){
         // console.log(id, label, color);
         const user = board.otherUsers.get(id);
         if ( typeof user != "undefined") {
@@ -91,14 +98,18 @@ export function setup_socket(board: ClientBoard) {
     }
 
 
-    function handle_my_id(id: string, label: string, color :string) {
-        let url = new URL(document.URL);
-        let urlsp = url.searchParams;
-        let room_id = encodeURI(urlsp.get("room_id"));
-        if (room_id != "null") {
-            console.log("room_id : ", room_id);
-            socket.emit("change_room_to", room_id);
+    function handleMyId(id: string, label: string, color :string) {
+        console.log(`Handle: my id: ${id}`)
+        const url = new URL(document.URL);
+        const uri = url.searchParams.get("room_id");
+        if (uri != null){
+            const room_id = encodeURI(uri);
+            if (room_id != "null") {
+                console.log("room_id : ", room_id);
+                socket.emit("change_room_to", room_id);
+            }
         }
+        
 
         board.selfUser.init(id, label, color);
         board.selfUser.update_self_user_div();
@@ -124,7 +135,8 @@ export function setup_socket(board: ClientBoard) {
     }
 
 
-    function remove_user(userid: string) {
+    function handleRemoveUser(userid: string) {
+        console.log(`Handle: remove user: ${userid}`)
         if(board.selfUser.following == userid){
             board.selfUser.unfollow(userid);
         }
@@ -134,7 +146,7 @@ export function setup_socket(board: ClientBoard) {
     }
 
     
-    function handle_clients(users_entries: Array<[string, {label: string, color: string}]>){
+    function handleClients(users_entries: Array<[string, {label: string, color: string}]>){
         board.otherUsers.clear();
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 
@@ -151,19 +163,19 @@ export function setup_socket(board: ClientBoard) {
 
     // GRAPH 
     socket.on("graph", handleResetGraph); // ALL
-    socket.on("areas", handle_areas); // AREA
-    socket.on("strokes", handle_strokes); // STROKES
-    socket.on("reset_board", handle_reset_board);
+    socket.on("areas", handleAreas); // AREA
+    socket.on("strokes", handleStrokes); // STROKES
+    socket.on("reset_board", handleResetBoard);
 
     // Generic
-    socket.on("update_element", handle_update_element);
-    socket.on("add_elements", handle_add_elements);
-    socket.on("delete_elements", handle_delete_elements);
-    socket.on("translate_elements", handle_translate_elements);
+    socket.on("update_element", handleUpdateElement);
+    socket.on("add_elements", handleAddElements);
+    socket.on("delete_elements", handleDeleteElements);
+    socket.on("translate_elements", handleTranslateElements);
 
 
-    function handle_translate_elements(data: { shift: {x: number, y: number}, indices: [[string, number]]}, sensibilities){
-        // console.log("handle_translate_elements", data);
+    function handleTranslateElements(data: { shift: {x: number, y: number}, indices: [[string, number]]}, sensibilities: [SENSIBILITY]){
+        // console.log("handleTranslateElements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = board.view.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
@@ -215,8 +227,8 @@ export function setup_socket(board: ClientBoard) {
         requestAnimationFrame(function () {board.draw() });
     }
 
-    function handle_add_elements( datas, sensibilities){
-        // console.log("handle_add_elements", datas);
+    function handleAddElements( datas, sensibilities: [SENSIBILITY]){
+        // console.log("handleAddElements", datas);
         for(const data of datas){
             if (data.kind == "Stroke"){
                 const positions = new Array<Coord>();
@@ -263,7 +275,7 @@ export function setup_socket(board: ClientBoard) {
 
                 const newLinkData = new ClientLinkData(cp, color, weight, board.view);
                 const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
-                if (data.weight != ""){
+                if (typeof newLink != "undefined" && data.weight != ""){
                     newLink.afterSetWeight(board);
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
@@ -273,14 +285,16 @@ export function setup_socket(board: ClientBoard) {
         requestAnimationFrame(function () {board.draw() });
     }
 
-    function handle_delete_elements(data, sensibilities){
-        // console.log("handle_delete_elements", data);
+    function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
+        // console.log("handleDeleteElements", data);
         for ( const element of data){
             if (element[0] == "Stroke"){
                 board.strokes.delete(element[1]);
             } else if (element[0] == "TextZone"){
-                const text_zone = board.text_zones.get(element[1]);
-                text_zone.div.remove();
+                const textZone = board.text_zones.get(element[1]);
+                if( typeof textZone != "undefined"){
+                    textZone.div.remove();
+                }
                 board.text_zones.delete(element[1]);
             } else if (element[0] == "Area"){
                 board.areas.delete(element[1]);
@@ -290,7 +304,7 @@ export function setup_socket(board: ClientBoard) {
             } else if (element[0] == "Link"){
                 if ( board.graph.links.has(element[1])){
                     const link = board.graph.links.get(element[1]);
-                    if ( typeof link.data.weightDiv !== "undefined"){
+                    if ( typeof link != "undefined" && typeof link.data.weightDiv !== "undefined"){
                         link.data.weightDiv.remove();
                     }
                     board.graph.links.delete(element[1]);
@@ -303,29 +317,31 @@ export function setup_socket(board: ClientBoard) {
 
 
 
-    function handle_update_element(data){
-        console.log("handle_update_element", data);
+    function handleUpdateElement(data: {kind: string, param: string, index: number, value: any}){
+        console.log("handleUpdateElement", data);
         if (data.kind == "TextZone"){
-            const text_zone = board.text_zones.get(data.index);
+            const textZone = board.text_zones.get(data.index);
+            if (typeof textZone == "undefined") return;
             if (data.param == "width"){
                 const width = data.value as number;
-                text_zone.width = width;
-                text_zone.div.style.width = String(width) + "px";
+                textZone.width = width;
+                textZone.div.style.width = String(width) + "px";
             }
             else if (data.param == "text"){
-                if (document.activeElement.id != ("text_zone_content_" + data.index)){
+                if (document.activeElement != null && document.activeElement.id != ("text_zone_content_" + data.index)){
                     console.log("update text zone : ", data.index);
                     const text = data.value as string;
-                    text_zone.update_text(text);
+                    textZone.update_text(text);
                 }
             }
         } else if (data.kind == "Vertex"){
             const vertex = board.graph.vertices.get(data.index);
+            if (typeof vertex == "undefined") return;
             if(data.param == "color"){
                 const color = data.value as string;
                 vertex.data.color = color as Color;
             } else if (data.param == "weight"){
-                if (document.activeElement.id != ("vertex_weight_" + data.index)){
+                if (document.activeElement != null && document.activeElement.id != ("vertex_weight_" + data.index)){
                     const text = data.value as string;
                     vertex.data.weight = text;
                     vertex.afterSetWeight(board);
@@ -333,6 +349,7 @@ export function setup_socket(board: ClientBoard) {
             }
         }else if (data.kind == "Link"){
             const link = board.graph.links.get(data.index);
+            if (typeof link == "undefined") return;
             if(data.param == "color"){
                 const color = data.value as string;
                 link.data.color = color as Color;
@@ -351,12 +368,14 @@ export function setup_socket(board: ClientBoard) {
             }
         }else if (data.kind == "Stroke"){
             const stroke = board.strokes.get(data.index);
+            if (typeof stroke == "undefined") return;
             if(data.param == "color"){
                 const color = data.value as string;
                 stroke.color = color as Color;
             }
         } else if (data.kind == "Area"){
             const area = board.areas.get(data.index);
+            if (typeof area == "undefined") return;
             if(data.param == "c1"){
                 const new_c1 = new Coord(data.value.x , data.value.y);
                 area.c1 = new_c1;
@@ -372,10 +391,10 @@ export function setup_socket(board: ClientBoard) {
         requestAnimationFrame(function () {board.draw() });
     }
 
-    function handle_reset_board(text_zones_entries){
+    function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]]){
         // console.log("handle reset board");
         board.clear();
-        for (const data of text_zones_entries) {
+        for (const data of rawTextZones) {
             const pos = new Coord(data[1].pos.x, data[1].pos.y);
             const width = data[1].width as number;
             const text = data[1].text as string;
@@ -388,7 +407,7 @@ export function setup_socket(board: ClientBoard) {
 
 
 
-    function handle_strokes(data){
+    function handleStrokes(data: [[number, {positions: [{x: number, y: number}], color: string, width: number}]]){
         // console.log(data);
         board.strokes.clear();
         for(const s of data){
@@ -396,7 +415,7 @@ export function setup_socket(board: ClientBoard) {
             s[1].positions.forEach(e => {
                 positions.push(new Coord(e.x, e.y));
             });
-            const new_stroke = new ClientStroke(positions, s[1].color, s[1].width, board.view);
+            const new_stroke = new ClientStroke(positions, s[1].color as Color, s[1].width, board.view);
             board.strokes.set(s[0], new_stroke);
         }
         // update_params_loaded(g,false);
@@ -408,7 +427,7 @@ export function setup_socket(board: ClientBoard) {
 
 
 
-    function handle_areas(data){
+    function handleAreas(data: [[number, {c1: {x: number, y: number}, c2: {x: number, y: number}, color: string, label: string}]]){
         let old_area_ids = new Set<number>();
         for ( const index of board.areas.keys()){
             old_area_ids.add(index);
@@ -430,7 +449,8 @@ export function setup_socket(board: ClientBoard) {
 
         for ( const index of old_area_ids){
             if (new_area_ids.has(index) == false){
-                document.getElementById("area_"+ index).remove();
+                const div = document.getElementById("area_"+ index);
+               if (div != null) div.remove();
             }
         }
         
@@ -445,7 +465,9 @@ export function setup_socket(board: ClientBoard) {
 
 
 
-    function handleResetGraph(vertices_entries, links_entries, sensibilities) {
+    function handleResetGraph(rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, color: string}}]], 
+        rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
+        sensibilities: [SENSIBILITY]) {
         console.log("Handle: resetGraph");
         console.time("resetGraph")
 
@@ -453,9 +475,8 @@ export function setup_socket(board: ClientBoard) {
         // edges = new_graph.edges marche pas car bizarrement ça ne copie pas les méthodes ...
 
         g.clear_vertices();
-        for (const data of vertices_entries) {
+        for (const data of rawVertices) {
             const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.view, data[1].data.color as Color);
-            vertexData.color = data[1].data.color;
             const newVertex = g.set_vertex(data[0], vertexData);
             if (vertexData.weight != ""){
                 newVertex.afterSetWeight(board);
@@ -463,7 +484,7 @@ export function setup_socket(board: ClientBoard) {
         }
 
         g.clear_links();
-        for (const data of links_entries) {
+        for (const data of rawLinks) {
             const rawLink = data[1];
             let orient = ORIENTATION.UNDIRECTED;
             switch (rawLink.orientation) {
@@ -475,11 +496,11 @@ export function setup_socket(board: ClientBoard) {
                     break;
             }
             const cp = typeof rawLink.data.cp == "undefined" ? undefined : new Coord(rawLink.data.cp.x, rawLink.data.cp.y);
-            const newLinkData = new ClientLinkData(cp, rawLink.data.color, rawLink.data.weight, board.view);
+            const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.view);
             // console.log("update_graph, cp ", newLinkData.cp);
             const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
             // console.log("update_graph, cp ", newLink.data.cp);
-            if (newLinkData.weight != ""){
+            if (typeof newLink != "undefined" && newLinkData.weight != ""){
                 newLink.afterSetWeight(board);
             }
         }

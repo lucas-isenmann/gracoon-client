@@ -1,3 +1,4 @@
+import { Area } from "gramoloss";
 import { ClientBoard } from "../board/board";
 
 export class Integer {
@@ -105,41 +106,50 @@ export class Percentage {
     }
 }
 
+export enum AreaChoice {
+    EVERYTHING = "Everything",
+    INDUCED_GRAPH_BY_SELECTED_VERTICES = "Induced Selection"
+}
+
 export class AreaIndex {
     name: string;
-    value: number | string;
+    value: number | AreaChoice;
     div: HTMLDivElement;
 
     constructor(name: string) {
         this.name = name;
         this.div = document.createElement("div");
-        this.value = "";
+        this.value = AreaChoice.EVERYTHING;
     }
 
     reset_inputs(board: ClientBoard){
         this.div.innerHTML = "";
         this.div.classList.add("attribute_input");
 
-        const whole_input = document.createElement("input");
-
-        whole_input.name = this.name;
-        whole_input.type = "radio";
-        whole_input.value = "Everything";
-        whole_input.onchange = (e) => {
-            this.value = "";
-        }
-        whole_input.checked = true;
-        const everything_input_label = document.createElement("label");
-        everything_input_label.innerText = "Everything";
-        everything_input_label.htmlFor = "Everything";
-        everything_input_label.onclick = (e) => {
-            whole_input.checked = true;
-            this.value = "";
-        }
-        const everything_div = document.createElement("div");
-        everything_div.appendChild(whole_input);
-        everything_div.appendChild(everything_input_label);
-        this.div.appendChild(everything_div);
+        // Everything Radio Input
+        Object.values(AreaChoice).forEach( (ugaf) => {
+            const everythingInput = document.createElement("input");
+            everythingInput.name = this.name;
+            everythingInput.type = "radio";
+            everythingInput.value = ugaf;
+            everythingInput.onchange = (e) => {
+                this.value = ugaf;
+            }
+            if (ugaf == this.value){
+                everythingInput.checked = true;
+            }
+            const everythingLabel = document.createElement("label");
+            everythingLabel.innerText = ugaf;
+            everythingLabel.htmlFor = ugaf;
+            everythingLabel.onclick = (e) => {
+                everythingInput.checked = true;
+                this.value = ugaf;
+            }
+            const everything_div = document.createElement("div");
+            everything_div.appendChild(everythingInput);
+            everything_div.appendChild(everythingLabel);
+            this.div.appendChild(everything_div);
+        })
 
         // for every area add a radio input
         for( const [index, area] of board.areas.entries()){

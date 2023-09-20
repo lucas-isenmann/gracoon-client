@@ -4,7 +4,7 @@ import { load_param, params_available } from './parametor_manager';
 
 export function update_params_available_div(board: ClientBoard) {
     const div = document.getElementById("params_available_content");
-
+    if (div == null) return;
     const search_input_container = document.createElement("div");
     search_input_container.classList.add("search_filter_container");
     div.appendChild(search_input_container);

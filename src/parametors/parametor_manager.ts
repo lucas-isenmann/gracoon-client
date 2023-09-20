@@ -6,8 +6,8 @@ import { ClientBoard } from '../board/board';
 
 
 
-export let params_loaded = []
-export let params_available = []
+export let params_loaded = new Array<Parametor>();
+export let params_available = new Array<Parametor>();
 
 
 export function setup_parametors_available() {

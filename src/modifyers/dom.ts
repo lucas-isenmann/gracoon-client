@@ -13,8 +13,9 @@ const modifyers_available = new Array<GraphModifyer>(
 
 
 export function setup_modifyers_div(board: ClientBoard) {
-    const main_div = createPopup("modifyers_div", "Modifyers");
+    createPopup("modifyers_div", "Modifyers");
     const popup_content = document.getElementById("modifyers_div_content");
+    if (popup_content == null) return;
     popup_content.style.display = "flex";
     popup_content.classList.add("scrolling_y","non_scrolling_bar");
 
@@ -50,15 +51,20 @@ export function setup_modifyers_div(board: ClientBoard) {
 }
 
 function turn_off_modifyers_div() {
-    document.getElementById("modifyers_div").style.display = "none";
+    const div = document.getElementById("modifyers_div");
+    if (div == null) return;
+    div.style.display = "none";
 }
 
 export function turn_on_modifyers_div() {
-    document.getElementById("modifyers_div").style.display = "block";
+    const div = document.getElementById("modifyers_div");
+    if (div == null) return;
+    div.style.display = "block";
 }
 
 function activate_modifyer_div(board: ClientBoard, mod: GraphModifyer) {
     const div = document.getElementById("modifyer_configuration");
+    if (div == null) return;
     div.innerHTML = ""; // TODO clear better ??
 
     // Title

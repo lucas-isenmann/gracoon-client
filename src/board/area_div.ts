@@ -267,8 +267,8 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
                 else{
                     // Center on the graph on click
                     titleDOM.addEventListener("click",  (e)=>{
-                        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
-                        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
+                        let top_left_corner = new CanvasCoord(-board.canvas.width/2, -board.canvas.height/2);
+                        let bot_right_corner = new CanvasCoord(board.canvas.width/2, board.canvas.height/2);
     
                         if(g.vertices.size > 1){
                             const v : ClientVertex = g.vertices.values().next().value;
@@ -342,7 +342,10 @@ export function init_list_parametors_for_area(board: ClientBoard, area_id: numbe
         }
         area_DOM.appendChild(param_containerDOM);
 
-        const param_list = document.getElementById("subgraph_list");
-        param_list.appendChild(area_DOM);
+        const paramList = document.getElementById("subgraph_list");
+        if (paramList != null){
+            paramList.appendChild(area_DOM);
+
+        }
     }
 }
