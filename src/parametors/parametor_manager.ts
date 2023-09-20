@@ -4,6 +4,8 @@ import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
 import { ClientBoard } from '../board/board';
 import { ParametorLoaded } from './param_loaded';
+import { Zone } from './zone';
+import { ClientArea } from '../board/area';
 
 
 
@@ -41,12 +43,13 @@ export function setup_parametors_available() {
 
 
 
-export function load_param(param: Parametor, board: ClientBoard, areaId: string | number) {
-    console.log("load_param", param, areaId);
+export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
+    console.log("load_param", param, zone.paramsDivContainer);
     // const html_id =  param.id + "_area_" + areaId;
-    const paramLoaded = new ParametorLoaded(param, areaId, board)
-    
+    const paramLoaded = new ParametorLoaded(param, zone, board)
+
     params_loaded.push(paramLoaded);
+
     paramLoaded.div.classList.remove("inactive_parametor");
 
     if(param.is_live){
@@ -54,7 +57,7 @@ export function load_param(param: Parametor, board: ClientBoard, areaId: string 
         board.requestDraw();
     }
         
-    toggle_list_separator(areaId, true);
+    toggle_list_separator(zone, true);
 }
 
 
@@ -84,19 +87,13 @@ function invalid_parametor(param: ParametorLoaded){
 
 export function update_parametor(g:ClientGraph, param: ParametorLoaded){
     const result_span = document.getElementById("span_result_" + param.id);
-    if (typeof param.areaId == "string" ){
-        const result = param.parametor.compute(g, true);
+    if ( param.zone instanceof ClientArea ){
+        const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
         update_result_span(result, param.parametor, param.resultSpan);
     }
     else{
-        const area = g.board.areas.get(param.areaId);
-        if( typeof area != "undefined"){
-            const result = param.parametor.compute(g.board.get_subgraph_from_area(param.areaId), true);
-            update_result_span(result, param.parametor, param.resultSpan);
-        }
-        else{
-            remove_loaded_param(param);
-        }
+        const result = param.parametor.compute(g, true);
+        update_result_span(result, param.parametor, param.resultSpan);
     }
 }
 
@@ -137,7 +134,8 @@ function update_result_span(result:string, param: Parametor, result_span:HTMLEle
 
 
 
-function toggle_list_separator(area_id: string | number, toggle:boolean){
+function toggle_list_separator(zone: Zone, toggle:boolean){
+    const area_id = (zone instanceof ClientArea) ? zone.index : "";
     const listContainerDiv = document.getElementById("param_list_container_area_"+area_id);
     if (listContainerDiv){
         if (toggle){
@@ -160,12 +158,12 @@ export function remove_loaded_param(loadedParam: ParametorLoaded) {
       
     // Checking if there are loaded parametors for the area
     for (var j = 0; j < params_loaded.length; j++) {
-        if (loadedParam.areaId == params_loaded[j].areaId) {
-            return
+        if (loadedParam.zone === params_loaded[j].zone) {
+            return;
         }
     }
-    // If there are no more loadedParam 
-    toggle_list_separator(loadedParam.areaId, false);
+    // If there are no more params for the zone of loadedParam 
+    toggle_list_separator(loadedParam.zone, false);
 }
 
 

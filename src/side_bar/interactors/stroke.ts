@@ -18,14 +18,8 @@ export function createStrokeInteractor(board: ClientBoard){
 
     stroke_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
         const server_pos = board.view.create_server_coord(pointed.pointedPos);
-        lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.view);
-    
-        // TO CHANGE
-        let index = 0;
-        while (board.strokes.has(index)) {
-            index += 1;
-        }
-        indexLastStroke = index;
+        indexLastStroke = board.get_next_available_index_strokes();
+        lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.view, indexLastStroke);
         board.strokes.set(indexLastStroke, lastStroke);
     })
     

@@ -7,7 +7,6 @@ export class VariableBoolean{
     id: string;
     value: boolean;
     div: HTMLDivElement;
-    onchange: () => void;
 
     constructor(id: string, value: boolean, onchangeHandler: () => void){
         this.id = id;
@@ -44,7 +43,6 @@ export class VariableNumber{
     id: string;
     value: number;
     div: HTMLDivElement;
-    onchange: () => void;
 
     constructor(id: string, min: number, value: number,  max: number, step: number, onchangeHandler: () => void){
         this.id = id;

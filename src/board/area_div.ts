@@ -5,6 +5,7 @@ import { ClientBoard } from "./board";
 
 import svgParamIcons from '../img/parametor/*.svg';
 import { ClientArea } from "./area";
+import { Zone } from "../parametors/zone";
 
 
 
@@ -14,19 +15,10 @@ import { ClientArea } from "./area";
 export function createTitleSpanForArea(area: ClientArea):HTMLSpanElement{
     const span_area = document.createElement('span');
     span_area.classList.add("span_area_name_parametor");
-
-    // if(area_id >= 0){
-        span_area.textContent = area.label;
-        span_area.style.background = area.color;
-        // TODO span_area.style.color = a.multicolor.contrast;
-        // span_area.style.borderColor = a.multicolor.contrast;
-    // }
-    // else{
-    //     span_area.textContent = "Everything";
-    //     span_area.style.background = "#fff";
-    //     span_area.style.color = COLOR_BACKGROUND;
-    //     // span_area.style.borderColor = "#fff";
-    // }
+    span_area.textContent = area.label;
+    span_area.style.background = area.color;
+    // TODO span_area.style.color = a.multicolor.contrast;
+    // span_area.style.borderColor = a.multicolor.contrast;
     return span_area;
 }
 
@@ -39,9 +31,10 @@ function createTitleSpanForWholeArea(){
     return span_area;
 }
 
-export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, param_containerDOM: HTMLDivElement, area: ClientArea | string, area_id: number | string){
+export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, zone: Zone){
     const g = board.graph;
     const view = board.view;
+    const area_id = (zone instanceof ClientArea) ? zone.index : "";
 
     area_DOM.id = "area_"+ area_id;
     area_DOM.classList.add("subgraph_parametors");
@@ -61,13 +54,13 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, p
     });
     title_area_container.appendChild(load_new_parametors_button);
     
-    if( area instanceof ClientArea){
-        const titleDOM = createTitleSpanForArea(area);
+    if( zone instanceof ClientArea){
+        const titleDOM = createTitleSpanForArea(zone);
         titleDOM.id = "title_area_"+ area_id;
         title_area_container.appendChild(titleDOM);
         // Center on the area on click
         titleDOM.addEventListener("click",  (e)=>{
-            center_canvas_on_rectangle(view, area.canvas_corner_top_left, area.canvas_corner_bottom_right, board);
+            center_canvas_on_rectangle(view, zone.canvas_corner_top_left, zone.canvas_corner_bottom_right, board);
             board.requestDraw()
         });
     }
@@ -107,16 +100,16 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, p
     
     
     // const param_containerDOM = document.createElement("div");
-    param_containerDOM.classList.add("param_list_container");
-    param_containerDOM.id = "param_list_container_area_"+area_id;
-    param_containerDOM.style.display="none";
+    zone.paramsDivContainer.classList.add("param_list_container");
+    zone.paramsDivContainer.id = "param_list_container_area_"+area_id;
+    zone.paramsDivContainer.style.display="none";
     // for(const param of params_available){
     //     const div_parametor = init_parametor_div(param, area_id, board);
     //     if(div_parametor !== null){
     //         param_containerDOM.appendChild(div_parametor);
     //     }
     // }
-    area_DOM.appendChild(param_containerDOM);
+    area_DOM.appendChild(zone.paramsDivContainer);
 
     const paramList = document.getElementById("subgraph_list");
     if (paramList != null){

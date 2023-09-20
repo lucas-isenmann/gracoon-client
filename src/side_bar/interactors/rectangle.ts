@@ -20,7 +20,7 @@ export function createRectangleInteractor(board: ClientBoard){
         if (typeof pointed.data == "undefined" ) {
             firstCorner = board.view.create_server_coord(pointed.pointedPos);
             const newIndex = board.get_next_available_index_rectangle();
-            currentRectangle = new ClientRectangle(firstCorner, firstCorner, board.colorSelected, board);
+            currentRectangle = new ClientRectangle(firstCorner, firstCorner, board.colorSelected, board, newIndex);
             board.rectangles.set(newIndex, currentRectangle);
         } 
     })

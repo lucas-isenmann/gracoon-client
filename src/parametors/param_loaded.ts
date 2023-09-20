@@ -3,27 +3,24 @@ import { Parametor } from "./parametor";
 import svgParamIcons from '../img/parametor/*.svg';
 import { remove_loaded_param, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
+import { Zone } from "./zone";
+import { ClientArea } from "../board/area";
 
 export class ParametorLoaded {
     parametor: Parametor;
     id: string;
     div: HTMLDivElement;
     resultSpan: HTMLSpanElement;
-    areaId: string | number;
+    zone: Zone;
 
-    constructor(parametor: Parametor, areaId: string | number, board: ClientBoard){
+    constructor(parametor: Parametor, zone: Zone, board: ClientBoard){
         this.parametor = parametor;
-        this.areaId = areaId;
+        this.zone = zone;
+        const areaId = (zone instanceof ClientArea) ? zone.index : "";
         this.id = parametor.id + "_area_" + areaId;
         this.div = document.createElement("div");
-        
-        
-        const container = document.getElementById("param_list_container_area_"+areaId);
-        if (container) {
-            container.appendChild(this.div);
-        }
+        zone.paramsDivContainer.appendChild(this.div);
         this.resultSpan = document.createElement("span");
-
         this.setupDOM(board);
     }
 
@@ -143,12 +140,23 @@ export class ParametorLoaded {
                     if (this.readyState!==4) return;
                     if (this.status!==200) return; // or whatever error handling you want
                     // document.getElementById('y').innerHTML= this.responseText;
-                    document.getElementById('info_content').innerHTML = this.responseText;
-                    document.getElementById('info_parametor_container').classList.toggle("show");
-                    document.getElementById('info_closing_button').onclick = () => {
-                    document.getElementById('info_content').innerHTML = "";
-                    document.getElementById('info_parametor_container').classList.remove("show");
+                    const divInfoContent = document.getElementById('info_content');
+                    if (divInfoContent == null) return;
+                     divInfoContent.innerHTML = this.responseText;
+
+                    const divInfoParametorContainer = document.getElementById('info_parametor_container');
+                    if (divInfoParametorContainer == null) return;
+                    divInfoParametorContainer.classList.toggle("show");
+
+                    const divInfoClosingButton = document.getElementById('info_closing_button');
+                    if (divInfoClosingButton) divInfoClosingButton.onclick = () => {
+                        divInfoContent.innerHTML = "";
+                        divInfoParametorContainer.classList.remove("show");
                     }
+
+
+                   
+                   
                 };
                 xhr.send();
 

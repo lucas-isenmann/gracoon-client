@@ -37,14 +37,16 @@ function handle_search_onkeyup() {
     const input = <HTMLInputElement>document.getElementById('param_search_input');
     const filter = input.value.toUpperCase();
     const div_content = document.getElementById("params_available_content");
-    const param_list = <HTMLCollectionOf<HTMLDivElement>>div_content.getElementsByClassName('param');
+    if (div_content){
+        const param_list = <HTMLCollectionOf<HTMLDivElement>>div_content.getElementsByClassName('param');
 
-    for (let i = 0; i < param_list.length; i++) {
-        const txtValue = param_list[i].innerHTML;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            param_list[i].style.display = "";
-        } else {
-            param_list[i].style.display = "none";
+        for (let i = 0; i < param_list.length; i++) {
+            const txtValue = param_list[i].innerHTML;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                param_list[i].style.display = "";
+            } else {
+                param_list[i].style.display = "none";
+            }
         }
     }
 }
@@ -54,18 +56,20 @@ export function update_options_graphs(board: ClientBoard){
     // We first clear every options 
     const elements = document.getElementsByClassName("subgraph_option");
     while(elements.length > 0){
-        elements[0].parentNode.removeChild(elements[0]);
+        if (elements[0].parentNode){
+            elements[0].parentNode.removeChild(elements[0]);
+        }
     }
 
-    // console.log("LISTE PARAM", params_available);
-
     for(const param of params_available){
-        // console.log("SETTING UP ", param.id)
 
         // We first remove the previous click event on the parametor div by cloning it
-        let div_original = document.getElementById(`param_div_${param.id}`);
+        const div_original = document.getElementById(`param_div_${param.id}`);
+        if (div_original == null) continue;
         const div = div_original.cloneNode(true);
-        div_original.parentNode.replaceChild(div, div_original);
+        if (div_original.parentNode){
+            div_original.parentNode.replaceChild(div, div_original);
+        }
 
         // we add the click event
         div.addEventListener('click', (e)=> toggle_list_graph_option(param, board));
@@ -93,18 +97,18 @@ export function update_options_graphs(board: ClientBoard){
             gDiv.textContent = "Everything";
             newDiv.appendChild(gDiv);
             gDiv.addEventListener('click', function () {   
-                load_param(param, board, ""); 
+                load_param(param, board, board.entireZone); 
                 params_available_turn_off_div();
             });
 
             // Div for each area
-            for(const [area_index, a] of board.areas.entries()){
+            for(const area of board.areas.values()){
                 let aDiv = document.createElement("div");
                 aDiv.classList.add("subgraph_option");
-                aDiv.textContent = a.label;
+                aDiv.textContent = area.label;
                 newDiv.appendChild(aDiv);
                 aDiv.addEventListener('click', function () { 
-                    load_param(param, board, area_index); 
+                    load_param(param, board, area); 
                     params_available_turn_off_div();
                 });
             }
@@ -132,7 +136,7 @@ function toggle_list_graph_option(param:Parametor, board: ClientBoard){
 
     // if there is no area, click on the parametor just computes it on the full graph
     if(board.areas.size == 0){
-        load_param(param, board, "");
+        load_param(param, board, board.entireZone);
         params_available_turn_off_div(); 
     }
     else{

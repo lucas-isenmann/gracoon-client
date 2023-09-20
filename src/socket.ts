@@ -234,7 +234,7 @@ export function setupHandlers(board: ClientBoard) {
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.view);
+                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.view, data.index);
                 board.strokes.set(data.index, new_stroke);
             } else if (data.kind == "TextZone"){
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
@@ -284,28 +284,28 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
-        // console.log("handleDeleteElements", data);
-        for ( const element of data){
-            if (element[0] == "Stroke"){
-                board.strokes.delete(element[1]);
-            } else if (element[0] == "TextZone"){
-                const textZone = board.text_zones.get(element[1]);
+        console.log("handleDeleteElements", data);
+        for ( const [kind, index] of data){
+            if ( kind == "Stroke"){
+                board.strokes.delete(index);
+            } else if (kind == "TextZone"){
+                const textZone = board.text_zones.get(index);
                 if( typeof textZone != "undefined"){
                     textZone.div.remove();
                 }
-                board.text_zones.delete(element[1]);
-            } else if (element[0] == "Area"){
-                board.areas.delete(element[1]);
-            } else if (element[0] == "Vertex"){
-                board.graph.delete_vertex(element[1]);
+                board.text_zones.delete(index);
+            } else if (kind == "Area"){
+                board.delete_area(index);
+            } else if (kind == "Vertex"){
+                board.graph.delete_vertex(index);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
-            } else if (element[0] == "Link"){
-                if ( board.graph.links.has(element[1])){
-                    const link = board.graph.links.get(element[1]);
+            } else if (kind == "Link"){
+                if ( board.graph.links.has(index)){
+                    const link = board.graph.links.get(index);
                     if ( typeof link != "undefined" && typeof link.data.weightDiv !== "undefined"){
                         link.data.weightDiv.remove();
                     }
-                    board.graph.links.delete(element[1]);
+                    board.graph.links.delete(index);
                 }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
@@ -408,19 +408,16 @@ export function setupHandlers(board: ClientBoard) {
     function handleStrokes(data: [[number, {positions: [{x: number, y: number}], color: string, width: number}]]){
         // console.log(data);
         board.strokes.clear();
-        for(const s of data){
+        for(const [index, rawStroke] of data){
             const positions = new Array<Coord>();
-            s[1].positions.forEach(e => {
+            rawStroke.positions.forEach(e => {
                 positions.push(new Coord(e.x, e.y));
             });
-            const new_stroke = new ClientStroke(positions, s[1].color as Color, s[1].width, board.view);
-            board.strokes.set(s[0], new_stroke);
+            const new_stroke = new ClientStroke(positions, rawStroke.color as Color, rawStroke.width, board.view, index);
+            board.strokes.set(index, new_stroke);
         }
         // update_params_loaded(g,false);
-        requestAnimationFrame(function () { 
-            board.draw() 
-        });
-        
+        board.requestDraw();
     }
 
 

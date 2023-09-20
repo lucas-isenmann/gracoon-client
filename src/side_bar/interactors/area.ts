@@ -25,7 +25,7 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
         if ( typeof pointed.data == "undefined"){
             is_creating_area = true;
             const first_corner = board.view.create_server_coord(pointed.pointedPos);
-            board.emit_add_element(new Area("G", first_corner, first_corner, ""), (response: number) => { last_created_area_index = response });
+            board.emit_add_element(new Area("G", first_corner, first_corner, "", board.get_next_available_index_area()), (response: number) => { last_created_area_index = response });
             opposite_corner = pointed.pointedPos.copy();
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_AREA ){

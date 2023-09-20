@@ -23,6 +23,7 @@ import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { AreaChoice, AreaIndex } from "../generators/attribute";
 import { setupLoadedParam } from "./area_div";
+import { EntireZone } from "../parametors/zone";
 
 
 export enum BoardElementType {
@@ -76,8 +77,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     otherUsers: Map<string, User>;
 
-    paramsLoadedContainerEverything: HTMLDivElement;
-
+    entireZone: EntireZone;
 
 
     constructor(){
@@ -110,9 +110,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         document.body.appendChild(this.variablesDiv);
 
         // setup the div of the loaded params of the whole graph
-        this.paramsLoadedContainerEverything = document.createElement("div");
-        setupLoadedParam(this, document.createElement("div"), this.paramsLoadedContainerEverything, "", "");
-        
+        this.entireZone = new EntireZone(this);
 
         // this.addVariable("h", 0, 20, 50, 0.1, () => {
         //     this.afterVariableChange()
@@ -178,6 +176,18 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             return undefined
         }
     }
+
+
+    
+    override delete_area(areaIndex: number): void {
+        const area = this.areas.get(areaIndex);
+        if (typeof area != "undefined"){
+            area.clearDOM();
+            super.delete_area(areaIndex);
+        }
+
+    }
+
 
     /**
      * Draw a Bezier Curve with 2 control points (therefore it is a cubic curve).
@@ -910,5 +920,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
 
         center_canvas_on_rectangle(this.view, top_left_corner, bot_right_corner, this);
+        this.update_after_camera_change();
     }
 }

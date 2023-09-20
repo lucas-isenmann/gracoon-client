@@ -2,13 +2,13 @@
 
 ## Features
 
-- [ ] invert arc on right click
-- [ ] move vertex on link -> subdivide
-- [ ] deleteInteractor: has a radius, change it with wheel
-- [ ] ApplyModifyer on the selection
+- invert arc on right click
+- move vertex on link -> subdivide
+- deleteInteractor: has a radius, change it with wheel
 
 ## Refacto
 
+- après caméra change: update tous les canvas
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
 - User and Self must be quasi the same class
 - mieux gérer les sorties du canvas/ecran
@@ -19,9 +19,13 @@
 ## Unifier
 
 - tout élement de board doit avoir index, clearDOM
+- BIG Refacto: no more graphs in Board, just elements (which are updated after camera move/zoom, translated, resized). The associated graph is computed at each modification or at each computation.
 
 ## Issues
 
+- textZone interactor: clic on background should just validate, not create a textZone
+- les curseurs sont faux quand on passe sur un area
+- redimensionner les area c'est galère
 - representations
 - bug when undo delete the weights of the links
 

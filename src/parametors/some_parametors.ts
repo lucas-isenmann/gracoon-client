@@ -114,7 +114,7 @@ param_is_drawing_planar.compute = ((g: ClientGraph) => {
 
 export let param_min_degree = new Parametor("Minimum degree", "min_degree", "min degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
-param_min_degree.compute = ((g: ClientGraph, verbose) => {
+param_min_degree.compute = ((g: ClientGraph, verbose: boolean) => {
     const data = g.get_degrees_data();
     if (verbose) {
         for (const vertex_index of data.min_vertices) {
@@ -520,12 +520,14 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
         const newg = new ClientGraph(g.board);
         for ( let j = association[i]; j <= i ; j ++){
             const link = g.links.get(ordered_links[j]);
-            const start_vertex = link.startVertex;
-            newg.set_vertex(link.startVertex.index, start_vertex.data);
-            const end_vertex = link.endVertex;
-            newg.set_vertex(link.endVertex.index, end_vertex.data)
-            newg.links.set(ordered_links[j], link);
-            newg.setLink(ordered_links[j], link.startVertex.index, link.endVertex.index, link.orientation, link.data);
+            if (typeof link != "undefined"){
+                const start_vertex = link.startVertex;
+                newg.set_vertex(link.startVertex.index, start_vertex.data);
+                const end_vertex = link.endVertex;
+                newg.set_vertex(link.endVertex.index, end_vertex.data)
+                newg.links.set(ordered_links[j], link);
+                newg.setLink(ordered_links[j], link.startVertex.index, link.endVertex.index, link.orientation, link.data);
+            }
         } 
         subgraph.push(newg);
         constraints.push(make_constraints(newg, ordered_links[i]));
@@ -760,19 +762,18 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
         if (treated.has(v.index)){
             console.log("was treated");
             v.data.color = Color.Green;
-            for (const neighborId of g.get_out_neighbors_list(v.index)){
-                g.vertices.get(neighborId).data.color = Color.Neutral;
+            for (const neighbor of g.getOutNeighbors(v)){
+                neighbor.data.color = Color.Neutral;
             }
             for (const neighborId of g.get_in_neighbors_list(v.index)){
                 g.vertices.get(neighborId).data.color = Color.Neutral;
             }
         } else {
             treated.add(v.index);
-            for (const outNeighborId of shuffle(g.get_out_neighbors_list(v.index)) ){
-                const outNeighbor = g.vertices.get(outNeighborId);
+            for (const outNeighbor of shuffle(g.getOutNeighbors(v)) ){
                 outNeighbor.data.color = Color.Green;
-                for (const n2Id of g.get_out_neighbors_list(outNeighbor.index)){
-                    g.vertices.get(n2Id).data.color = Color.Neutral;
+                for (const outNeighbor2 of g.getOutNeighbors(outNeighbor)){
+                    outNeighbor2.data.color = Color.Neutral;
                 }
                 for (const n2Id of g.get_in_neighbors_list(outNeighbor.index)){
                     g.vertices.get(n2Id).data.color = Color.Neutral;

@@ -13,8 +13,8 @@ export class ClientStroke extends Stroke{
     canvas_corner_top_left: CanvasCoord;
     canvas_corner_bottom_right: CanvasCoord;
     
-    constructor(pos: Array<Coord>, color: Color, width:number, view: View){
-        super(pos, color, width);
+    constructor(pos: Array<Coord>, color: Color, width:number, view: View, index: number){
+        super(pos, color, width, index);
         this.color = color;
         this.is_selected = false;
         this.canvas_positions = new Array();

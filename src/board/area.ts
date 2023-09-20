@@ -28,22 +28,22 @@ export class ClientArea extends Area{
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
     paramsLoadedDiv: HTMLDivElement;
-    paramsLoadedContainer: HTMLDivElement;
+    paramsDivContainer: HTMLDivElement;
 
     constructor(label:string, c1:Coord, c2:Coord, color:string, board: ClientBoard, index: number){
-        super(label, c1, c2, color);
+        super(label, c1, c2, color, index);
         this.canvas_corner_top_left = board.view.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = board.view.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = board.view.create_canvas_coord(this.bot_right_corner());
         this.canvas_corner_top_right = board.view.create_canvas_coord(this.top_right_corner());
         this.paramsLoadedDiv = document.createElement("div");
-        this.paramsLoadedContainer = document.createElement("div");
+        this.paramsDivContainer = document.createElement("div");
 
-        this.setupDOM(board, index);
+        this.setupDOM(board);
     }
 
-    setupDOM(board: ClientBoard, index: number){
-        setupLoadedParam(board, this.paramsLoadedDiv, this.paramsLoadedContainer, this, index);
+    setupDOM(board: ClientBoard){
+        setupLoadedParam(board, this.paramsLoadedDiv, this);
     }
 
 

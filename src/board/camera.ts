@@ -159,6 +159,8 @@ export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot
 
     const center = new CanvasCoord(board.canvas.width/2, board.canvas.height/2);
     view.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
+    
+    board.update_after_camera_change();
     board.update_canvas_pos(view);
     board.updateOtherUsersCanvasPos();
 }

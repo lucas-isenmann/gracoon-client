@@ -14,8 +14,8 @@ export class ClientRectangle extends Rectangle {
     board: ClientBoard;
 
 
-    constructor(c1: Coord, c2: Coord, color: Color, board: ClientBoard){
-        super(c1, c2, color);
+    constructor(c1: Coord, c2: Coord, color: Color, board: ClientBoard, index: number){
+        super(c1, c2, color, index);
         this.color = color;
         this.board = board;
         this.canvas_corner_top_left = CanvasCoord.fromCoord(this.top_left_corner(), board.view); 

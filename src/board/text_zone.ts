@@ -15,7 +15,7 @@ export class ClientTextZone extends TextZone {
     board: ClientBoard;
     
     constructor(pos: Coord, width: number, text: string, board: ClientBoard, index: number){
-        super(pos, width, text);
+        super(pos, width, text, index);
         this.board = board;
         this.canvas_pos = board.view.create_canvas_coord(pos);
         this.last_mouse_pos = new CanvasCoord(0,0);
