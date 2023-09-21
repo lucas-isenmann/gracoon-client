@@ -1,5 +1,6 @@
 import { TextZone } from "gramoloss";
-import { ClientBoard } from "../../board/board";
+import { boardElementType, ClientBoard } from "../../board/board";
+import { initWeightDiv } from "../../board/weightable";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { ORIENTATION_INFO } from "../element_side_bar";
@@ -14,7 +15,12 @@ export function createTextInteractor(board: ClientBoard): InteractorV2{
 
         if ( pointed.data instanceof ELEMENT_DATA_LINK || pointed.data instanceof ELEMENT_DATA_VERTEX ) {
             const element = pointed.data.element;
-            element.afterSetWeight(board);
+
+            if (typeof element.data.weightDiv == "undefined"){
+                initWeightDiv(element, boardElementType(element), board, true);
+            }
+            
+
 
             // A timeout is needed I dont know why.
             if (typeof element.data.weightDiv !== "undefined"){

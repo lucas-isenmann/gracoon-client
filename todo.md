@@ -1,13 +1,20 @@
 # TODO
 
+## BIG Features
+
+- loop
+- personnal code
+
 ## Features
 
+- sanitize content-editable
 - invert arc on right click
 - move vertex on link -> subdivide
 - deleteInteractor: has a radius, change it with wheel
 
 ## Refacto
 
+- aggregate Modifications when the mousmove is not over
 - après caméra change: update tous les canvas
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
 - mieux gérer les sorties du canvas/ecran
@@ -59,7 +66,6 @@
 
 - generators
   - [ ] prévisualisation du rendu ??
-  - [ ] import à partir de Gramoloss
   - [ ] Paley
 
 - text interactor
@@ -85,9 +91,6 @@
 - control Z
   - [ ] load_json
 
-- server API
-  - [ ] fix sensibilities and Return of Modifications
-  - [ ] classes for emit (so that it checks the type of the emitted elements)
 
 - Representations
   - [ ] le recadagre d'une représentation devrait être la même que pour area et une forme rectangulaire
@@ -103,7 +106,6 @@
 - [ ] exporter Latex
 - [ ] exporter pdf
 - [ ] export graphviz ?
-- [ ] interactor/parameter/modifyer: les mettre dans des fichiers séparés
 - [ ] diapo graphe
 
 - parametre
@@ -116,8 +118,6 @@
   - exemples
     - [ ] degreewidth
     - [ ] unit disk graph (v est relié w ssi la distance graphique <= 1 )
-
-- [ ] loop
 
 - SideBars and InteractorV2
   - [ ] rename InteractorV2 to Interactor
@@ -134,7 +134,6 @@
 - [ ] turoriel
 - [ ] multi-arêtes
 - [ ] multi control point
-- [ ] insertion de parametres ou modifiyer perso
 - [ ] chat vocal
 - [ ] chat écrit
 

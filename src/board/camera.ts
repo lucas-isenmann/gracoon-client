@@ -13,7 +13,6 @@ export enum INDEX_TYPE {
 
 export class View {
     camera: Coord;
-    old_camera: Coord;
     zoom: number;
     grid_size: number;
     grid_min_size: number;
@@ -53,7 +52,6 @@ export class View {
 
     constructor() {
         this.camera = new Coord(0, 0);
-        this.old_camera = new Coord(0, 0);
         this.zoom = 1.;
         this.grid_min_size = 40;
         this.grid_max_size = 100;

@@ -15,6 +15,7 @@ import ENV from './.env.json';
 
 import { io } from "socket.io-client";
 import { Color } from "./colors_v2";
+import { updateWeightDiv } from "./board/weightable";
 
 const port = ENV.port;
 const adress = "http://" + ENV.serverAdress + ":" + port;
@@ -256,9 +257,6 @@ export function setupHandlers(board: ClientBoard) {
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
                 const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.view, color));
-                if (weight != ""){
-                    newVertex.afterSetWeight(board);
-                }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (data.kind == "Link"){
                 const startIndex = data.element.startVertex.index as number;
@@ -270,12 +268,10 @@ export function setupHandlers(board: ClientBoard) {
                 }
                 const color = data.element.data.color as Color;
                 const weight = data.element.data.weight as string;
+                console.log(weight)
 
                 const newLinkData = new ClientLinkData(cp, color, weight, board.view);
                 const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
-                if (typeof newLink != "undefined" && data.weight != ""){
-                    newLink.afterSetWeight(board);
-                }
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
@@ -339,10 +335,9 @@ export function setupHandlers(board: ClientBoard) {
                 const color = data.value as string;
                 vertex.data.color = color as Color;
             } else if (data.param == "weight"){
-                if (document.activeElement != null && document.activeElement.id != ("vertex_weight_" + data.index)){
+                if ( (document.activeElement && typeof vertex.data.weightDiv != "undefined" && document.activeElement.id == vertex.data.weightDiv.id) == false ){
                     const text = data.value as string;
-                    vertex.data.weight = text;
-                    vertex.afterSetWeight(board);
+                    vertex.setWeight(text);
                 }
             }
         }else if (data.kind == "Link"){
@@ -353,7 +348,10 @@ export function setupHandlers(board: ClientBoard) {
                 link.data.color = color as Color;
             } else if (data.param == "weight"){
                 const weight = data.value as string;
-                link.setWeight(weight);
+                if ( (document.activeElement && typeof link.data.weightDiv != "undefined" && document.activeElement.id == link.data.weightDiv.id) == false ){
+                    console.log("update link");
+                    link.setWeight(weight);
+                }
             } else if (data.param == "cp"){
                 if (typeof data.value == "undefined"){
                     link.data.cp = undefined;
@@ -362,7 +360,7 @@ export function setupHandlers(board: ClientBoard) {
                     const new_cp = new Coord(data.value.x, data.value.y);
                     link.set_cp(new_cp, board.view);
                 }
-                link.afterSetWeight(board);
+                link.setAutoWeightDivPos();
             }
         }else if (data.kind == "Stroke"){
             const stroke = board.strokes.get(data.index);
@@ -453,9 +451,6 @@ export function setupHandlers(board: ClientBoard) {
         for (const data of rawVertices) {
             const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.view, data[1].data.color as Color);
             const newVertex = g.set_vertex(data[0], vertexData);
-            if (vertexData.weight != ""){
-                newVertex.afterSetWeight(board);
-            }
         }
 
         g.clear_links();
@@ -475,9 +470,6 @@ export function setupHandlers(board: ClientBoard) {
             // console.log("update_graph, cp ", newLinkData.cp);
             const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
             // console.log("update_graph, cp ", newLink.data.cp);
-            if (typeof newLink != "undefined" && newLinkData.weight != ""){
-                newLink.afterSetWeight(board);
-            }
         }
 
         /*
@@ -493,7 +485,9 @@ export function setupHandlers(board: ClientBoard) {
 
 
         const sensi = get_sensibilities(sensibilities);
-        update_params_loaded(g, sensi, false);
+        const sensi2 = new Set<SENSIBILITY>();
+        sensi2.add(SENSIBILITY.ELEMENT)
+        update_params_loaded(g, sensi2, true);
         console.timeEnd('resetGraph')
         board.requestDraw();
     }

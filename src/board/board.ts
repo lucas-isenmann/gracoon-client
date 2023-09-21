@@ -1,4 +1,4 @@
-import { Area, Board, Coord, Option, TextZone, Vect } from "gramoloss";
+import { Area, Board, Coord, GeneratorId, Option, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -49,6 +49,14 @@ export enum BoardElementType {
     Representation = "Representation"
 }
 
+export function boardElementType(element: ClientVertex | ClientLink){
+    if (element instanceof ClientVertex){
+        return BoardElementType.Vertex;
+    } else {
+        return BoardElementType.Link;
+    }
+}
+
 // These constants must correspond to the API of the server
 
 export enum SocketMsgType {
@@ -64,7 +72,8 @@ export enum SocketMsgType {
     REDO = "redo",
     LOAD_JSON = "load_json",
     GET_JSON = "get_json",
-    SUBDIVIDE_LINK = "subdivide_link"
+    SUBDIVIDE_LINK = "subdivide_link",
+    GENERATE_GRAPH = "generate-graph"
 }
 
 
@@ -636,7 +645,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         if (interactable_element_type.has(DOWN_TYPE.STROKE)) {
             for(const [index,s] of this.strokes.entries()){
-                if(typeof s.is_nearby(pos, this.view) == "number"){     
+                if (s.is_nearby(pos, this.view)){     
                     return new ELEMENT_DATA_STROKE(s, index);
                 }
             }
@@ -716,6 +725,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     emitSubdivideLink(linkIndex: number, pos: Coord, weight: string, color: Color, callback: (response: number) => void) {
         socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, weight, color, callback);
+    }
+
+    emitGenerateGraph(generatorId: GeneratorId, params: Array<any>) {
+        socket.emit(SocketMsgType.GENERATE_GRAPH, this.view.create_server_coord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
     }
 
     emit_redo() {

@@ -51,7 +51,7 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
     for (const gen of generators_available) {
         const text = document.createElement("div");
         text.classList.add("generator_item");
-        text.innerHTML = gen.name;
+        text.innerHTML = gen.humanName;
         text.onclick = () => {
             activate_generator_div(canvas, gen, board);
         }
@@ -77,7 +77,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
     div.innerHTML = ""; // TODO clear better ??
 
     const title = document.createElement("h2");
-    title.innerText = gen.name;
+    title.innerText = gen.humanName;
     title.classList.add("generator_title");
     div.appendChild(title);
 
@@ -99,13 +99,21 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
     generate_button.classList.add("generate_button_generators");
     generate_button.textContent = "Generate";
     generate_button.onclick = (e) => {
-        for( const attribute of gen.attributes.values() ){
-            if( attribute.div.classList.contains("invalid")){
-                return;
-            }
+
+        const params = new Array();
+        for ( const p of gen.attributes){
+            params.push(p.value)
         }
-        board.setGraphClipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true);
-        lastGenerator = gen;
+        board.emitGenerateGraph( gen.id, params);
+
+
+        // for( const attribute of gen.attributes.values() ){
+        //     if( attribute.div.classList.contains("invalid")){
+        //         return;
+        //     }
+        // }
+        // board.setGraphClipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true);
+        // lastGenerator = gen;
         turn_off_generators_div();
     }
     div.appendChild(generate_button);
@@ -116,7 +124,7 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
 
 export function regenerate_graph(e: MouseEvent, board: ClientBoard){
     if ( typeof lastGenerator != "undefined"){
-        board.setGraphClipboard(lastGenerator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true);
+        // board.setGraphClipboard(lastGenerator.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY), true);
     }
 }
 

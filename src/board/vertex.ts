@@ -3,8 +3,8 @@ import { draw_circle } from "../draw_basics";
 import { INDEX_TYPE, View } from "./camera";
 import { CanvasVect } from "./vect";
 import { CanvasCoord } from "./canvas_coord";
-import { BoardElementType, ClientBoard, VERTEX_RADIUS } from "./board";
-import { initWeightDiv } from "./weightable";
+import {  ClientBoard, VERTEX_RADIUS } from "./board";
+import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "../colors_v2";
 
 export class ParameterValue {
@@ -18,13 +18,16 @@ export class ParameterValue {
 
 
 export class ClientVertex extends BasicVertex<ClientVertexData> {
+    board: ClientBoard;
 
-    constructor(index: number, data: ClientVertexData){
+    constructor(index: number, data: ClientVertexData, board: ClientBoard){
         super(index, data);
+        this.board = board;
+        updateWeightDiv(this, board);
     }
 
-    static from(other: Vertex<ClientVertexData>): ClientVertex{
-        return new ClientVertex(other.index, other.data);
+    static from(other: Vertex<ClientVertexData>, board: ClientBoard): ClientVertex{
+        return new ClientVertex(other.index, other.data, board);
     }
 
     getIndex(): number{
@@ -37,11 +40,9 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
     setWeight(newWeight: string){
         this.data.weight = newWeight;
+        updateWeightDiv(this, this.board);
     }
 
-    getWeightDiv(){
-        return this.data.weightDiv;
-    }
 
     setWeightDiv(div: HTMLDivElement){
         this.data.weightDiv = div;
@@ -49,8 +50,8 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
 
     /**
-         * Set the div pos according to the vertex canvas pos.
-         */
+     * Set the div pos according to the vertex canvas pos.
+     */
     setAutoWeightDivPos(){
         if ( typeof this.data.weightDiv !== "undefined" ){
             this.data.weightDiv.style.top = String(this.data.canvas_pos.y + 20 - this.data.weightDiv.clientHeight/2) + "px";
@@ -59,15 +60,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
 
-    afterSetWeight(board: ClientBoard){
-        if (typeof this.data.weightDiv === "undefined"){
-            initWeightDiv(this, BoardElementType.Vertex, board);
-        } else {
-            this.data.weightDiv.innerHTML = this.data.weight;
-            // this.weightDiv.innerHTML = katex.renderToString(this.weight);
-        }
-        this.setAutoWeightDivPos();
-    }
+    
 
 
     setPos(board: ClientBoard, nx: number, ny: number) {

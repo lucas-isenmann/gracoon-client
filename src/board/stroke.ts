@@ -30,17 +30,19 @@ export class ClientStroke extends Stroke{
         }
     }
 
-    is_nearby(pos:CanvasCoord, view: View): number | false{
+    is_nearby(pos:CanvasCoord, view: View): boolean{
         const bot_right_canvas = view.create_canvas_coord(this.bot_right);
         const top_left_canvas = view.create_canvas_coord(this.top_left);
-        if (pos.x > bot_right_canvas.x +5 || pos.x < top_left_canvas.x - 5 || pos.y > bot_right_canvas.y +5 || pos.y < top_left_canvas.y - 5)
-        {
-            return false;
-        }
+        // if (pos.x > bot_right_canvas.x +5 || pos.x < top_left_canvas.x - 5 || pos.y > bot_right_canvas.y +5 || pos.y < top_left_canvas.y - 5)
+        // {
+        //     console.log("not in rect")
+        //     return false;
+        // }
 
-        for(let i = 0; i<this.positions.length-1; i++){
+
+        for (let i = 0; i < this.positions.length-1; i++){
             if(pos.is_nearby_beziers_1cp(this.canvas_positions[i], this.canvas_positions[i].middle(this.canvas_positions[i+1]) , this.canvas_positions[i+1] )){
-                return i;
+                return true;
             }
         }
 

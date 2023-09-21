@@ -39,7 +39,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         if (typeof startVertex === "undefined" || typeof endVertex === "undefined"){
             return undefined;
         }
-        const newLink = new ClientLink(index, startVertex, endVertex, orientation, linkData);
+        const newLink = new ClientLink(index, startVertex, endVertex, orientation, linkData, this.board);
         this.links.set(index, newLink);
         return newLink;
     }
@@ -468,7 +468,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         if (typeof link == "undefined") return undefined;
         const startVertex = new ClientVertex(link.startVertex.index, link.startVertex.data);
         const endVertex = new ClientVertex(link.endVertex.index, link.endVertex.data);
-        const link2 = new ClientLink(link.index, startVertex, endVertex, orientation, data);
+        const link2 = new ClientLink(link.index, startVertex, endVertex, orientation, data, this.board);
         this.links.set(link.index, link2);
         return link2;
     }

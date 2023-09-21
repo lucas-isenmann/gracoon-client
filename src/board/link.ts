@@ -4,7 +4,7 @@ import { View } from "./camera";
 import { CanvasVect } from "./vect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
-import { initWeightDiv } from "./weightable";
+import { initWeightDiv, updateWeightDiv } from "./weightable";
 import { Color } from "../colors_v2";
 
 
@@ -46,12 +46,15 @@ export class ClientLinkData extends BasicLinkData {
 export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     startVertex: ClientVertex;
     endVertex: ClientVertex;
+    board: ClientBoard;
 
-
-    constructor(index: number, startVertex: ClientVertex, endVertex: ClientVertex, orientation: ORIENTATION, linkData: ClientLinkData){
+    constructor(index: number, startVertex: ClientVertex, endVertex: ClientVertex, orientation: ORIENTATION, linkData: ClientLinkData, board: ClientBoard){
         super(index, startVertex, endVertex, orientation, linkData);
         this.startVertex = startVertex;
         this.endVertex = endVertex;
+        this.board = board;
+
+        updateWeightDiv(this, board);
     }
 
    
@@ -91,37 +94,25 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         this.setAutoWeightDivPos();
     }
 
+
+
+
     /**
-     * Sets the div pos according to the element.
+     * Set the weight div position according to the element.
      */
     setAutoWeightDivPos(){
         if ( typeof this.data.weightDiv !== "undefined" ){
             const posu = this.startVertex.data.canvas_pos; 
             const posv = this.endVertex.data.canvas_pos; 
-            let middle = posu.middle(posv);
-            if (typeof this.data.cp_canvas_pos != "string"){
-                middle = this.data.cp_canvas_pos;
-            }
-            let weightPosition = middle.add(posu.sub(posv).normalize().rotate_quarter().scale(14));
+            const middle = (typeof this.data.cp_canvas_pos != "string") ? this.data.cp_canvas_pos: posu.middle(posv);
+            const weightPosition = middle.add(posu.sub(posv).normalize().rotate_quarter().scale(14));
 
-            this.data.weightDiv.style.top = String(weightPosition.y - this.data.weightDiv.clientHeight/2) + "px";
+            this.data.weightDiv.style.top = String(weightPosition.y - this.data.weightDiv.clientHeight*3/4) + "px";
             this.data.weightDiv.style.left = String(weightPosition.x- this.data.weightDiv.clientWidth/2) + "px";
         }
     }
 
-    /**
-     * 
-     */
-    afterSetWeight(board: ClientBoard){
-        console.log("afterSetWeight");
-        if (typeof this.data.weightDiv === "undefined"){
-            initWeightDiv(this, BoardElementType.Link, board);
-        } else {
-            this.data.weightDiv.innerHTML = this.data.weight;
-            // this.weightDiv.innerHTML = katex.renderToString(this.weight);
-        }
-        this.setAutoWeightDivPos();
-    }
+    
 
   
 
@@ -147,49 +138,13 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         
     }
 
-    // init_weight_div(link_index: number){
-    //     this.weight_div = document.createElement("div");
-    //     this.weight_div.classList.add("weight_link");
-    //     document.body.appendChild(this.weight_div);
-
-    //     const link = this;
-    //     this.weight_div.addEventListener("wheel", function (e) {
-    //         const weight_value = parseInt(link.weight);
-    //         if ( isNaN(weight_value) == false){
-    //             if (e.deltaY < 0) {
-    //                 board.emit_update_element( BoardElementType.Link, link_index, "weight", String(weight_value+1));
-    //             }else {
-    //                 board.emit_update_element(  BoardElementType.Link, link_index, "weight", String(weight_value-1));
-    //             }
-    //         }
-    //     })
-
-    //     this.weight_div.onclick = (e) => {
-    //         if( board.interactorLoadedId == text_interactorV2.id){
-    //             validate_weight();
-    //             display_weight_input(link_index, new CanvasCoord(this.weight_position.x, this.weight_position.y),DOWN_TYPE.LINK);
-    //         }
-    //     }
-    // }
-
-    // update_weight(value: string, link_index: number){
-    //     this.weight = value;
-    //     if ( this.weight_div == null){
-    //         if ( value != ""){
-    //             this.init_weight_div(link_index);
-    //             this.weight_div.innerHTML = katex.renderToString(value);
-    //         }
-    //     }else {
-    //         this.weight_div.innerHTML = katex.renderToString(value);
-    //     }
-    // }
-
     /**
      * Sets the weight of the link, then updates the WeightDiv.
      */
-    setWeight(new_weight: string) {
-        this.data.weight = new_weight;
-        // this.afterSetWeight();
+    setWeight(newWeight: string) {
+        console.log("set weight link")
+        this.data.weight = newWeight;
+        updateWeightDiv(this, this.board);
     }
 
     getIndex(): number{
@@ -200,24 +155,13 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         return this.data.weight;
     }
 
-    getWeightDiv(){
-        return this.data.weightDiv;
-    }
 
     setWeightDiv(div: HTMLDivElement){
         this.data.weightDiv = div;
     }
 
 
-    // clone(): ClientLink {
-    //     if (typeof this.cp === "string"){
-    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp, this.orientation, this.color, this.weight, board.view);
-    //         return newLink; // TODO I think there are things to clone with the div
-    //     } else {
-    //         const newLink = new ClientLink(this.start_vertex, this.end_vertex, this.startVertex, this.endVertex, this.cp.copy(), this.orientation, this.color, this.weight, board.view);
-    //         return newLink; // TODO I think there are things to clone with the div
-    //     }
-    // }
+
 
 
     translateByServerVect(shift: Vect, view: View) {
