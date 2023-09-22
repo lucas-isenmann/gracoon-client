@@ -295,6 +295,7 @@ export function setupHandlers(board: ClientBoard) {
             } else if (kind == "Vertex"){
                 board.graph.delete_vertex(index);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+                g.compute_vertices_index_string()
             } else if (kind == "Link"){
                 if ( board.graph.links.has(index)){
                     const link = board.graph.links.get(index);
@@ -481,6 +482,7 @@ export function setupHandlers(board: ClientBoard) {
         console.log("[" + s + "]");
         */
 
+        g.compute_vertices_index_string();
 
 
         const sensi = get_sensibilities(sensibilities);
