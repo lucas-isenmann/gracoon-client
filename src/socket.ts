@@ -67,9 +67,8 @@ export function setupHandlers(board: ClientBoard) {
             // console.log("Following......")
             board.view.camera = new Coord(x, y);
             board.view.zoom = zoom;
-            board.update_canvas_pos(board.view);
-            board.updateOtherUsersCanvasPos();
-            requestAnimationFrame(function () { board.draw() });
+            board.update_after_camera_change();
+            board.requestDraw();
         }
         else{
             // console.log("reset....");

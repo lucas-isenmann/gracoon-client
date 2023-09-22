@@ -1,7 +1,6 @@
 import { Coord, Vect } from "gramoloss";
-import { ClientBoard } from "./board";
-import { CanvasCoord } from "./canvas_coord";
-import { CanvasVect } from "./canvasVect";
+import { CanvasCoord } from "../canvas_coord";
+import { CanvasVect } from "../canvasVect";
 
 
 
@@ -75,32 +74,21 @@ export class View {
         return c.y*this.zoom + this.camera.y;
     }
 
-}
 
+    centerOnRectangle(c1: CanvasCoord, c2: CanvasCoord, canvas: HTMLCanvasElement){
+        const w = Math.abs(c1.x - c2.x);
+        const h = Math.abs(c1.y - c2.y);
+        const shift_x = (canvas.width - w)/2 - Math.min(c1.x, c2.x);
+        const shift_y = (canvas.height - h)/2 - Math.min(c1.y, c2.y);
 
+        this.translate_camera(new Vect(shift_x, shift_y));
 
-export function center_canvas_on_rectangle(view: View, top_left:CanvasCoord, bot_right:CanvasCoord, board: ClientBoard){
-    const w = bot_right.x - top_left.x;
-    const h = bot_right.y - top_left.y;
-    const shift_x = (board.canvas.width - w)/2 - top_left.x;
-    const shift_y = (board.canvas.height - h)/2 - top_left.y;
-
-    view.translate_camera(new Vect(shift_x, shift_y));
-
-    if ( w <= 0 || h <= 0 ){
-        board.update_canvas_pos(view);
-        board.updateOtherUsersCanvasPos();
-        return;
+        const ratio_w = canvas.width/w;
+        const ratio_h = canvas.height/h;
+        const center = new CanvasCoord(canvas.width/2, canvas.height/2);
+        this.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
     }
-
-    const ratio_w = board.canvas.width/w;
-    const ratio_h = board.canvas.height/h;
-
-    const center = new CanvasCoord(board.canvas.width/2, board.canvas.height/2);
-    view.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
-    
-    board.update_after_camera_change();
-    board.update_canvas_pos(view);
-    board.updateOtherUsersCanvasPos();
 }
+
+
 

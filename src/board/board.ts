@@ -3,7 +3,7 @@ import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
-import { center_canvas_on_rectangle, View } from "./camera";
+import { View } from "./display/camera";
 import { ClientGraph } from "./graph";
 import { ClientLink, ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
@@ -463,6 +463,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         for (const area of this.areas.values()){
             area.update_after_camera_change(this.view);
         }
+
+        for (const v of this.graph.vertices.values()) {
+            v.update_after_view_modification(this.view);
+        }
+        for (const link of this.graph.links.values()) {
+            link.update_after_view_modification(this.view);
+        }
+        this.updateOtherUsersCanvasPos()
     }
 
     select_elements_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
@@ -628,21 +636,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.deselect_all_strokes();
     }
 
-    update_canvas_pos(view: View) {
-        for (const v of this.graph.vertices.values()) {
-            v.update_after_view_modification(view);
-        }
-        for (const link of this.graph.links.values()) {
-            link.update_after_view_modification(view);
-            
-        }
-        // for (const area of this.areas.values()){
-        //     area.update_canvas_pos(view);
-        // }
-        for( const stroke of this.strokes.values()){
-            stroke.update_canvas_pos(view);
-        }
-    }
+   
 
     translate_area(shift: CanvasVect, area: ClientArea, verticesContained: Set<number>){
         this.graph.vertices.forEach((vertex, vertexIndex) => {
@@ -776,7 +770,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-    // method change_camera -> update_canvas_pos de tous les éléments
 
 
 
@@ -897,10 +890,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             bot_right_corner = new CanvasCoord(xMax, yMax);
         }
 
-        center_canvas_on_rectangle(this.view, top_left_corner, bot_right_corner, this);
-        this.update_after_camera_change();
+        this.centerCameraOnRectangle(top_left_corner, bot_right_corner);
     }
 
+
+    centerCameraOnRectangle(c1: CanvasCoord, c2: CanvasCoord){
+        this.view.centerOnRectangle(c1, c2, this.canvas);
+        this.update_after_camera_change();
+    }
 
 
 

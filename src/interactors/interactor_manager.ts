@@ -139,8 +139,6 @@ export function setupInteractions(board: ClientBoard) {
             board.view.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY), 1.1);
         }
         board.update_after_camera_change();
-        board.update_canvas_pos(board.view);
-        board.updateOtherUsersCanvasPos();
 
 
         if ( typeof board.selfUser.following != "undefined") {

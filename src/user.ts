@@ -1,6 +1,6 @@
 import { Coord, Option } from "gramoloss";
 import { ClientBoard } from "./board/board";
-import { View } from "./board/camera";
+import { View } from "./board/display/camera";
 import { CanvasCoord } from "./board/canvas_coord";
 import { draw_user_label } from "./draw_basics";
 import { Multicolor } from "./multicolor";

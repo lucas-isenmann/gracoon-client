@@ -1,6 +1,6 @@
 import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "./board";
-import { View } from "./camera";
+import { View } from "./display/camera";
 import { CanvasVect } from "./canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";

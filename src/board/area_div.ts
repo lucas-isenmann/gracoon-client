@@ -1,4 +1,3 @@
-import { center_canvas_on_rectangle } from "./camera";
 import { params_available_turn_on_div } from "../parametors/div_parametor";
 import { ClientBoard, COLOR_BACKGROUND } from "./board";
 
@@ -59,7 +58,7 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
         title_area_container.appendChild(titleDOM);
         // Center on the area on click
         titleDOM.addEventListener("click",  (e)=>{
-            center_canvas_on_rectangle(view, zone.canvas_corner_top_left, zone.canvas_corner_bottom_right, board);
+            board.centerCameraOnRectangle( zone.canvas_corner_top_left, zone.canvas_corner_bottom_right);
             board.requestDraw()
         });
     }

@@ -1,5 +1,5 @@
 import { Coord, Rectangle } from "gramoloss";
-import { View } from "./camera";
+import { View } from "./display/camera";
 import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";

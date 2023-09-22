@@ -141,8 +141,6 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                 board.view.translate_camera(shift.sub(previous_canvas_shift));
                 previous_canvas_shift.set_from(shift);
                 board.update_after_camera_change();
-                board.update_canvas_pos(board.view);
-                board.updateOtherUsersCanvasPos();
                 
                 if(typeof board.selfUser.following != "undefined"){
                     board.selfUser.unfollow(board.selfUser.following);

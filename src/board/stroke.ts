@@ -1,4 +1,4 @@
-import { View } from "./camera";
+import { View } from "./display/camera";
 import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
@@ -24,11 +24,6 @@ export class ClientStroke extends Stroke{
         }
     }
 
-    update_canvas_pos(view: View){
-        for( let i = 0 ; i < this.positions.length; i ++){
-            this.canvas_positions[i] = view.create_canvas_coord(this.positions[i]);
-        }
-    }
 
     is_nearby(pos:CanvasCoord, view: View): boolean{
         const bot_right_canvas = view.create_canvas_coord(this.bot_right);
@@ -74,6 +69,9 @@ export class ClientStroke extends Stroke{
     update_after_camera_change(view: View){
         this.canvas_corner_top_left = view.create_canvas_coord(this.top_left);
         this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right);
+        for( let i = 0 ; i < this.positions.length; i ++){
+            this.canvas_positions[i] = view.create_canvas_coord(this.positions[i]);
+        }
     }
 
     // Test if a stroke is in a Canvas Rectangle defined by two corners.

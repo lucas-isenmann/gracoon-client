@@ -1,5 +1,5 @@
 import { Option } from "gramoloss";
-import { View } from "../camera";
+import { View } from "./camera";
 
 const GRID_COLOR = '#777777';
 

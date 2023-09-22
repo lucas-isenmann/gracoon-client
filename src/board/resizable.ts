@@ -1,6 +1,6 @@
 import { Coord } from "gramoloss";
 import { RESIZE_TYPE } from "../interactors/interactor";
-import { View } from "./camera";
+import { View } from "./display/camera";
 import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
 

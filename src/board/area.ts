@@ -1,4 +1,4 @@
-import { View } from "./camera";
+import { View } from "./display/camera";
 import { CanvasCoord } from "./canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./canvasVect";
