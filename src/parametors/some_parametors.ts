@@ -218,7 +218,7 @@ export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "d
 
 paramDelaunayConstructor.compute = ((g: ClientGraph) => {
     g.resetDelaunayGraph((i,j) => {
-        return new ClientLinkData(undefined, Color.Neutral, "", g.board.view);
+        return new ClientLinkData(undefined, Color.Neutral, "", g.board.camera);
     });
     return String("/");
 });
@@ -262,15 +262,15 @@ paramStretch.compute = ((g: ClientGraph) => {
 //             const c2 = c1.add(new Coord(w,w));
 //             for( let j = 0 ; j < graphSize ; j ++){
 //                 const pos = c1.add(new Coord(Math.random()*w,Math.random()*w));
-//                 const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.view);
+//                 const newVertex = new ClientVertex(pos.x,pos.y,"",local_board.camera);
 //                 g.addVertex(newVertex);
 //             }
-//             local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.view));
+//             local_board.rectangles.set(i, new ClientRectangle(c1, c2 , "gray", local_board.camera));
 //             const subgraph = g.getSubgraphFromRectangle(c1,c2);
 //             subgraph.resetDelaunayGraph((i,j) => {
 //                 const vi = subgraph[i].vertices.get(i);
 //                 const vj = subgraph[j].vertices.get(j);
-//                 return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+//                 return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.camera)
 //             });
 //             const stretch = subgraph.stretch();
 //             if (maxStretch == undefined){
@@ -316,7 +316,7 @@ paramStretch.compute = ((g: ClientGraph) => {
 //             for ( let j = 0 ; j < popSize ; j ++ ){
 //                 if ( r <= s + fitness[j]){
 //                     newPop.push(population[j].clone());
-//                     newPop[i].translateByServerVect(new Vect(((i%nbRows)-(j%nbRows))*(w+margin),((Math.floor(i/nbRows))-(Math.floor(j/nbRows)))*(w+margin)), local_board.view);
+//                     newPop[i].translateByServerVect(new Vect(((i%nbRows)-(j%nbRows))*(w+margin),((Math.floor(i/nbRows))-(Math.floor(j/nbRows)))*(w+margin)), local_board.camera);
 
 //                     // mutate
 //                     const r2 = Math.floor(Math.random()* graphSize);
@@ -332,7 +332,7 @@ paramStretch.compute = ((g: ClientGraph) => {
 //                     newPop[i].resetDelaunayGraph((i,j) => {
 //                         const vi = newPop[i].vertices.get(i);
 //                         const vj = newPop[j].vertices.get(j);
-//                         return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.view)
+//                         return new ClientLink(i,j,vi,vj,"", ORIENTATION.UNDIRECTED, "black", "", local_board.camera)
 //                     });
 
 //                     const stretch = newPop[i].stretch();

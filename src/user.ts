@@ -16,14 +16,14 @@ export class User {
     timer_refresh : number; // Date since the last change of position
     id_timeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
 
-    constructor(id: string, label: string, color: string, view: View, pos?: Coord) {
+    constructor(id: string, label: string, color: string, camera: View, pos?: Coord) {
         this.id = id;
         this.label = label;
         this.multicolor = new Multicolor(color);
          
         if (typeof pos !== 'undefined') {
             this.pos = pos;
-            this.canvas_pos = view.create_canvas_coord(this.pos);
+            this.canvas_pos = camera.create_canvas_coord(this.pos);
         }
         else{
             this.pos = undefined;
@@ -61,7 +61,7 @@ export class User {
         
         this.pos = newPos;
         if (typeof this.pos != "undefined"){
-            this.canvas_pos = board.view.create_canvas_coord(this.pos);
+            this.canvas_pos = board.camera.create_canvas_coord(this.pos);
         } else {
             this.canvas_pos = undefined;
         }

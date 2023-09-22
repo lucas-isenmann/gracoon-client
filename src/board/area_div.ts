@@ -31,7 +31,7 @@ function createTitleSpanForWholeArea(){
 
 export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, zone: Zone){
     const g = board.graph;
-    const view = board.view;
+    const camera = board.camera;
     const area_id = (zone instanceof ClientArea) ? zone.index : "";
 
     area_DOM.id = "area_"+ area_id;

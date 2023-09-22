@@ -15,16 +15,16 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     canvas_corner_top_right : CanvasCoord;
     board: ClientBoard;
 
-    constructor(board: ClientBoard, c1: Coord, c2: Coord, view: View){
+    constructor(board: ClientBoard, c1: Coord, c2: Coord, camera: View){
         super(board.graph,c1,c2);
         this.board = board;
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    static from_embedding(board: ClientBoard, view: View): ClientDegreeWidthRep{
+    static from_embedding(board: ClientBoard, camera: View): ClientDegreeWidthRep{
         if ( board.graph.vertices.size > 0){
             let minX = NaN;
             let maxX = NaN;
@@ -46,9 +46,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const w = 20 + maxX - minX;
             minX += w;
             maxX += w;
-            return new ClientDegreeWidthRep(board, new Coord(minX, minY), new Coord(maxX, maxY), view);
+            return new ClientDegreeWidthRep(board, new Coord(minX, minY), new Coord(maxX, maxY), camera);
         } else {
-            return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100), view);
+            return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100), camera);
         }
     }
 
@@ -76,10 +76,10 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         
         // draw arcs
         for (const [index1, x1] of this.x.entries()){
-            const canvas_coord1 = this.board.view.create_canvas_coord(new Coord(x1,y));
+            const canvas_coord1 = this.board.camera.create_canvas_coord(new Coord(x1,y));
             for (const [index2, x2] of this.x.entries()){
                 if (x1 < x2){
-                    const canvas_coord2 = this.board.view.create_canvas_coord(new Coord(x2,y));
+                    const canvas_coord2 = this.board.camera.create_canvas_coord(new Coord(x2,y));
                     const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
                     if (this.board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
                         this.board.ctx.beginPath();
@@ -94,7 +94,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
 
         // draw points
         for (const [index, x] of this.x.entries()){
-            const canvas_coord = this.board.view.create_canvas_coord(new Coord(x,y));
+            const canvas_coord = this.board.camera.create_canvas_coord(new Coord(x,y));
             draw_circle(canvas_coord, "black", 14, 1, this.board.ctx);
             draw_circle(canvas_coord, "blue", 12, 1, this.board.ctx);
             draw_circle(canvas_coord, "black", 10, 1, this.board.ctx);
@@ -136,7 +136,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             }
             this.board.ctx.font = "17px Arial";
             const measure = this.board.ctx.measureText(String(dwc));
-            const pos = this.board.view.create_canvas_coord(new Coord(x1,y));
+            const pos = this.board.camera.create_canvas_coord(new Coord(x1,y));
             if (dwc == dw){
                 draw_circle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, this.board.ctx);
             }
@@ -149,17 +149,17 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         }
     }
 
-    update_after_camera_change(view: View){
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    update_after_camera_change(camera: View){
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    click_over(pos: CanvasCoord, view: View): number | string {
+    click_over(pos: CanvasCoord, camera: View): number | string {
         const y = (this.c1.y + this.c2.y)/2;
         for ( const [index, x] of this.x.entries()){
-            const canvas_coord = view.create_canvas_coord(new Coord(x,y));
+            const canvas_coord = camera.create_canvas_coord(new Coord(x,y));
             if (canvas_coord.is_nearby(pos, 200)){
                 return index;
             }
@@ -167,16 +167,16 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         return "";
     }
 
-    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, view: View){
-        const shift = view.server_vect(cshift);
+    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, camera: View){
+        const shift = camera.server_vect(cshift);
         const x = this.x.get(index);
         if (typeof x != "undefined"){
             this.x.set(index, x + shift.x);
         }
     }
 
-    translate_by_canvas_vect(cshift: CanvasVect, view: View){
-        const shift = view.server_vect(cshift);
+    translate_by_canvas_vect(cshift: CanvasVect, camera: View){
+        const shift = camera.server_vect(cshift);
         for (const [index, x] of this.x.entries()){
             if (typeof x != "undefined"){
                 this.x.set(index, x + shift.x);
@@ -184,7 +184,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         }
     }
 
-    onmouseup(view: View){
+    onmouseup(camera: View){
         this.distribute();
     }
 }

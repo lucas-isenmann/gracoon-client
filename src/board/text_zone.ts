@@ -17,7 +17,7 @@ export class ClientTextZone extends TextZone {
     constructor(pos: Coord, width: number, text: string, board: ClientBoard, index: number){
         super(pos, width, text, index);
         this.board = board;
-        this.canvas_pos = board.view.create_canvas_coord(pos);
+        this.canvas_pos = board.camera.create_canvas_coord(pos);
         this.last_mouse_pos = new CanvasCoord(0,0);
 
             this.div = document.createElement("div");
@@ -77,7 +77,7 @@ export class ClientTextZone extends TextZone {
                         console.log("moveDiv");
                         const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
                         const cshift = CanvasVect.from_canvas_coords(text_zone.last_mouse_pos, new_mouse_pos);
-                        const shift = board.view.server_vect(cshift);
+                        const shift = board.camera.server_vect(cshift);
                         board.emit_translate_elements([[BoardElementType.TextZone, index]], shift);
                         text_zone.last_mouse_pos = new_mouse_pos;
                     }
@@ -143,9 +143,9 @@ export class ClientTextZone extends TextZone {
         this.update_text(text);
     }
 
-    translate(shift: CanvasVect, view: View) {
+    translate(shift: CanvasVect, camera: View) {
         this.canvas_pos.translate_by_canvas_vect(shift);
-        this.pos = view.create_server_coord(this.canvas_pos);
+        this.pos = camera.create_server_coord(this.canvas_pos);
         this.reset_div_pos();
     }
 
@@ -174,8 +174,8 @@ export class ClientTextZone extends TextZone {
         return (this.canvas_pos.x <= canvas_pos.x && canvas_pos.x <= this.canvas_pos.x + this.div.clientWidth) && (this.canvas_pos.y <= canvas_pos.y && canvas_pos.y <= this.canvas_pos.y + this.div.clientHeight);
     }
 
-    update_after_camera_change(view: View){
-        this.canvas_pos = view.create_canvas_coord(this.pos);
+    update_after_camera_change(camera: View){
+        this.canvas_pos = camera.create_canvas_coord(this.pos);
         this.reset_div_pos();
     }
 }

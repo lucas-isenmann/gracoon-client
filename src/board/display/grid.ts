@@ -74,7 +74,7 @@ export class Grid {
 
     /**
      * Draw a triangular grid. 
-     * The length of the equilateral triangle is `grid_size` of view.
+     * The length of the equilateral triangle is `grid_size` of camera.
      */
     drawVerticalTriangularGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: View) {
         const grid_size = this.grid_size;

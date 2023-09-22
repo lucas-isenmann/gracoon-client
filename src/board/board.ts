@@ -86,7 +86,7 @@ export enum INDEX_TYPE {
 
 
 export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
-    view: View;
+    camera: View;
     graph: ClientGraph;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
@@ -146,7 +146,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         
 
         this.graph = new ClientGraph(this);
-        this.view = new View();
+        this.camera = new View();
         
         this.elementOver = undefined;
 
@@ -262,34 +262,34 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      * Draw a Bezier Curve with 2 control points (therefore it is a cubic curve).
      */
     drawBezierCurve(ctx: CanvasRenderingContext2D, p1: Coord, c1: Coord, c2: Coord, p2: Coord, color: string, width: number){
-        const canvasp1 = this.view.create_canvas_coord(p1);
-        const canvasc1 = this.view.create_canvas_coord(c1);
-        const canvasc2 = this.view.create_canvas_coord(c2);
-        const canvasp2 = this.view.create_canvas_coord(p2);
-        const scaledWidth = width*this.view.zoom;
+        const canvasp1 = this.camera.create_canvas_coord(p1);
+        const canvasc1 = this.camera.create_canvas_coord(c1);
+        const canvasc2 = this.camera.create_canvas_coord(c2);
+        const canvasp2 = this.camera.create_canvas_coord(p2);
+        const scaledWidth = width*this.camera.zoom;
         drawBezierCurve(ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
     }
 
     drawLine(ctx: CanvasRenderingContext2D, p1: Coord, p2: Coord, color: string, width: number){
-        const canvasP1 = this.view.create_canvas_coord(p1);
-        const canvasP2 = this.view.create_canvas_coord(p2);
-        const scaledWidth = width*this.view.zoom;
+        const canvasP1 = this.camera.create_canvas_coord(p1);
+        const canvasP2 = this.camera.create_canvas_coord(p2);
+        const scaledWidth = width*this.camera.zoom;
         drawLine(canvasP1, canvasP2, ctx, color, scaledWidth);
     }
 
     drawLineUnscaled(p1: Coord, p2: Coord, color: string, width: number){
-        const canvasP1 = this.view.create_canvas_coord(p1);
-        const canvasP2 = this.view.create_canvas_coord(p2);
+        const canvasP1 = this.camera.create_canvas_coord(p1);
+        const canvasP2 = this.camera.create_canvas_coord(p2);
         drawLine(canvasP1, canvasP2, this.ctx, color, width);
     }
 
     drawCanvasLine(p1: CanvasCoord, p2: CanvasCoord, color: string, width: number){
-        const scaledWidth = width*this.view.zoom;
+        const scaledWidth = width*this.camera.zoom;
         drawLine(p1, p2, this.ctx, color, scaledWidth);
     }
 
     drawCircle(center: Coord, radius: number, color: string, alpha: number){
-        const canvasCenter = this.view.create_canvas_coord(center);
+        const canvasCenter = this.camera.create_canvas_coord(center);
         draw_circle(canvasCenter, color, radius, alpha, this.ctx)
     }
 
@@ -357,8 +357,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     draw() {
         // console.time("draw")
         this.drawBackground();
-        this.grid.draw(this.canvas, this.ctx, this.view);
-        this.representations.forEach(rep => rep.draw(this.ctx, this.view));
+        this.grid.draw(this.canvas, this.ctx, this.camera);
+        this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
         this.rectangles.forEach(rectangle => rectangle.draw());
         this.strokes.forEach(stroke => stroke.draw(this));
         this.areas.forEach(area => area.draw(this));
@@ -385,8 +385,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-        // view.window_height = window.innerHeight;
-        // view.window_width = window.innerWidth;
+        // camera.window_height = window.innerHeight;
+        // camera.window_width = window.innerWidth;
         const board = this;
         requestAnimationFrame(function () { board.draw() })
     }
@@ -410,7 +410,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      */
     eraseAt(e: CanvasCoord, eraseDistance: number) : boolean{
         for (const [index, s] of this.strokes.entries()) {
-            if (s.is_nearby(e, this.view) !== false) {
+            if (s.is_nearby(e, this.camera) !== false) {
                 this.emit_delete_elements([[BoardElementType.Stroke, index]]);
                 return true;
             }
@@ -422,7 +422,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             }
         }
         for (const index of this.graph.links.keys()) {
-            if (this.graph.is_click_over_link(index, e, this.view)) {
+            if (this.graph.is_click_over_link(index, e, this.camera)) {
                 this.emit_delete_elements([[BoardElementType.Link, index]]);
                 return true;
             }
@@ -452,28 +452,28 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     update_after_camera_change(){
-        this.grid.updateToZoom(this.view.zoom);
+        this.grid.updateToZoom(this.camera.zoom);
         for (const stroke of this.strokes.values()){
-            stroke.update_after_camera_change(this.view);
+            stroke.update_after_camera_change(this.camera);
         }
         for ( const text_zone of this.text_zones.values()){
-            text_zone.update_after_camera_change(this.view);
+            text_zone.update_after_camera_change(this.camera);
         }
         for (const rep of this.representations.values()){
-            rep.update_after_camera_change(this.view);
+            rep.update_after_camera_change(this.camera);
         }
         for (const rect of this.rectangles.values()){
-            rect.update_after_camera_change(this.view);
+            rect.update_after_camera_change(this.camera);
         }
         for (const area of this.areas.values()){
-            area.update_after_camera_change(this.view);
+            area.update_after_camera_change(this.camera);
         }
 
         for (const v of this.graph.vertices.values()) {
-            v.update_after_view_modification(this.view);
+            v.update_after_view_modification(this.camera);
         }
         for (const link of this.graph.links.values()) {
-            link.update_after_view_modification(this.view);
+            link.update_after_view_modification(this.camera);
         }
         this.updateOtherUsersCanvasPos()
     }
@@ -495,7 +495,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         while (this.text_zones.has(index)) {
             index += 1;
         }
-        const pos = this.view.create_server_coord(canvas_pos);
+        const pos = this.camera.create_server_coord(canvas_pos);
         const text_zone = new ClientTextZone(pos, 200, "salut", this, index);
         this.text_zones.set(index, text_zone);
         return index;
@@ -523,7 +523,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             }
         }
         for (const stroke of this.strokes.values()){
-            if (stroke.is_nearby(pos, this.view)){
+            if (stroke.is_nearby(pos, this.camera)){
                 this.elementOver = stroke;
                 break;
             }
@@ -546,7 +546,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 if (typeof resizeType != "undefined"){
                     return new ELEMENT_DATA_REPRESENTATION(rep, index, resizeType);
                 }
-                const subElementIndex = rep.click_over(pos, this.view);
+                const subElementIndex = rep.click_over(pos, this.camera);
                 if (typeof subElementIndex != "string"){
                     return new ELEMENT_DATA_REPRESENTATION_SUBELEMENT(rep, index, subElementIndex)
                 }
@@ -589,7 +589,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
                 return new ELEMENT_DATA_CONTROL_POINT(link);
             }
-            if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.view)) {
+            if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.camera)) {
                 return new ELEMENT_DATA_LINK(link);
             }
         }
@@ -611,7 +611,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         if (interactable_element_type.has(DOWN_TYPE.STROKE)) {
             for(const [index,s] of this.strokes.entries()){
-                if (s.is_nearby(pos, this.view)){     
+                if (s.is_nearby(pos, this.camera)){     
                     return new ELEMENT_DATA_STROKE(s, index);
                 }
             }
@@ -646,7 +646,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     translate_area(shift: CanvasVect, area: ClientArea, verticesContained: Set<number>){
         this.graph.vertices.forEach((vertex, vertexIndex) => {
             if (verticesContained.has(vertexIndex)){
-                vertex.translate_by_canvas_vect(shift, this.view);
+                vertex.translate_by_canvas_vect(shift, this.camera);
             }
         })
         for( const link of this.graph.links.values()){
@@ -654,24 +654,24 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 const v1 = link.startVertex;
                 const v2 = link.endVertex;
                 if(verticesContained.has(link.startVertex.index) && verticesContained.has(link.endVertex.index)){
-                    link.translate_cp_by_canvas_vect(shift, this.view);
+                    link.translate_cp_by_canvas_vect(shift, this.camera);
                 }
                 else if(verticesContained.has(link.startVertex.index)){ // and thus not v2
                     const newPos = v1.data.pos;
-                    const previousPos = this.view.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
+                    const previousPos = this.camera.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
                     const fixedPos = v2.data.pos;
                     link.transformCP(newPos, previousPos, fixedPos);
-                    link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
+                    link.data.cp_canvas_pos = this.camera.create_canvas_coord(link.data.cp);
                 }else if(verticesContained.has(link.endVertex.index)) { // and thus not v1
                     const newPos = v2.data.pos;
-                    const previousPos = this.view.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
+                    const previousPos = this.camera.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
                     const fixedPos = v1.data.pos;
                     link.transformCP(newPos, previousPos, fixedPos);
-                    link.data.cp_canvas_pos = this.view.create_canvas_coord(link.data.cp);
+                    link.data.cp_canvas_pos = this.camera.create_canvas_coord(link.data.cp);
                 }
             }
         }
-        translate_by_canvas_vect(area, shift, this.view);
+        translate_by_canvas_vect(area, shift, this.camera);
     }
 
 
@@ -680,7 +680,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emitGenerateGraph(generatorId: GeneratorId, params: Array<any>) {
-        socket.emit(SocketMsgType.GENERATE_GRAPH, this.view.create_server_coord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
+        socket.emit(SocketMsgType.GENERATE_GRAPH, this.camera.create_server_coord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
     }
 
     emit_redo() {
@@ -802,7 +802,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     translateGraphClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
         if (typeof this.graphClipboard == "undefined" || typeof this.clipboardInitPos == "undefined") return;
         const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
-        this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.view);
+        this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.camera);
         previousCanvasShift.set_from(shift);
         this.draw()
     }
@@ -815,7 +815,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     updateOtherUsersCanvasPos() {
         for (const user of this.otherUsers.values()){
             if ( typeof user.pos != "undefined"){
-                user.canvas_pos = this.view.create_canvas_coord(user.pos);
+                user.canvas_pos = this.camera.create_canvas_coord(user.pos);
             }
         }
     }
@@ -900,7 +900,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     centerCameraOnRectangle(c1: CanvasCoord, c2: CanvasCoord){
-        this.view.centerOnRectangle(c1, c2, this.canvas);
+        this.camera.centerOnRectangle(c1, c2, this.canvas);
         this.update_after_camera_change();
     }
 

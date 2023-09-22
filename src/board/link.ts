@@ -27,13 +27,13 @@ export class ClientLinkData extends BasicLinkData {
     is_selected: boolean;
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
 
-    constructor(cp: Option<Coord>,  color: Color, weight: string, view: View) {
+    constructor(cp: Option<Coord>,  color: Color, weight: string, camera: View) {
         super(cp, weight, color);
         this.color = color;
         if (typeof cp == "undefined"){
             this.cp_canvas_pos = "";
         } else {
-            this.cp_canvas_pos = view.create_canvas_coord(cp);
+            this.cp_canvas_pos = camera.create_canvas_coord(cp);
         }
         this.is_selected = false;
         this.weightDiv = undefined;
@@ -76,9 +76,9 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     }
 
 
-    set_cp(new_cp: Coord, view: View){
+    set_cp(new_cp: Coord, camera: View){
         this.data.cp = new_cp;
-        this.data.cp_canvas_pos = view.create_canvas_coord(new_cp);
+        this.data.cp_canvas_pos = camera.create_canvas_coord(new_cp);
     }
 
     is_in_rect(c1: CanvasCoord, c2: CanvasCoord) {
@@ -87,9 +87,9 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         return this.startVertex.is_in_rect(c1, c2) || this.endVertex.is_in_rect(c1, c2);
     }
 
-    update_after_view_modification(view: View){
+    update_after_view_modification(camera: View){
         if ( typeof this.data.cp != "undefined"){
-            this.data.cp_canvas_pos = view.create_canvas_coord(this.data.cp);
+            this.data.cp_canvas_pos = camera.create_canvas_coord(this.data.cp);
         }
         this.setAutoWeightDivPos();
     }
@@ -117,11 +117,11 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
   
 
 
-    translate_cp_by_canvas_vect(shift: CanvasVect, view: View){
+    translate_cp_by_canvas_vect(shift: CanvasVect, camera: View){
             if ( typeof this.data.cp != "undefined" && typeof this.data.cp_canvas_pos != "string"){
                 this.data.cp_canvas_pos.translate_by_canvas_vect(shift);
-                this.data.cp.x += shift.x/view.zoom; 
-                this.data.cp.y += shift.y/view.zoom;
+                this.data.cp.x += shift.x/camera.zoom; 
+                this.data.cp.y += shift.y/camera.zoom;
             }
     }
 
@@ -164,9 +164,9 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
 
 
-    translateByServerVect(shift: Vect, view: View) {
+    translateByServerVect(shift: Vect, camera: View) {
         if (typeof this.data.cp !== "undefined" && typeof this.data.cp_canvas_pos !== "string"){
-            const canvas_shift = view.create_canvas_vect(shift);
+            const canvas_shift = camera.create_canvas_vect(shift);
             this.data.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);
             this.data.cp.x += shift.x;
             this.data.cp.y += shift.y;

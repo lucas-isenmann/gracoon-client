@@ -65,8 +65,8 @@ export function setupHandlers(board: ClientBoard) {
         // console.log("FOLLOWING USER:", x,y,zoom, id);
         if(board.otherUsers.has(id) && board.selfUser.following == id){
             // console.log("Following......")
-            board.view.camera = new Coord(x, y);
-            board.view.zoom = zoom;
+            board.camera.camera = new Coord(x, y);
+            board.camera.zoom = zoom;
             board.update_after_camera_change();
             board.requestDraw();
         }
@@ -78,7 +78,7 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleSendView(){
         // console.log("SENDING MY VIEW");
-        socket.emit("my_view", board.view.camera.x, board.view.camera.y, board.view.zoom);
+        socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
     }
 
     function handleUpdateOtherUsers(id:string, label:string, color:string){
@@ -89,7 +89,7 @@ export function setupHandlers(board: ClientBoard) {
             user.label = label;
         }
         else {
-            board.otherUsers.set(id, new User(id, label, color, board.view));
+            board.otherUsers.set(id, new User(id, label, color, board.camera));
         }
         board.update_user_list_div();
         requestAnimationFrame(function () { board.draw() });
@@ -126,7 +126,7 @@ export function setupHandlers(board: ClientBoard) {
            user.set_pos(newPos, board);
         }
         else {
-            board.otherUsers.set(id, new User(id, label, color, board.view,  newPos));
+            board.otherUsers.set(id, new User(id, label, color, board.camera,  newPos));
             board.update_user_list_div();
         }
         requestAnimationFrame(function () { board.draw() });
@@ -148,7 +148,7 @@ export function setupHandlers(board: ClientBoard) {
         board.otherUsers.clear();
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 
-            const new_user = new User(data[0], data[1].label, data[1].color, board.view, new Coord(-100, -100));
+            const new_user = new User(data[0], data[1].label, data[1].color, board.camera, new Coord(-100, -100));
             board.otherUsers.set(data[0], new_user);
         }
         // console.log(users);
@@ -175,17 +175,17 @@ export function setupHandlers(board: ClientBoard) {
     function handleTranslateElements(data: { shift: {x: number, y: number}, indices: [[string, number]]}, sensibilities: [SENSIBILITY]){
         // console.log("handleTranslateElements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
-        const cshift = board.view.create_canvas_vect(shift);
+        const cshift = board.camera.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
             if ( kind == "TextZone"){
                 const text_zone = board.text_zones.get(index);
                 if (typeof text_zone != "undefined") {
-                    text_zone.translate(cshift, board.view);
+                    text_zone.translate(cshift, board.camera);
                 }
             } else if ( kind == "Stroke"){
                 const stroke = board.strokes.get(index);
                 if (typeof stroke != "undefined"){
-                    stroke.translate_by_canvas_vect(cshift, board.view);
+                    stroke.translate_by_canvas_vect(cshift, board.camera);
                 }
             } else if ( kind == "Area"){
                 const area = board.areas.get(index);
@@ -199,7 +199,7 @@ export function setupHandlers(board: ClientBoard) {
                     }
                 }
             } else if (kind == "Vertex"){
-                g.translate_vertex_by_canvas_vect(index, cshift, board.view);
+                g.translate_vertex_by_canvas_vect(index, cshift, board.camera);
                 for (const link of g.links.values()){
                     if (link.startVertex.index == index || link.endVertex.index == index){
                         link.setAutoWeightDivPos();
@@ -233,7 +233,7 @@ export function setupHandlers(board: ClientBoard) {
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.view, data.index);
+                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.camera, data.index);
                 board.strokes.set(data.index, new_stroke);
             } else if (data.kind == "TextZone"){
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
@@ -254,7 +254,7 @@ export function setupHandlers(board: ClientBoard) {
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.view, color));
+                const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.camera, color));
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
                 g.compute_vertices_index_string();
             } else if (data.kind == "Link"){
@@ -269,7 +269,7 @@ export function setupHandlers(board: ClientBoard) {
                 const weight = data.element.data.weight as string;
                 console.log(weight)
 
-                const newLinkData = new ClientLinkData(cp, color, weight, board.view);
+                const newLinkData = new ClientLinkData(cp, color, weight, board.camera);
                 const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
@@ -357,7 +357,7 @@ export function setupHandlers(board: ClientBoard) {
                     link.data.cp_canvas_pos = "";
                 } else {
                     const new_cp = new Coord(data.value.x, data.value.y);
-                    link.set_cp(new_cp, board.view);
+                    link.set_cp(new_cp, board.camera);
                 }
                 link.setAutoWeightDivPos();
             }
@@ -374,11 +374,11 @@ export function setupHandlers(board: ClientBoard) {
             if(data.param == "c1"){
                 const new_c1 = new Coord(data.value.x , data.value.y);
                 area.c1 = new_c1;
-                area.update_canvas_pos(board.view);
+                area.update_canvas_pos(board.camera);
             } else if(data.param == "c2"){
                 const new_c2 = new Coord(data.value.x , data.value.y);
                 area.c2 = new_c2;
-                area.update_canvas_pos(board.view);
+                area.update_canvas_pos(board.camera);
             }
         } else {
             console.log("Kind not supported :", data.kind);
@@ -410,7 +410,7 @@ export function setupHandlers(board: ClientBoard) {
             rawStroke.positions.forEach(e => {
                 positions.push(new Coord(e.x, e.y));
             });
-            const new_stroke = new ClientStroke(positions, rawStroke.color as Color, rawStroke.width, board.view, index);
+            const new_stroke = new ClientStroke(positions, rawStroke.color as Color, rawStroke.width, board.camera, index);
             board.strokes.set(index, new_stroke);
         }
         // update_params_loaded(g,false);
@@ -448,7 +448,7 @@ export function setupHandlers(board: ClientBoard) {
 
         g.clear_vertices();
         for (const data of rawVertices) {
-            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.view, data[1].data.color as Color);
+            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.camera, data[1].data.color as Color);
             const newVertex = g.set_vertex(data[0], vertexData);
         }
 
@@ -465,7 +465,7 @@ export function setupHandlers(board: ClientBoard) {
                     break;
             }
             const cp = typeof rawLink.data.cp == "undefined" ? undefined : new Coord(rawLink.data.cp.x, rawLink.data.cp.y);
-            const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.view);
+            const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.camera);
             // console.log("update_graph, cp ", newLinkData.cp);
             const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
             // console.log("update_graph, cp ", newLink.data.cp);

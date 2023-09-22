@@ -12,22 +12,22 @@ export class ClientStroke extends Stroke{
     canvas_corner_top_left: CanvasCoord;
     canvas_corner_bottom_right: CanvasCoord;
     
-    constructor(pos: Array<Coord>, color: Color, width:number, view: View, index: number){
+    constructor(pos: Array<Coord>, color: Color, width:number, camera: View, index: number){
         super(pos, color, width, index);
         this.color = color;
         this.is_selected = false;
         this.canvas_positions = new Array();
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left);
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right);
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left);
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right);
         for( let i = 0 ; i < this.positions.length; i ++){
-            this.canvas_positions.push(view.create_canvas_coord(this.positions[i]));
+            this.canvas_positions.push(camera.create_canvas_coord(this.positions[i]));
         }
     }
 
 
-    is_nearby(pos:CanvasCoord, view: View): boolean{
-        const bot_right_canvas = view.create_canvas_coord(this.bot_right);
-        const top_left_canvas = view.create_canvas_coord(this.top_left);
+    is_nearby(pos:CanvasCoord, camera: View): boolean{
+        const bot_right_canvas = camera.create_canvas_coord(this.bot_right);
+        const top_left_canvas = camera.create_canvas_coord(this.top_left);
         // if (pos.x > bot_right_canvas.x +5 || pos.x < top_left_canvas.x - 5 || pos.y > bot_right_canvas.y +5 || pos.y < top_left_canvas.y - 5)
         // {
         //     console.log("not in rect")
@@ -45,8 +45,8 @@ export class ClientStroke extends Stroke{
     }
 
 
-    push(cpos:CanvasCoord, view: View){
-        const pos = view.create_server_coord(cpos);
+    push(cpos:CanvasCoord, camera: View){
+        const pos = camera.create_server_coord(cpos);
         this.positions.push(pos);
         this.bot_right.x = Math.max(pos.x, this.bot_right.x);
         this.top_left.x = Math.min(pos.x, this.top_left.x);
@@ -55,8 +55,8 @@ export class ClientStroke extends Stroke{
         this.canvas_positions.push(cpos);
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, view: View){
-        const server_shift = view.server_vect(shift);
+    translate_by_canvas_vect(shift: CanvasVect, camera: View){
+        const server_shift = camera.server_vect(shift);
         this.translate(server_shift);
 
         for (const pos of this.canvas_positions){
@@ -66,11 +66,11 @@ export class ClientStroke extends Stroke{
         this.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
     }
 
-    update_after_camera_change(view: View){
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left);
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right);
+    update_after_camera_change(camera: View){
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left);
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right);
         for( let i = 0 ; i < this.positions.length; i ++){
-            this.canvas_positions[i] = view.create_canvas_coord(this.positions[i]);
+            this.canvas_positions[i] = camera.create_canvas_coord(this.positions[i]);
         }
     }
 

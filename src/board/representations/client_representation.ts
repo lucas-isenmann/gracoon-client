@@ -12,11 +12,11 @@ export interface ClientRepresentation extends Representation {
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
     
-    draw(ctx: CanvasRenderingContext2D, view: View): void;
-    update_after_camera_change(view: View): void;
-    click_over(pos: CanvasCoord, view: View): number | string ;
-    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, view: View): void;
-    onmouseup(view: View): void;
-    translate_by_canvas_vect(cshift: CanvasVect, view: View): void;
+    draw(ctx: CanvasRenderingContext2D, camera: View): void;
+    update_after_camera_change(camera: View): void;
+    click_over(pos: CanvasCoord, camera: View): number | string ;
+    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, camera: View): void;
+    onmouseup(camera: View): void;
+    translate_by_canvas_vect(cshift: CanvasVect, camera: View): void;
     getType(): BoardElementType; // return Representation
 }

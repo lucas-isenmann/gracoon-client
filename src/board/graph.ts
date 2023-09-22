@@ -146,21 +146,21 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
 
 
-    translate_by_canvas_vect(shift: CanvasVect, view: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: View){
         for ( const vertex of this.vertices.values()){
-            vertex.translate_by_canvas_vect(shift, view);
+            vertex.translate_by_canvas_vect(shift, camera);
         }
         for ( const link of this.links.values()){
-            link.translate_cp_by_canvas_vect(shift, view);
+            link.translate_cp_by_canvas_vect(shift, camera);
         }
     }
 
-    translateByServerVect(shift: Vect, view: View){
+    translateByServerVect(shift: Vect, camera: View){
         for ( const vertex of this.vertices.values()){
-            vertex.translate_by_server_vect(shift, view);
+            vertex.translate_by_server_vect(shift, camera);
         }
         for ( const link of this.links.values()){
-            link.translateByServerVect(shift, view);
+            link.translateByServerVect(shift, camera);
         }
     }
 
@@ -236,7 +236,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
     }
 
-    is_click_over_link(link_index: number, e: CanvasCoord, view: View) {
+    is_click_over_link(link_index: number, e: CanvasCoord, camera: View) {
         const link = this.links.get(link_index);
         if (typeof link == "undefined") return;
         const v = link.startVertex;
@@ -265,7 +265,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
     // align_position
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
-    align_position(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, view: View): CanvasCoord {
+    align_position(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: View): CanvasCoord {
         const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
         if (this.board.is_aligning) {
             this.board.alignement_horizontal_y = undefined;
@@ -274,12 +274,12 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 if (excluded_indices.has(index) == false) {
                     if (Math.abs(vertex.data.canvas_pos.y - pos_to_align.y) <= 15) {
                         aligned_pos.y = vertex.data.canvas_pos.y;
-                        this.board.alignement_horizontal_y = view.canvasCoordY(vertex.data.pos);
+                        this.board.alignement_horizontal_y = camera.canvasCoordY(vertex.data.pos);
                         return;
                     }
                     if (Math.abs(vertex.data.canvas_pos.x - pos_to_align.x) <= 15) {
                         aligned_pos.x = vertex.data.canvas_pos.x;
-                        this.board.alignement_vertical_x = view.canvasCoordX(vertex.data.pos);
+                        this.board.alignement_vertical_x = camera.canvasCoordX(vertex.data.pos);
                         return;
                     }
                 }
@@ -287,13 +287,13 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
         if ( this.board.grid.type == GridType.GridRect ) {
             const grid_size = this.board.grid.grid_size;
-            for (let x = view.camera.x % grid_size; x < canvas.width; x += grid_size) {
+            for (let x = camera.camera.x % grid_size; x < canvas.width; x += grid_size) {
                 if (Math.abs(x - pos_to_align.x) <= 15) {
                     aligned_pos.x = x;
                     break;
                 }
             }
-            for (let y = view.camera.y % grid_size; y < canvas.height; y += grid_size) {
+            for (let y = camera.camera.y % grid_size; y < canvas.height; y += grid_size) {
                 if (Math.abs(y - pos_to_align.y) <= 15) {
                     aligned_pos.y = y;
                     break;
@@ -304,8 +304,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const h = grid_size*Math.sqrt(3)/2;
 
             // find the corners of the quadrilateral containing the point
-            const px = ((pos_to_align.x-view.camera.x)- (pos_to_align.y-view.camera.y)/Math.sqrt(3))/grid_size;
-            const py = (pos_to_align.y-view.camera.y)/h;
+            const px = ((pos_to_align.x-camera.camera.x)- (pos_to_align.y-camera.camera.y)/Math.sqrt(3))/grid_size;
+            const py = (pos_to_align.y-camera.camera.y)/h;
             const i = Math.floor(px);
             const j = Math.floor(py);
             const corners = [
@@ -317,7 +317,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             
             // align on the corners if the point is near enough
             for (let corner of corners){
-                corner = corner.add(view.camera);
+                corner = corner.add(camera.camera);
                 if (Math.sqrt(corner.dist2(pos_to_align)) <= 2*15){
                     aligned_pos.x = corner.x;
                     aligned_pos.y = corner.y;
@@ -376,11 +376,11 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Est ce qu'on veut pas un AbstractGraph ?
      * Ah non peut être ça sert pour la copie d'un sous-graphe induit.
      */
-    get_induced_subgraph_from_selection(view: View): ClientGraph{
+    get_induced_subgraph_from_selection(camera: View): ClientGraph{
         const subgraph = new ClientGraph(this.board);
         for (const [index, v] of this.vertices.entries()) {
             if(v.data.is_selected){
-                subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, view, v.data.color))
+                subgraph.set_vertex(index, new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, camera, v.data.color))
             }
         }
 
@@ -388,7 +388,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const u = e.startVertex;
             const v = e.endVertex;
             if(u.data.is_selected && v.data.is_selected){
-                subgraph.setLink(index, e.startVertex.index, e.endVertex.index, e.orientation, new ClientLinkData(e.data.cp, e.data.color, e.data.weight, view ) );
+                subgraph.setLink(index, e.startVertex.index, e.endVertex.index, e.orientation, new ClientLinkData(e.data.cp, e.data.color, e.data.weight, camera ) );
             }
         }
         return subgraph;
@@ -423,8 +423,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         return v2;
     }
 
-    addDefaultVertexFromCoord(pos: Coord, view: View): ClientVertex{
-        const vData = new ClientVertexData( pos.x, pos.y, "", view, Color.Neutral);
+    addDefaultVertexFromCoord(pos: Coord, camera: View): ClientVertex{
+        const vData = new ClientVertexData( pos.x, pos.y, "", camera, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
     }
@@ -433,8 +433,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Add a default vertex positioned at a position on the Canvas (e.g. the center of the screen)
      */
     addDefaultVertex(pos: CanvasCoord): ClientVertex{
-        const p = pos.toCoord(this.board.view);
-        const vData = new ClientVertexData( p.x, p.y, "", this.board.view, Color.Neutral);
+        const p = pos.toCoord(this.board.camera);
+        const vData = new ClientVertexData( p.x, p.y, "", this.board.camera, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
     }
@@ -450,12 +450,12 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
     addDefaultEdge(startIndex: number, endIndex: number){
-        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.view);
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.camera);
         this.addLink(startIndex, endIndex, ORIENTATION.UNDIRECTED, linkData);
     }
 
     addDefaultArc(startIndex: number, endIndex: number){
-        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.view);
+        const linkData = new ClientLinkData(undefined, Color.Neutral, "", this.board.camera);
         this.addLink(startIndex, endIndex, ORIENTATION.DIRECTED, linkData);
     }
 
@@ -473,22 +473,22 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, view: View){
+    translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, camera: View){
         const vertex = this.vertices.get(index);
  
         if (typeof vertex != "undefined") {
             const previous_pos = vertex.data.pos.copy();
-            vertex.translate_by_canvas_vect(cshift, view);
+            vertex.translate_by_canvas_vect(cshift, camera);
             const new_pos = vertex.data.pos.copy();
 
             for (const [link_index, link] of this.links.entries()) {
                 if ( typeof link.data.cp != "undefined"){
                     if (link.startVertex.index == index) {
                         link.transformCP(new_pos, previous_pos, link.endVertex.data.pos);
-                        link.data.cp_canvas_pos = view.create_canvas_coord(link.data.cp);
+                        link.data.cp_canvas_pos = camera.create_canvas_coord(link.data.cp);
                     } else if (link.endVertex.index == index) {
                         link.transformCP(new_pos, previous_pos, link.startVertex.data.pos);
-                        link.data.cp_canvas_pos = view.create_canvas_coord(link.data.cp);
+                        link.data.cp_canvas_pos = camera.create_canvas_coord(link.data.cp);
                     }
                 }
             }
@@ -574,11 +574,11 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                         if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 1){
                             qp1.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp1.id;
-                            // draw_line(this.board.view.create_canvas_coord(qp1.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
+                            // draw_line(this.board.camera.create_canvas_coord(qp1.pos), this.board.camera.create_canvas_coord(neighborQP.pos), ctx, "gray" )
                         } else if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 0){
                             qp2.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp2.id;
-                            // draw_line(this.board.view.create_canvas_coord(qp2.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
+                            // draw_line(this.board.camera.create_canvas_coord(qp2.pos), this.board.camera.create_canvas_coord(neighborQP.pos), ctx, "gray" )
                         }
                     }
                 }

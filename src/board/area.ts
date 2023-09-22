@@ -32,10 +32,10 @@ export class ClientArea extends Area{
 
     constructor(label:string, c1:Coord, c2:Coord, color:string, board: ClientBoard, index: number){
         super(label, c1, c2, color, index);
-        this.canvas_corner_top_left = board.view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = board.view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = board.view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = board.view.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = board.camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = board.camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = board.camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = board.camera.create_canvas_coord(this.top_right_corner());
         this.paramsLoadedDiv = document.createElement("div");
         this.paramsDivContainer = document.createElement("div");
 
@@ -157,7 +157,7 @@ export class ClientArea extends Area{
 
     
     // supposing only CanvasCornerTopLeft and BotRight have been changed
-    recompute_corners(view: View){
+    recompute_corners(camera: View){
         const c1 = this.canvas_corner_top_left.copy();
         const c2 = this.canvas_corner_bottom_right.copy();
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -168,15 +168,15 @@ export class ClientArea extends Area{
         this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
-        this.c1 = view.create_server_coord(this.canvas_corner_top_left);
-        this.c2 = view.create_server_coord(this.canvas_corner_bottom_right);
+        this.c1 = camera.create_server_coord(this.canvas_corner_top_left);
+        this.c2 = camera.create_server_coord(this.canvas_corner_bottom_right);
     }
     
 
 
 
 
-    resize_side_area(pos: CanvasCoord, opposite_coord: number, side_number:AREA_SIDE, view: View){
+    resize_side_area(pos: CanvasCoord, opposite_coord: number, side_number:AREA_SIDE, camera: View){
         if (side_number == AREA_SIDE.TOP || side_number == AREA_SIDE.BOT){
             this.canvas_corner_top_right.y = Math.min(pos.y, opposite_coord);
             this.canvas_corner_top_left.y = Math.min(pos.y, opposite_coord);
@@ -193,7 +193,7 @@ export class ClientArea extends Area{
 
 
 
-    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, view: View){
+    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, camera: View){
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -204,27 +204,27 @@ export class ClientArea extends Area{
         this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, view: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: View){
         // this.canvas_corner_bottom_left.translate_by_canvas_vect(shift);
         // this.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
         // this.canvas_corner_top_left.translate_by_canvas_vect(shift);
         // this.canvas_corner_top_right.translate_by_canvas_vect(shift);
-        // this.c1.translate(view.server_vect(shift));
-        // this.c2.translate(view.server_vect(shift));
+        // this.c1.translate(camera.server_vect(shift));
+        // this.c2.translate(camera.server_vect(shift));
     }
 
-    update_canvas_pos(view: View){
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    update_canvas_pos(camera: View){
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    update_after_camera_change(view: View){
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    update_after_camera_change(camera: View){
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
     getType(): BoardElementType{

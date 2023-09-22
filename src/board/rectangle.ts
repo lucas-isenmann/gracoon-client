@@ -18,10 +18,10 @@ export class ClientRectangle extends Rectangle {
         super(c1, c2, color, index);
         this.color = color;
         this.board = board;
-        this.canvas_corner_top_left = CanvasCoord.fromCoord(this.top_left_corner(), board.view); 
-        this.canvas_corner_bottom_left = CanvasCoord.fromCoord(this.bot_left_corner(), board.view);
-        this.canvas_corner_bottom_right = CanvasCoord.fromCoord(this.bot_right_corner(), board.view);
-        this.canvas_corner_top_right = CanvasCoord.fromCoord(this.top_right_corner(), board.view);
+        this.canvas_corner_top_left = CanvasCoord.fromCoord(this.top_left_corner(), board.camera); 
+        this.canvas_corner_bottom_left = CanvasCoord.fromCoord(this.bot_left_corner(), board.camera);
+        this.canvas_corner_bottom_right = CanvasCoord.fromCoord(this.bot_right_corner(), board.camera);
+        this.canvas_corner_top_right = CanvasCoord.fromCoord(this.top_right_corner(), board.camera);
     }
 
 
@@ -47,7 +47,7 @@ export class ClientRectangle extends Rectangle {
     
 
 
-    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, view: View){
+    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, camera: View){
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -58,14 +58,14 @@ export class ClientRectangle extends Rectangle {
         this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
     }
 
-    update_after_camera_change(view: View){
-        this.canvas_corner_top_left = view.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = view.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = view.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = view.create_canvas_coord(this.top_right_corner());
+    update_after_camera_change(camera: View){
+        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
     
-    translate_by_canvas_vect(cshift: CanvasVect, view: View){
+    translate_by_canvas_vect(cshift: CanvasVect, camera: View){
     }
 
     getType(): BoardElementType{

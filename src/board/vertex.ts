@@ -67,15 +67,15 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     setPos(board: ClientBoard, nx: number, ny: number) {
         this.data.pos.x = nx;
         this.data.pos.y = ny;
-        this.data.canvas_pos = board.view.create_canvas_coord(this.data.pos );
+        this.data.canvas_pos = board.camera.create_canvas_coord(this.data.pos );
         this.setAutoWeightDivPos();
     }
 
 
 
 
-    update_after_view_modification(view: View){
-        this.data.canvas_pos = view.create_canvas_coord(this.data.pos);
+    update_after_view_modification(camera: View){
+        this.data.canvas_pos = camera.create_canvas_coord(this.data.pos);
         this.setAutoWeightDivPos();
     }
 
@@ -84,15 +84,15 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         return this.data.canvas_pos.dist2(pos) <= rsquared;
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, view: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: View){
         this.data.canvas_pos.translate_by_canvas_vect(shift);
-        this.data.pos.x += shift.x/view.zoom;
-        this.data.pos.y += shift.y/view.zoom;
+        this.data.pos.x += shift.x/camera.zoom;
+        this.data.pos.y += shift.y/camera.zoom;
         this.setAutoWeightDivPos();
     }
 
-    translate_by_server_vect(shift: Vect, view: View){
-        const canvas_shift = view.create_canvas_vect(shift);
+    translate_by_server_vect(shift: Vect, camera: View){
+        const canvas_shift = camera.create_canvas_vect(shift);
         this.data.canvas_pos.translate_by_canvas_vect(canvas_shift);
         this.data.pos.x += shift.x;
         this.data.pos.y += shift.y;
@@ -229,10 +229,10 @@ export class ClientVertexData extends BasicVertexData {
     parameter_values: Map<string,ParameterValue>;
     weightDiv: HTMLDivElement | undefined; // set to undefined until a non empty weight is used
 
-    constructor(x:number, y:number, weight: string, view: View, color: Color) {
+    constructor(x:number, y:number, weight: string, camera: View, color: Color) {
         super(new Coord(x,y), weight, color);
         this.color = color;
-        this.canvas_pos = view.create_canvas_coord(this.pos );
+        this.canvas_pos = camera.create_canvas_coord(this.pos );
         this.is_selected = false;
         this.indexString = "";
         // this.color = COLOR_INNER_VERTEX_DEFAULT;

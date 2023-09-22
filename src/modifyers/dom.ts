@@ -1,7 +1,23 @@
 import { ClientBoard } from "../board/board";
+import { AreaIndex, Percentage } from "../generators/attribute";
 import { createPopup } from "../popup";
-import { removeRandomLinks, intoTournament } from "./implementations/into_tournament";
 import { GraphModifyer } from "./modifyer";
+
+
+const intoTournament = new GraphModifyer(
+    "into_tournament",
+    "Into tournament",
+    `For every pair of non adjacent vertices, add an arc with random orientation.
+    Thus the graph becomes a tournament.`,
+     [new AreaIndex("area")]);
+
+
+const removeRandomLinks = new GraphModifyer(
+    "removeRandomLinks",
+    "Remove random links",
+    `For every link, remove it with a certain probability.`,
+        [new AreaIndex("area"), new Percentage("p")]);
+
 
 // --- Modifyers available ---
 const modifyers_available = new Array<GraphModifyer>(
@@ -109,8 +125,9 @@ function filterList() {
     const input = <HTMLInputElement>document.getElementById('modifyer_search_input');
     const filter = input.value.toUpperCase();
     const contentDiv = document.getElementById("modifyers_div_content");
+    if (contentDiv == null) return;
     const elementsList = <HTMLCollectionOf<HTMLDivElement>>contentDiv.getElementsByClassName('modifyer_item');
-
+    
     for (let i = 0; i < elementsList.length; i++) {
         const txtValue = elementsList[i].innerHTML;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
