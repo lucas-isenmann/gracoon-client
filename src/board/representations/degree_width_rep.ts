@@ -30,7 +30,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let maxX = NaN;
             let minY = NaN;
             let maxY = NaN;
-            for (const vertex of g.vertices.values()){
+            for (const vertex of board.graph.vertices.values()){
                 if ( isNaN(minX)){
                     minX = vertex.data.pos.x;
                     maxX = vertex.data.pos.x;
@@ -56,37 +56,37 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         return BoardElementType.Representation;
     }
 
-    draw(ctx: CanvasRenderingContext2D, view: View){
+    draw(){
         const y = (this.c1.y + this.c2.y)/2;
 
         // draw border
-        ctx.beginPath();
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 2;
+        this.board.ctx.beginPath();
+        this.board.ctx.strokeStyle = "blue";
+        this.board.ctx.lineWidth = 2;
         const c1canvas = this.canvas_corner_top_left;
         const c2canvas = this.canvas_corner_bottom_right;
-        ctx.rect(c1canvas.x , c1canvas.y, c2canvas.x - c1canvas.x, c2canvas.y - c1canvas.y);
-        ctx.stroke();
+        this.board.ctx.rect(c1canvas.x , c1canvas.y, c2canvas.x - c1canvas.x, c2canvas.y - c1canvas.y);
+        this.board.ctx.stroke();
 
         // draw rect fill
-        ctx.globalAlpha = 0.07;
-        ctx.fillStyle = "blue";
-        ctx.fill();
-        ctx.globalAlpha = 1;
+        this.board.ctx.globalAlpha = 0.07;
+        this.board.ctx.fillStyle = "blue";
+        this.board.ctx.fill();
+        this.board.ctx.globalAlpha = 1;
         
         // draw arcs
         for (const [index1, x1] of this.x.entries()){
-            const canvas_coord1 = view.create_canvas_coord(new Coord(x1,y));
+            const canvas_coord1 = this.board.view.create_canvas_coord(new Coord(x1,y));
             for (const [index2, x2] of this.x.entries()){
                 if (x1 < x2){
-                    const canvas_coord2 = view.create_canvas_coord(new Coord(x2,y));
+                    const canvas_coord2 = this.board.view.create_canvas_coord(new Coord(x2,y));
                     const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
                     if (this.board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
-                        ctx.beginPath();
-                        ctx.moveTo(canvas_coord1.x, canvas_coord1.y);
-                        ctx.lineWidth = 3;
-                        ctx.quadraticCurveTo(xmiddle, canvas_coord1.y - 50, canvas_coord2.x, canvas_coord2.y);
-                        ctx.stroke();
+                        this.board.ctx.beginPath();
+                        this.board.ctx.moveTo(canvas_coord1.x, canvas_coord1.y);
+                        this.board.ctx.lineWidth = 3;
+                        this.board.ctx.quadraticCurveTo(xmiddle, canvas_coord1.y - 50, canvas_coord2.x, canvas_coord2.y);
+                        this.board.ctx.stroke();
                     } 
                 }
             }
@@ -94,14 +94,14 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
 
         // draw points
         for (const [index, x] of this.x.entries()){
-            const canvas_coord = view.create_canvas_coord(new Coord(x,y));
-            draw_circle(canvas_coord, "black", 14, 1, ctx);
-            draw_circle(canvas_coord, "blue", 12, 1, ctx);
-            draw_circle(canvas_coord, "black", 10, 1, ctx);
-            ctx.font = "17px Arial";
-            const measure = ctx.measureText(String(index));
-            ctx.fillStyle = "white";
-            ctx.fillText(String(index), canvas_coord.x - measure.width / 2, canvas_coord.y+ 5);
+            const canvas_coord = this.board.view.create_canvas_coord(new Coord(x,y));
+            draw_circle(canvas_coord, "black", 14, 1, this.board.ctx);
+            draw_circle(canvas_coord, "blue", 12, 1, this.board.ctx);
+            draw_circle(canvas_coord, "black", 10, 1, this.board.ctx);
+            this.board.ctx.font = "17px Arial";
+            const measure = this.board.ctx.measureText(String(index));
+            this.board.ctx.fillStyle = "white";
+            this.board.ctx.fillText(String(index), canvas_coord.x - measure.width / 2, canvas_coord.y+ 5);
         }
 
         // compute dw
@@ -134,18 +134,18 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
                     } 
                 }
             }
-            ctx.font = "17px Arial";
-            const measure = ctx.measureText(String(dwc));
-            const pos = view.create_canvas_coord(new Coord(x1,y));
+            this.board.ctx.font = "17px Arial";
+            const measure = this.board.ctx.measureText(String(dwc));
+            const pos = this.board.view.create_canvas_coord(new Coord(x1,y));
             if (dwc == dw){
-                draw_circle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, ctx);
+                draw_circle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, this.board.ctx);
             }
-            if ( view.dark_mode){
-                ctx.fillStyle = "white";
+            if ( this.board.isDarkMode()){
+                this.board.ctx.fillStyle = "white";
             } else {
-                ctx.fillStyle = "black";
+                this.board.ctx.fillStyle = "black";
             }
-            ctx.fillText(String(dwc), pos.x - measure.width / 2, pos.y + 30);
+            this.board.ctx.fillText(String(dwc), pos.x - measure.width / 2, pos.y + 30);
         }
     }
 
@@ -169,13 +169,18 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
 
     translate_element_by_canvas_vect(index: number, cshift: CanvasVect, view: View){
         const shift = view.server_vect(cshift);
-        this.x.set(index, this.x.get(index) + shift.x);
+        const x = this.x.get(index);
+        if (typeof x != "undefined"){
+            this.x.set(index, x + shift.x);
+        }
     }
 
     translate_by_canvas_vect(cshift: CanvasVect, view: View){
         const shift = view.server_vect(cshift);
         for (const [index, x] of this.x.entries()){
-            this.x.set(index, this.x.get(index) + shift.x)
+            if (typeof x != "undefined"){
+                this.x.set(index, x + shift.x);
+            }
         }
     }
 

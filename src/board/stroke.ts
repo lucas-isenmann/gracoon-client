@@ -114,7 +114,7 @@ export class ClientStroke extends Stroke{
             if ( board.elementOver instanceof ClientStroke && board.elementOver === this ){
                 let position_canvas = this.canvas_positions[0];
                 board.ctx.beginPath();
-                board.ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+                board.ctx.strokeStyle = getCanvasColor(this.color, board.isDarkMode());
                 board.ctx.lineWidth = this.width*6;
                 board.ctx.globalAlpha = 0.5;
                 board.ctx.moveTo(position_canvas.x, position_canvas.y);
@@ -128,7 +128,7 @@ export class ClientStroke extends Stroke{
             
             let position_canvas = this.canvas_positions[0];
             board.ctx.beginPath();
-            board.ctx.strokeStyle = getCanvasColor(this.color, board.view.dark_mode);
+            board.ctx.strokeStyle = getCanvasColor(this.color, board.isDarkMode());
             board.ctx.lineWidth = this.width;
             board.ctx.moveTo(position_canvas.x, position_canvas.y);
             for(let i = 1; i < this.positions.length; i++){

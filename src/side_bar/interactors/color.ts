@@ -159,7 +159,7 @@ function add_available_color(board: ClientBoard, color: Color) {
     const color_div = document.createElement("div");
     color_div.id = "color_choice_" + color;
     color_div.classList.add("color_choice");
-    color_div.style.backgroundColor = getCanvasColor(color, board.view.dark_mode);
+    color_div.style.backgroundColor = getCanvasColor(color, board.isDarkMode());
     color_div.onclick = () => {
         board.colorSelected = color;
         update_selected_available_color(board);

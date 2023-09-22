@@ -155,9 +155,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             draw_circle(board.view.creating_vertex_pos, "grey", 10, 0.5, board.ctx);
         }
         if (board.view.is_link_creating) {
-            drawLine(board.view.link_creating_start, board.view.creating_vertex_pos, board.ctx, getCanvasColor(board.colorSelected, board.view.dark_mode),4);
+            drawLine(board.view.link_creating_start, board.view.creating_vertex_pos, board.ctx, getCanvasColor(board.colorSelected, board.isDarkMode()),4);
             if (board.view.link_creating_type == ORIENTATION.DIRECTED) {
-                draw_head(board.ctx, board.view.link_creating_start, board.view.creating_vertex_pos, board.view.index_type);
+                draw_head(board.ctx, board.view.link_creating_start, board.view.creating_vertex_pos, board.getIndexType());
             }
         }
     }

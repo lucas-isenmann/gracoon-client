@@ -89,7 +89,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const posu = u.data.canvas_pos; 
             const posv = v.data.canvas_pos; 
             const poscp = link.data.cp_canvas_pos;
-            const color = getCanvasColor(link.data.color, this.board.view.dark_mode);
+            const color = getCanvasColor(link.data.color, this.board.isDarkMode());
 
             const isMouseOver = (this.board.elementOver instanceof ClientLink && this.board.elementOver.index == link.index);
 

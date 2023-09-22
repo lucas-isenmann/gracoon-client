@@ -141,7 +141,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
             vertex_radius = 2 * VERTEX_RADIUS;
         }
 
-        const color = getCanvasColor(this.data.color, board.view.dark_mode);
+        const color = getCanvasColor(this.data.color, board.isDarkMode());
 
 
         if ( board.elementOver instanceof ClientVertex && board.elementOver.index == this.index){
@@ -167,7 +167,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         if (board.getIndexType() != INDEX_TYPE.NONE) {
             board.ctx.font = "17px Arial";
             const measure = board.ctx.measureText(this.data.indexString);
-            board.ctx.fillStyle = (board.view.dark_mode) ? "black" : "white";
+            board.ctx.fillStyle = (board.isDarkMode()) ? "black" : "white";
             const pos = this.data.canvas_pos;
             board.ctx.fillText(this.data.indexString, pos.x - measure.width / 2, pos.y + 5);
         }

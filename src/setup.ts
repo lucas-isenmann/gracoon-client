@@ -126,7 +126,7 @@ function setup() {
         for( const color of colorsData.keys()){
             const colorChoiceDiv = document.getElementById("color_choice_" + color);
             if (colorChoiceDiv != null){
-                colorChoiceDiv.style.backgroundColor = getCanvasColor(color, local_board.view.dark_mode);
+                colorChoiceDiv.style.backgroundColor = getCanvasColor(color, local_board.isDarkMode());
             }
         } 
     }

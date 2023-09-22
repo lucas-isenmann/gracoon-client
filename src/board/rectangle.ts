@@ -28,7 +28,7 @@ export class ClientRectangle extends Rectangle {
     draw(){
         // draw border
         this.board.ctx.beginPath();
-        this.board.ctx.strokeStyle = getCanvasColor(this.color, this.board.view.dark_mode);
+        this.board.ctx.strokeStyle = getCanvasColor(this.color, this.board.isDarkMode());
         this.board.ctx.lineWidth = 2;
         const c1canvas = this.canvas_corner_top_left;
         const c2canvas = this.canvas_corner_bottom_right;
@@ -40,7 +40,7 @@ export class ClientRectangle extends Rectangle {
         if (this.board.elementOver === this){
             this.board.ctx.globalAlpha = 0.2;
         }
-        this.board.ctx.fillStyle = getCanvasColor(this.color, this.board.view.dark_mode);
+        this.board.ctx.fillStyle = getCanvasColor(this.color, this.board.isDarkMode());
         this.board.ctx.fill();
         this.board.ctx.globalAlpha = 1;
     }

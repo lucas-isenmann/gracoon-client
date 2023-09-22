@@ -15,7 +15,6 @@ import ENV from './.env.json';
 
 import { io } from "socket.io-client";
 import { Color } from "./colors_v2";
-import { updateWeightDiv } from "./board/weightable";
 
 const port = ENV.port;
 const adress = "http://" + ENV.serverAdress + ":" + port;
@@ -224,10 +223,10 @@ export function setupHandlers(board: ClientBoard) {
             }
         }
         
-        requestAnimationFrame(function () {board.draw() });
+        board.requestDraw();
     }
 
-    function handleAddElements( datas, sensibilities: [SENSIBILITY]){
+    function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
         // console.log("handleAddElements", datas);
         for(const data of datas){
             if (data.kind == "Stroke"){
@@ -276,8 +275,7 @@ export function setupHandlers(board: ClientBoard) {
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
-        
-        requestAnimationFrame(function () {board.draw() });
+        board.requestDraw();        
     }
 
     function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
@@ -308,7 +306,7 @@ export function setupHandlers(board: ClientBoard) {
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
-        requestAnimationFrame(function () {board.draw() });
+        board.requestDraw();
     }
 
 
@@ -386,7 +384,7 @@ export function setupHandlers(board: ClientBoard) {
         } else {
             console.log("Kind not supported :", data.kind);
         }
-        requestAnimationFrame(function () {board.draw() });
+        board.requestDraw();
     }
 
     function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]]){
@@ -400,7 +398,7 @@ export function setupHandlers(board: ClientBoard) {
             board.text_zones.set(data[0], text_zone);
         }
 
-        requestAnimationFrame(function () { board.draw() });
+        board.requestDraw();
     }
 
 

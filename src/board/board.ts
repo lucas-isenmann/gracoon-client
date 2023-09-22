@@ -109,6 +109,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     // Display parameters
     private indexType: INDEX_TYPE;
+    private darkMode: boolean;
+
 
 
     constructor(){
@@ -124,6 +126,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         
         // Display parameters
         this.indexType = INDEX_TYPE.NONE;
+        this.darkMode = true;
 
 
         this.canvas = document.createElement("canvas");
@@ -977,11 +980,13 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
 
-
+    isDarkMode(){
+        return this.darkMode;
+    }
 
     toggle_dark_mode(){
-        if(this.view.dark_mode == false){
-            this.view.dark_mode = true;
+        if(this.darkMode == false){
+            this.darkMode = true;
             COLOR_BACKGROUND = "#1e1e1e";
             COLOR_BORDER_VERTEX = "#ffffff";
             document.documentElement.style.setProperty(`--background_color_div`, "#ffffff"); 
@@ -991,9 +996,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             document.querySelectorAll("img").forEach( img => {
                 img.style.filter = "";
             })
+
+            document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
+                (div as HTMLDivElement).style.color = "white";
+            })
+
         }
         else{
-            this.view.dark_mode = false;
+            this.darkMode = false;
             COLOR_BACKGROUND = "#fafafa";
             COLOR_BORDER_VERTEX = "#000000";
             
@@ -1003,6 +1013,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     
             document.querySelectorAll("img").forEach( img => {
                 img.style.filter = "invert(100%) sepia(0%) saturate(2%) hue-rotate(115deg) brightness(102%) contrast(100%)";
+            })
+
+            document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
+                (div as HTMLDivElement).style.color = "black";
             })
         }
     }

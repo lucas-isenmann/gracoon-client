@@ -37,7 +37,6 @@ export class View {
 
 
 
-    dark_mode: boolean;
 
     is_drawing_interactor: boolean;
 
@@ -62,7 +61,6 @@ export class View {
         this.creating_vertex_pos = new CanvasCoord(0,0);
 
 
-        this.dark_mode = true;
         this.is_drawing_interactor = true;
         // this.window_width = window.innerWidth;
         // this.window_height = window.innerHeight;
