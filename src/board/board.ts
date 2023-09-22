@@ -23,11 +23,11 @@ import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DA
 import { AreaChoice, AreaIndex } from "../generators/attribute";
 import { EntireZone } from "../parametors/zone";
 import { Self } from "../self_user";
+import { Grid, GridType } from "./display/grid";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
 export let COLOR_BACKGROUND = "#1e1e1e";
-export const GRID_COLOR = '#777777';
 export const VERTEX_RADIUS = 8;
 export const COLOR_ALIGNEMENT_LINE = "#444444";
 export let COLOR_BORDER_VERTEX = "#ffffff";
@@ -111,6 +111,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     private indexType: INDEX_TYPE;
     private darkMode: boolean;
     isDrawingInteractor: boolean;
+    grid: Grid;
 
 
     constructor(){
@@ -128,6 +129,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.indexType = INDEX_TYPE.NONE;
         this.darkMode = true;
         this.isDrawingInteractor = true;
+        this.grid = new Grid();
 
 
         this.canvas = document.createElement("canvas");
@@ -307,75 +309,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
-    /**
-     * Draw a triangular grid. 
-     * The length of the equilateral triangle is `grid_size` of view.
-     * @param canvas The sidebar the item belongs
-     * @param ctx The ctx of the canvas
-     */
-    drawTriangularGrid() {
-        const grid_size = this.view.grid_size;
-        const h = grid_size*Math.sqrt(3)/2;
-
-        //   \ diagonals
-        for (let x = (this.view.camera.x - this.view.camera.y/Math.sqrt(3)) % grid_size - Math.floor((this.canvas.width+this.canvas.height)/grid_size)*grid_size; x < this.canvas.width; x += grid_size) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = GRID_COLOR;
-            this.ctx.lineWidth = 1;
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x + this.canvas.height , this.canvas.height*Math.sqrt(3));
-            this.ctx.stroke();
-        }
-
-        //   / diagonals
-        for (let x = (this.view.camera.x + this.view.camera.y/Math.sqrt(3)) % grid_size + Math.floor((this.canvas.width+this.canvas.height)/grid_size)*grid_size; x > 0 ; x -= grid_size) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = GRID_COLOR;
-            this.ctx.lineWidth = 1;
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x - this.canvas.height , this.canvas.height*Math.sqrt(3));
-            this.ctx.stroke();
-        }
-
-        // horizontal lines
-        for (let y = this.view.camera.y % h; y < this.canvas.height; y += h) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = GRID_COLOR;
-            this.ctx.lineWidth = 1;
-            this.ctx.moveTo(0, y);
-            this.ctx.lineTo(this.canvas.width, y);
-            this.ctx.stroke();
-        }
-
-        // debugging : draw the quadrilateral containing the point
-
-        // for (let i = 0 ; i < 10 ; i ++){
-        //     for (let j = 0 ; j < 10 ; j ++){
-        //         let pos = new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2);
-        //         pos = pos.add(this.view.camera);
-        //         let cpos = new CanvasCoord(pos.x, pos.y);
-        //         draw_circle(cpos, "red", 10, 1, ctx);
-        //     }
-        // }
-
-
-        // const px = ((mouse_pos.x - this.view.camera.x) - (mouse_pos.y - this.view.camera.y)/Math.sqrt(3))/grid_size;
-        // const py = (mouse_pos.y - this.view.camera.y)/h;
-        // const i = Math.floor(px);
-        // const j = Math.floor(py);
-
-        // let pos = new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2);
-        // pos = pos.add(this.view.camera);
-        // let cpos = new CanvasCoord(pos.x, pos.y);
-        // draw_circle(cpos, "blue", 10, 1, ctx);
-
-        // let pos2 = new Coord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2);
-        // pos2 = pos2.add(this.view.camera);
-        // let cpos2 = new CanvasCoord(pos2.x, pos2.y);
-        // draw_circle(cpos2, "blue", 10, 1, ctx);
-
-
-    }
+    
 
     /**
      * The alignement lines with other vertices.
@@ -418,7 +352,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     draw() {
         // console.time("draw")
         this.drawBackground();
-        if ( this.view.display_triangular_grid ) this.drawTriangularGrid();
+        this.grid.draw(this.canvas, this.ctx, this.view);
         this.representations.forEach(rep => rep.draw(this.ctx, this.view));
         this.rectangles.forEach(rectangle => rectangle.draw());
         this.strokes.forEach(stroke => stroke.draw(this));
@@ -457,35 +391,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.ctx.fillStyle = COLOR_BACKGROUND;
         this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fill();
+    }
+
+
+
     
-        if (this.view.grid_show) {
-            this.drawRectangularGrid();
-        }
-    }
-
-
-
-    drawRectangularGrid() {
-        const grid_size = this.view.grid_size;
-
-        for (let i = this.view.camera.x % grid_size; i < this.canvas.width; i += grid_size) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = GRID_COLOR;
-            this.ctx.lineWidth = 1;
-            this.ctx.moveTo(i, 0);
-            this.ctx.lineTo(i, this.canvas.height);
-            this.ctx.stroke();
-        }
-
-        for (let i = this.view.camera.y % grid_size; i < this.canvas.height; i += grid_size) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = GRID_COLOR;
-            this.ctx.lineWidth = 1;
-            this.ctx.moveTo(0, i);
-            this.ctx.lineTo(this.canvas.width, i);
-            this.ctx.stroke();
-        }
-    }
 
 
 
@@ -537,6 +447,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     update_after_camera_change(){
+        this.grid.updateToZoom(this.view.zoom);
         for (const stroke of this.strokes.values()){
             stroke.update_after_camera_change(this.view);
         }
@@ -1034,4 +945,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             })
         }
     }
+
+
+    setGridType(type: GridType) {
+        this.grid.type = type;
+    }
+
 }

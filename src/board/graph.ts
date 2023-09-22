@@ -9,6 +9,7 @@ import { DOWN_TYPE } from "../interactors/interactor";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
 import { Color, getCanvasColor } from "../colors_v2";
 import { ClientBoard } from "./board";
+import { GridType } from "./display/grid";
 
 
 
@@ -286,8 +287,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 }
             })
         }
-        if (view.grid_show) {
-            const grid_size = view.grid_size;
+        if ( this.board.grid.type == GridType.GridRect ) {
+            const grid_size = this.board.grid.grid_size;
             for (let x = view.camera.x % grid_size; x < canvas.width; x += grid_size) {
                 if (Math.abs(x - pos_to_align.x) <= 15) {
                     aligned_pos.x = x;
@@ -300,9 +301,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     break;
                 }
             }
-        }
-        if (view.display_triangular_grid) {
-            const grid_size = view.grid_size;
+        } else  if ( this.board.grid.type == GridType.GridVerticalTriangular ) {
+            const grid_size = this.board.grid.grid_size;
             const h = grid_size*Math.sqrt(3)/2;
 
             // find the corners of the quadrilateral containing the point

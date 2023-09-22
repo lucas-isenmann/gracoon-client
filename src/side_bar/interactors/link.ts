@@ -142,7 +142,8 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
         if (typeof board.selfUser.canvasPos != "undefined"){
             const color = getCanvasColor(board.colorSelected, board.isDarkMode());
-            const pos = board.selfUser.canvasPos;
+            const p1 = board.selfUser.canvasPos;
+            const pos = board.graph.align_position(p1, new Set(), board.canvas, board.view);
             board.drawCanvasCircle( pos, 10, color, 0.5);
             if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
                 board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.view), color ,4);

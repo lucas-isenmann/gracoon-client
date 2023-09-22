@@ -26,6 +26,7 @@ import { createColorInteractor } from "./side_bar/interactors/color";
 import { createRectangleInteractor } from "./side_bar/interactors/rectangle";
 import { createDetectorInteractor } from "./side_bar/interactors/detector";
 import { selectInteractor, setupInteractions } from "./interactors/interactor_manager";
+import { GridType } from "./board/display/grid";
 
 
 
@@ -87,18 +88,17 @@ function setup() {
     const switch_button_rect_grid = new SwitchSideBar(local_board, "switch_button_rect_grid", "Switch rectangular grid", "", ORIENTATION_INFO.BOTTOM, "grid", "pointer", bottom_side_bar);
     
     switch_button_triangular_grid.trigger = () => { 
-        local_board.view.display_triangular_grid = switch_button_triangular_grid.selected;
+
         if (switch_button_triangular_grid.selected){
-            local_board.view.grid_show = false;
+            local_board.setGridType(GridType.GridVerticalTriangular);
             switch_button_rect_grid.selected = false;
             switch_button_rect_grid.unselect();
         }
     };
     
     switch_button_rect_grid.trigger = () => { 
-        local_board.view.grid_show = switch_button_rect_grid.selected;
         if (switch_button_rect_grid.selected){
-            local_board.view.display_triangular_grid = false;
+            local_board.setGridType(GridType.GridRect);
             switch_button_triangular_grid.selected = false;
             switch_button_triangular_grid.unselect();
         }

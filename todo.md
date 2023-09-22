@@ -20,7 +20,10 @@
 - mieux gérer les sorties du canvas/ecran
 - dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...
 - interactor manager : event on window, not on canvas
-- notion générique d'élement d'un board (pour pouvoir les parcourir)
+
+## To Think
+
+- style of selection?
 
 ## Unifier
 
@@ -29,6 +32,7 @@
 
 ## Issues
 
+- when we create links with Control, stop appuyer on Control, the link does not disappear, and if you use another interactor and you got back to link interactor, then the last vertex is still used ...
 - representations
 - bug when undo delete the weights of the links
 

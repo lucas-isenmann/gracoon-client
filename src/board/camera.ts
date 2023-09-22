@@ -1,4 +1,4 @@
-import { Coord, ORIENTATION, Vect } from "gramoloss";
+import { Coord, Vect } from "gramoloss";
 import { ClientBoard } from "./board";
 import { CanvasCoord } from "./canvas_coord";
 import { CanvasVect } from "./canvasVect";
@@ -8,13 +8,7 @@ import { CanvasVect } from "./canvasVect";
 export class View {
     camera: Coord;
     zoom: number;
-    grid_size: number;
-    grid_min_size: number;
-    grid_max_size: number;
-    grid_initial_size: number;
-    grid_show: boolean;
-
-    display_triangular_grid: boolean;
+   
     
 
     is_aligning: boolean;
@@ -23,37 +17,19 @@ export class View {
     alignement_vertical: boolean;
     alignement_vertical_x: number;
 
-    
-
-    // window_height:number;
-    // window_width:number;
 
     constructor() {
         this.camera = new Coord(0, 0);
         this.zoom = 1.;
-        this.grid_min_size = 40;
-        this.grid_max_size = 100;
-        this.grid_initial_size = 70;
-        this.grid_size = this.grid_initial_size;
-        this.grid_show = false;
+        
         this.is_aligning = false;
         this.alignement_horizontal = false;
         this.alignement_vertical = false;
-
-
-
-        // this.window_width = window.innerWidth;
-        // this.window_height = window.innerHeight;
-
-        this.display_triangular_grid = false;
     }
 
    
 
-    toggle_grid() {
-        this.grid_show = !this.grid_show;
-        return this.grid_show;
-    }
+
 
 
     // zoom factor is multiply by r
@@ -62,13 +38,7 @@ export class View {
         this.camera.x = center.x + (this.camera.x - center.x) * r;
         this.camera.y = center.y + (this.camera.y - center.y) * r;
 
-        this.grid_size = this.grid_initial_size * this.zoom;
-        while (this.grid_size > this.grid_max_size){
-            this.grid_size /= 2;
-        }
-        while (this.grid_size < this.grid_min_size){
-            this.grid_size *= 2;
-        }
+        
     }
 
     translate_camera(shift: CanvasVect){
