@@ -3,7 +3,7 @@
 // INTERACTOR SELECTION
 
 import { Option, Vect } from "gramoloss";
-import { BoardElementType, ClientBoard } from "../../board/board";
+import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../../board/board";
 import { resize_corner, resize_side, translate_by_canvas_vect } from "../../board/resizable";
 import { CanvasVect } from "../../board/canvasVect";
 import { CanvasCoord } from "../../board/canvas_coord";
@@ -26,6 +26,10 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
     let vertices_contained = new Set<number>();
     let hasMoved = false;
 
+    let isRectangularSelecting = false; // could be refactored as follows: an Option{c1: CanvasCoord, c2: CanvasCoord}
+    let rectSelectC1: Option<CanvasCoord> = undefined;
+    let rectSelectC2: Option<CanvasCoord> = undefined;
+
 
     const selectionV2 = new InteractorV2(board, INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", ORIENTATION_INFO.RIGHT, "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
 
@@ -38,9 +42,9 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
         previous_canvas_shift = new CanvasVect(0,0);
         if ( typeof pointed.data === "undefined") {
             if (board.keyPressed.has("Control")) {
-                board.view.is_rectangular_selecting = true;
-                board.view.selection_corner_1 = pointed.pointedPos.copy(); 
-                board.view.selection_corner_2 = pointed.pointedPos.copy();
+                isRectangularSelecting = true;
+                rectSelectC1 = pointed.pointedPos.copy(); 
+                rectSelectC2 = pointed.pointedPos.copy();
             }
         }else if ( pointed.data.element instanceof ClientVertex){
             const v = pointed.data.element;
@@ -130,8 +134,8 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
             return true;
         }
         else if ( typeof pointed.data == "undefined"){
-            if (board.view.is_rectangular_selecting) {
-                board.view.selection_corner_2 = e; // peut etre faut copier
+            if (isRectangularSelecting) {
+                rectSelectC2 = e; // peut etre faut copier
             } else {
                 const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
                 board.view.translate_camera(shift.sub(previous_canvas_shift));
@@ -211,9 +215,9 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
         if (typeof pointed == "undefined") return false;
 
         if ( typeof pointed.data == "undefined"){
-            if (board.view.is_rectangular_selecting) {
-                board.view.is_rectangular_selecting = false;
-                board.select_elements_in_rect(board.view.selection_corner_1, board.view.selection_corner_2);
+            if (isRectangularSelecting && typeof rectSelectC1 != "undefined" && typeof rectSelectC2 != "undefined") {
+                isRectangularSelecting = false;
+                board.select_elements_in_rect(rectSelectC1, rectSelectC2);
             } else {
                 board.clear_all_selections();
             }
@@ -333,6 +337,24 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
         
         hasMoved = false;
     })
+
+
+    selectionV2.draw = (board) => {
+        if ( isRectangularSelecting && typeof rectSelectC1 != "undefined" && typeof rectSelectC2 != "undefined") {
+            board.ctx.beginPath();
+            board.ctx.setLineDash([2, 5]); 
+            board.ctx.strokeStyle = SELECTION_COLOR;
+            board.ctx.rect(rectSelectC1.x, rectSelectC1.y, rectSelectC2.x - rectSelectC1.x, rectSelectC2.y - rectSelectC1.y);
+            board.ctx.stroke();
+            board.ctx.setLineDash([])
+
+            board.ctx.globalAlpha = 0.07;
+            board.ctx.fillStyle = SELECTION_COLOR;
+            board.ctx.fill();
+
+            board.ctx.globalAlpha = 1;
+        }
+    }
 
     return selectionV2;
 }

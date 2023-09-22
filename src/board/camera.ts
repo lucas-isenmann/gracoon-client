@@ -17,22 +17,13 @@ export class View {
     display_triangular_grid: boolean;
     
 
-    is_rectangular_selecting: boolean;
-    selection_corner_1: CanvasCoord;
-    selection_corner_2: CanvasCoord;
-
     is_aligning: boolean;
     alignement_horizontal: boolean;
     alignement_horizontal_y: number;
     alignement_vertical: boolean;
     alignement_vertical_x: number;
 
-
-
-
-
-
-    is_drawing_interactor: boolean;
+    
 
     // window_height:number;
     // window_width:number;
@@ -45,14 +36,12 @@ export class View {
         this.grid_initial_size = 70;
         this.grid_size = this.grid_initial_size;
         this.grid_show = false;
-        this.is_rectangular_selecting = false;
         this.is_aligning = false;
         this.alignement_horizontal = false;
         this.alignement_vertical = false;
 
 
 
-        this.is_drawing_interactor = true;
         // this.window_width = window.innerWidth;
         // this.window_height = window.innerHeight;
 

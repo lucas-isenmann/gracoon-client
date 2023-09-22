@@ -43,15 +43,7 @@ function setup() {
     setupClientVersionDiv();
     
 
-    local_board.canvas.onmouseleave = ((e) => {
-        local_board.view.is_drawing_interactor = false;
-        local_board.draw();
-    });
-
-    local_board.canvas.onmouseenter = ((e) => {
-        local_board.view.is_drawing_interactor = true;
-        local_board.draw();
-    })
+   
 
     setupHandlers(local_board);
 

@@ -1,4 +1,4 @@
-import { Area, Coord, Option } from 'gramoloss';
+import { Area, Option } from 'gramoloss';
 import { BoardElementType, ClientBoard } from '../../board/board';
 import { CanvasVect } from '../../board/canvasVect';
 import { CanvasCoord } from '../../board/canvas_coord';

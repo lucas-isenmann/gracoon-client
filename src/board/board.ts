@@ -25,7 +25,7 @@ import { EntireZone } from "../parametors/zone";
 import { Self } from "../self_user";
 
 
-export const SELECTION_COLOR = 'green' // avant c'était '#00ffff'
+export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
 export let COLOR_BACKGROUND = "#1e1e1e";
 export const GRID_COLOR = '#777777';
 export const VERTEX_RADIUS = 8;
@@ -110,7 +110,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // Display parameters
     private indexType: INDEX_TYPE;
     private darkMode: boolean;
-
+    isDrawingInteractor: boolean;
 
 
     constructor(){
@@ -127,6 +127,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         // Display parameters
         this.indexType = INDEX_TYPE.NONE;
         this.darkMode = true;
+        this.isDrawingInteractor = true;
 
 
         this.canvas = document.createElement("canvas");
@@ -149,6 +150,18 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         // setup the div of the loaded params of the whole graph
         this.entireZone = new EntireZone(this);
+
+
+        const board = this;
+        this.canvas.onmouseleave = ((e) => {
+            board.isDrawingInteractor = false;
+            board.draw();
+        });
+    
+        this.canvas.onmouseenter = ((e) => {
+            board.isDrawingInteractor = true;
+            board.draw();
+        })
 
         // this.addVariable("h", 0, 20, 50, 0.1, () => {
         //     this.afterVariableChange()
@@ -378,26 +391,13 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     drawInteractor() {
-        if (this.view.is_drawing_interactor && typeof this.interactorLoaded != "undefined"){
+        if (this.isDrawingInteractor && typeof this.interactorLoaded != "undefined"){
             this.interactorLoaded.draw(this, this.selfUser.canvasPos)
         }
     }
 
 
-    drawRectangularSelection() {
-        if (this.view.is_rectangular_selecting) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = SELECTION_COLOR;
-            this.ctx.rect(this.view.selection_corner_1.x, this.view.selection_corner_1.y, this.view.selection_corner_2.x - this.view.selection_corner_1.x, this.view.selection_corner_2.y - this.view.selection_corner_1.y);
-            this.ctx.stroke();
-
-            this.ctx.globalAlpha = 0.07;
-            this.ctx.fillStyle = SELECTION_COLOR;
-            this.ctx.fill();
-
-            this.ctx.globalAlpha = 1;
-        }
-    }
+    
 
     drawFollowing(){
         if( typeof this.selfUser.following != "undefined"){
@@ -427,7 +427,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.graph.draw();
 
         this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
-        this.drawRectangularSelection();
         this.drawInteractor();
         if (typeof this.graphClipboard != "undefined"){
             this.graphClipboard.draw();
