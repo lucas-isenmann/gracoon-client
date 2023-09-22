@@ -118,17 +118,17 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                     }
                 }
                 e.translate_by_canvas_vect(vertex_center_shift);
-                e = board.graph.align_position(e, selected_vertices, board.canvas, board.view);
+                e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
                 e.translate_by_canvas_vect(vertex_center_shift.opposite());
             }
             else {
                 e.translate_by_canvas_vect(vertex_center_shift);
-                e = board.graph.align_position(e, new Set([pointed.data.element.index]), board.canvas, board.view);
+                e = board.graph.align_position(e, new Set([pointed.data.element.index]), board.canvas, board.camera);
                 e.translate_by_canvas_vect(vertex_center_shift.opposite());
                 indices.push([BoardElementType.Vertex, pointed.data.element.index]);
             }
             
-            const shift = board.view.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
+            const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
             board.emit_translate_elements(indices, shift.sub(previous_shift));
             previous_shift.set_from(shift);
             return true;
@@ -138,14 +138,14 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                 rectSelectC2 = e; // peut etre faut copier
             } else {
                 const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                board.view.translate_camera(shift.sub(previous_canvas_shift));
+                board.camera.translate_camera(shift.sub(previous_canvas_shift));
                 previous_canvas_shift.set_from(shift);
                 board.update_after_camera_change();
                 
                 if(typeof board.selfUser.following != "undefined"){
                     board.selfUser.unfollow(board.selfUser.following);
                 }
-                socket.emit("my_view", board.view.camera.x, board.view.camera.y, board.view.zoom);
+                socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
             }
             return true;
         }
@@ -157,16 +157,16 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
             if (stroke.is_selected){
                 for (const vertex of board.graph.vertices.values()){
                     if (vertex.data.is_selected){
-                        vertex.translate_by_canvas_vect(mini_shift, board.view);
+                        vertex.translate_by_canvas_vect(mini_shift, board.camera);
                     }
                 }
                 for (const other_stroke of board.strokes.values()){
                     if (other_stroke.is_selected){
-                        other_stroke.translate_by_canvas_vect(mini_shift, board.view);
+                        other_stroke.translate_by_canvas_vect(mini_shift, board.camera);
                     }
                 }
             } else {
-                stroke.translate_by_canvas_vect(mini_shift, board.view);
+                stroke.translate_by_canvas_vect(mini_shift, board.camera);
             }
             
             previous_canvas_shift.set_from(shift);
@@ -175,7 +175,7 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
         else if ( pointed.data instanceof ELEMENT_DATA_REPRESENTATION_SUBELEMENT){
             const rep = pointed.data.element;
             const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-            rep.translate_element_by_canvas_vect(pointed.data.subElementIndex, shift.sub(previous_canvas_shift), board.view);
+            rep.translate_element_by_canvas_vect(pointed.data.subElementIndex, shift.sub(previous_canvas_shift), board.camera);
             previous_canvas_shift.set_from(shift);
             return true;
         }
@@ -188,8 +188,8 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                 if ( pointed.data instanceof ELEMENT_DATA_AREA){
                     board.translate_area(shift.sub(previous_canvas_shift), pointed.data.element, vertices_contained);
                 } else {
-                    element.translate_by_canvas_vect(shift.sub(previous_canvas_shift), board.view );
-                    translate_by_canvas_vect(element, shift.sub(previous_canvas_shift), board.view);
+                    element.translate_by_canvas_vect(shift.sub(previous_canvas_shift), board.camera );
+                    translate_by_canvas_vect(element, shift.sub(previous_canvas_shift), board.camera);
                 }
                 
                 previous_canvas_shift.set_from(shift);
@@ -197,9 +197,9 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
             } 
             else { // Resize the element
                 if (pointed.data.resizeType == RESIZE_TYPE.LEFT || pointed.data.resizeType == RESIZE_TYPE.RIGHT || pointed.data.resizeType == RESIZE_TYPE.TOP || pointed.data.resizeType == RESIZE_TYPE.BOTTOM){
-                    resize_side(pointed.data.element, e, opposite_coord, pointed.data.resizeType, board.view)
+                    resize_side(pointed.data.element, e, opposite_coord, pointed.data.resizeType, board.camera)
                 } else {
-                    resize_corner(pointed.data.element, e, opposite_corner, board.view);
+                    resize_corner(pointed.data.element, e, opposite_corner, board.camera);
                 }
                 return true;
             }
@@ -308,25 +308,25 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
                 }
                 
                 const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.view.server_vect(canvas_shift);
+                const shift = board.camera.server_vect(canvas_shift);
                 for (const element of elements_to_translate){
-                    element.translate_by_canvas_vect(canvas_shift.opposite(), board.view);
+                    element.translate_by_canvas_vect(canvas_shift.opposite(), board.camera);
                 }
                 board.emit_translate_elements( indices, shift);
             }
         }
         else if (pointed.data instanceof ELEMENT_DATA_REPRESENTATION_SUBELEMENT){
-            pointed.data.element.onmouseup(board.view);
+            pointed.data.element.onmouseup(board.camera);
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             if (typeof pointed.data.resizeType != "undefined"){
-                const esc  = board.view.create_server_coord(e);
+                const esc  = board.camera.create_server_coord(e);
 
                 board.emit_resize_element(pointed.data.element.getType(), pointed.data.index, esc, pointed.data.resizeType);
             }
             else if ( pointed.data.element instanceof ClientArea ){
                 const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.view.server_vect(canvas_shift);
+                const shift = board.camera.server_vect(canvas_shift);
                 board.translate_area(canvas_shift.opposite(), pointed.data.element, vertices_contained);
                 board.emit_translate_elements([[BoardElementType.Area, pointed.data.index]], shift);
             }

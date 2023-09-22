@@ -38,7 +38,7 @@ export function createTextInteractor(board: ClientBoard): InteractorV2{
                 }
             }
 
-            const coord = board.view.create_server_coord(pointed.pointedPos);
+            const coord = board.camera.create_server_coord(pointed.pointedPos);
             board.emit_add_element(new TextZone(coord, 100, "", board.get_next_available_index_text_zone()),(response: number) => { 
                 setTimeout(() => {
                     const textZone = board.text_zones.get(response);

@@ -17,9 +17,9 @@ export function createStrokeInteractor(board: ClientBoard){
     const stroke_interactorV2 = new InteractorV2(board, "pen", "Pen", "p", ORIENTATION_INFO.RIGHT, "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
 
     stroke_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
-        const server_pos = board.view.create_server_coord(pointed.pointedPos);
+        const server_pos = board.camera.create_server_coord(pointed.pointedPos);
         indexLastStroke = board.get_next_available_index_strokes();
-        lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.view, indexLastStroke);
+        lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.camera, indexLastStroke);
         board.strokes.set(indexLastStroke, lastStroke);
     })
     
@@ -27,7 +27,7 @@ export function createStrokeInteractor(board: ClientBoard){
         if( typeof lastStroke != "undefined"){
             pointsCounter++ ;
             if(pointsCounter % SAMPLE_PERIOD === 0){
-                lastStroke.push(e, board.view);
+                lastStroke.push(e, board.camera);
                 return true;
             }
         }
@@ -37,7 +37,7 @@ export function createStrokeInteractor(board: ClientBoard){
     
     stroke_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof lastStroke != "undefined"){
-            lastStroke.push(e, board.view);
+            lastStroke.push(e, board.camera);
     
             board.emit_add_element( lastStroke, (response: number) => { })
         

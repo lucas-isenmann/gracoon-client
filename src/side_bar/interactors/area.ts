@@ -24,7 +24,7 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
     area_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if ( typeof pointed.data == "undefined"){
             is_creating_area = true;
-            const first_corner = board.view.create_server_coord(pointed.pointedPos);
+            const first_corner = board.camera.create_server_coord(pointed.pointedPos);
             board.emit_add_element(new Area("G", first_corner, first_corner, "", board.get_next_available_index_area()), (response: number) => { last_created_area_index = response });
             opposite_corner = pointed.pointedPos.copy();
         } 
@@ -48,7 +48,7 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
             if( typeof last_created_area_index != "undefined" ){
                 const last_created_area = board.areas.get(last_created_area_index);
                 if ( typeof last_created_area != "undefined"){
-                    last_created_area.resize_corner_area(e, opposite_corner, board.view);
+                    last_created_area.resize_corner_area(e, opposite_corner, board.camera);
                     return true;
                 }
             }
@@ -93,14 +93,14 @@ export function createAreaInteractor(board: ClientBoard): InteractorV2{
     area_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof pointed == "undefined") return false;
 
-        const esc  = board.view.create_server_coord(e);
+        const esc  = board.camera.create_server_coord(e);
         if (typeof pointed.data == "undefined" && typeof last_created_area_index != "undefined") {
             board.emit_resize_element(BoardElementType.Area, last_created_area_index, esc, RESIZE_TYPE.TOP_RIGHT);
             is_creating_area = false;
         }
         else if ( pointed.data instanceof ELEMENT_DATA_AREA ){
             const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-            const shift = board.view.server_vect(canvas_shift);
+            const shift = board.camera.server_vect(canvas_shift);
             board.translate_area(canvas_shift.opposite(), pointed.data.element, vertices_contained);
             board.emit_translate_elements([[BoardElementType.Area, pointed.data.index]], shift);
             is_moving_area = false;

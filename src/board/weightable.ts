@@ -29,7 +29,6 @@ export interface Weightable {
  * Otherwise, the weight div updated or created.
  */
 export function updateWeightDiv(element: ClientVertex | ClientLink, board: ClientBoard){
-    console.log("update weight div");
 
     if (element.data.weight == ""){
         if (typeof element.data.weightDiv != "undefined"){
@@ -65,7 +64,6 @@ function setWeightFromWeightDiv(element: ClientVertex | ClientLink){
  * Create the weightDiv for the element
  */
 export function initWeightDiv(element: ClientVertex | ClientLink, type: BoardElementType, board: ClientBoard, focus?: boolean){
-    console.log("init weight div", type);
     let div = document.createElement("div");
     element.setWeightDiv(div);
 

@@ -41,11 +41,11 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
         if ( typeof pointed.data == "undefined" ) {
-            const pos = board.graph.align_position(pointed.pointedPos, new Set(), board.canvas, board.view);
-            const server_pos = board.view.create_server_coord(pos);
+            const pos = board.graph.align_position(pointed.pointedPos, new Set(), board.canvas, board.camera);
+            const server_pos = board.camera.create_server_coord(pos);
 
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
                     if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                         board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
                     }
@@ -56,14 +56,14 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                     
                 });
             } else {
-                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
                     linkInteractor.indexLastCreatedVertex = response;
                     linkInteractor.lastVertexPos = server_pos;
                 } );
             }
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_LINK ){
-            const pos = board.view.create_server_coord(pointed.pointedPos);
+            const pos = board.camera.create_server_coord(pointed.pointedPos);
             board.emitSubdivideLink( pointed.data.element.index, pos, "", board.colorSelected, (response) => { 
                 if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                     board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
@@ -104,7 +104,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         const firstVertexIndex = (pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.index : linkInteractor.indexLastCreatedVertex;
         
 
-        const vertexIndex = board.graph.get_vertex_index_nearby(board.graph.align_position(e, new Set(), board.canvas, board.view));
+        const vertexIndex = board.graph.get_vertex_index_nearby(board.graph.align_position(e, new Set(), board.canvas, board.camera));
         if (vertexIndex != null){
             if ( firstVertexIndex != vertexIndex) { // there is a vertex nearby and it is not the previous one
                 board.emit_add_element(new LinkPreData(firstVertexIndex, vertexIndex,  orientation, "", board.colorSelected), (response: number) => {});
@@ -112,9 +112,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         } else {
             const link = board.graph.nearbyLink(e);
             if (typeof link == "undefined"){
-                const aligned_mouse_pos = board.graph.align_position(e, new Set(), board.canvas, board.view);
-                const server_pos = aligned_mouse_pos.toCoord(board.view);
-                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.view, board.colorSelected), (response) => { 
+                const aligned_mouse_pos = board.graph.align_position(e, new Set(), board.canvas, board.camera);
+                const server_pos = aligned_mouse_pos.toCoord(board.camera);
+                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
                         linkInteractor.lastVertexPos = aligned_mouse_pos;
@@ -123,7 +123,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 });
             }
             else {
-                board.emitSubdivideLink(link.index, e.toCoord(board.view), "", board.colorSelected, (response) => { 
+                board.emitSubdivideLink(link.index, e.toCoord(board.camera), "", board.colorSelected, (response) => { 
                     board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
@@ -143,12 +143,12 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         if (typeof board.selfUser.canvasPos != "undefined"){
             const color = getCanvasColor(board.colorSelected, board.isDarkMode());
             const p1 = board.selfUser.canvasPos;
-            const pos = board.graph.align_position(p1, new Set(), board.canvas, board.view);
+            const pos = board.graph.align_position(p1, new Set(), board.canvas, board.camera);
             board.drawCanvasCircle( pos, 10, color, 0.5);
             if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
-                board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.view), color ,4);
+                board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.camera), color ,4);
                 if ( orientation == ORIENTATION.DIRECTED) {
-                    draw_head(board.ctx, board.view.create_canvas_coord(linkInteractor.lastVertexPos), pos, board.getIndexType());
+                    draw_head(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, board.getIndexType());
                 }
             }
         }

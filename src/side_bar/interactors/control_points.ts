@@ -60,15 +60,15 @@ export function createControlPointInteractor(board: ClientBoard){
                 const middle = v1.data.pos.middle(v2.data.pos);
                 const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
                 const orthogonal = new Vect(-vect.y, vect.x);
-                const e_coord = board.view.create_server_coord(e);
+                const e_coord = board.camera.create_server_coord(e);
                 const projection = e_coord.orthogonal_projection(middle, orthogonal);
-                const down_coord_server = board.view.create_server_coord(pointed.pointedPos);
+                const down_coord_server = board.camera.create_server_coord(pointed.pointedPos);
 
                 const shift = Vect.from_coords(down_coord_server, projection);
                 board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previous_shift));
                 previous_shift.set_from(shift);
             } else {
-                const shift = board.view.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos,e));
+                const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos,e));
                 board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previous_shift));
                 previous_shift.set_from(shift);
             }
