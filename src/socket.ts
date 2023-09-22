@@ -258,6 +258,7 @@ export function setupHandlers(board: ClientBoard) {
                 const color = data.element.data.color as Color;
                 const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.view, color));
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+                g.compute_vertices_index_string();
             } else if (data.kind == "Link"){
                 const startIndex = data.element.startVertex.index as number;
                 const endIndex = data.element.endVertex.index as number;

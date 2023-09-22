@@ -42,7 +42,7 @@ export function updateWeightDiv(element: ClientVertex | ClientLink, board: Clien
         }
     } else {
         if (typeof element.data.weightDiv === "undefined"){
-            initWeightDiv(element, BoardElementType.Link, board);
+            initWeightDiv(element, boardElementType(element), board);
         } else {
             element.data.weightDiv.innerHTML = element.data.weight;
             // this.weightDiv.innerHTML = katex.renderToString(this.weight);
