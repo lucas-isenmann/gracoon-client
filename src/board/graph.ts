@@ -2,7 +2,7 @@ import { View } from "./display/camera";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
-import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
+import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
 import { draw_circle, draw_head } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
@@ -267,21 +267,19 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
     align_position(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, view: View): CanvasCoord {
         const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
-        if (view.is_aligning) {
-            view.alignement_horizontal = false;
-            view.alignement_vertical = false;
+        if (this.board.is_aligning) {
+            this.board.alignement_horizontal_y = undefined;
+            this.board.alignement_vertical_x = undefined;
             this.vertices.forEach((vertex: ClientVertex, index) => {
                 if (excluded_indices.has(index) == false) {
                     if (Math.abs(vertex.data.canvas_pos.y - pos_to_align.y) <= 15) {
                         aligned_pos.y = vertex.data.canvas_pos.y;
-                        view.alignement_horizontal = true;
-                        view.alignement_horizontal_y = view.canvasCoordY(vertex.data.pos);
+                        this.board.alignement_horizontal_y = view.canvasCoordY(vertex.data.pos);
                         return;
                     }
                     if (Math.abs(vertex.data.canvas_pos.x - pos_to_align.x) <= 15) {
                         aligned_pos.x = vertex.data.canvas_pos.x;
-                        view.alignement_vertical = true;
-                        view.alignement_vertical_x = view.canvasCoordX(vertex.data.pos);
+                        this.board.alignement_vertical_x = view.canvasCoordX(vertex.data.pos);
                         return;
                     }
                 }

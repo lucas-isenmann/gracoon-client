@@ -29,7 +29,7 @@ import { Grid, GridType } from "./display/grid";
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
 export let COLOR_BACKGROUND = "#1e1e1e";
 export const VERTEX_RADIUS = 8;
-export const COLOR_ALIGNEMENT_LINE = "#444444";
+export const COLOR_ALIGNEMENT_LINE = "#333333";
 export let COLOR_BORDER_VERTEX = "#ffffff";
 export let COLOR_INNER_VERTEX_DEFAULT = "#000000";
 
@@ -112,6 +112,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     private darkMode: boolean;
     isDrawingInteractor: boolean;
     grid: Grid;
+    is_aligning: boolean;
+    alignement_horizontal_y: Option<number>;
+    alignement_vertical_x: Option<number>;
 
 
     constructor(){
@@ -130,6 +133,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.darkMode = true;
         this.isDrawingInteractor = true;
         this.grid = new Grid();
+        this.is_aligning = false;
+
 
 
         this.canvas = document.createElement("canvas");
@@ -315,11 +320,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      * The alignement lines with other vertices.
      */
     drawAlignements() {
-        if (this.view.alignement_horizontal) {
-            drawLine(new CanvasCoord(0, this.view.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.view.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        if (typeof this.alignement_horizontal_y == "number" ) {
+            drawLine(new CanvasCoord(0, this.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
         }
-        if (this.view.alignement_vertical) {
-            drawLine(new CanvasCoord(this.view.alignement_vertical_x, 0), new CanvasCoord(this.view.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        if (typeof this.alignement_vertical_x == "number") {
+            drawLine(new CanvasCoord(this.alignement_vertical_x, 0), new CanvasCoord(this.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
         }
     }
 

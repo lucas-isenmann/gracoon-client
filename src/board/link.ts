@@ -1,10 +1,10 @@
 import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
-import { BoardElementType, ClientBoard } from "./board";
+import { ClientBoard } from "./board";
 import { View } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
-import { initWeightDiv, updateWeightDiv } from "./weightable";
+import { updateWeightDiv } from "./weightable";
 import { Color } from "../colors_v2";
 
 

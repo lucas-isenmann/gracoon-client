@@ -3,41 +3,20 @@ import { CanvasCoord } from "./canvas_coord";
 import { CanvasVect } from "./canvasVect";
 
 
-
 export class View {
     camera: Coord;
     zoom: number;
-   
-    
-
-    is_aligning: boolean;
-    alignement_horizontal: boolean;
-    alignement_horizontal_y: number;
-    alignement_vertical: boolean;
-    alignement_vertical_x: number;
-
 
     constructor() {
         this.camera = new Coord(0, 0);
         this.zoom = 1.;
-        
-        this.is_aligning = false;
-        this.alignement_horizontal = false;
-        this.alignement_vertical = false;
     }
-
-   
-
-
-
 
     // zoom factor is multiply by r
     apply_zoom_to_center(center: CanvasCoord, r: number) {
         this.zoom *= r;
         this.camera.x = center.x + (this.camera.x - center.x) * r;
         this.camera.y = center.y + (this.camera.y - center.y) * r;
-
-        
     }
 
     translate_camera(shift: CanvasVect){

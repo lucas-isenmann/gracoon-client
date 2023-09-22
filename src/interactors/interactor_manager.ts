@@ -156,8 +156,8 @@ export function setupInteractions(board: ClientBoard) {
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
-        board.view.alignement_horizontal = false;
-        board.view.alignement_vertical = false;
+        board.alignement_horizontal_y = undefined;
+        board.alignement_vertical_x = undefined;
         board.requestDraw()
         lastPointedElement = undefined;
     })
@@ -165,8 +165,8 @@ export function setupInteractions(board: ClientBoard) {
     board.canvas.addEventListener("mouseout", function(e){
         lastPointedElement = undefined;
         mousePos = undefined;
-        board.view.alignement_horizontal = false;
-        board.view.alignement_vertical = false;
+        board.alignement_horizontal_y = undefined;
+        board.alignement_vertical_x = undefined;
         board.selfUser.canvasPos = undefined;
         requestAnimationFrame(function () {board.draw() });
     })
@@ -266,8 +266,8 @@ export function setupInteractions(board: ClientBoard) {
         if ( typeof lastPointedElement != "undefined" && typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
-        board.view.alignement_horizontal = false;
-        board.view.alignement_vertical = false;
+        board.alignement_horizontal_y = undefined;
+        board.alignement_vertical_x = undefined;
         board.requestDraw();
     });
 

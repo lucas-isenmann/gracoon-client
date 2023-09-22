@@ -106,7 +106,7 @@ function setup() {
 
     const align_action = new SwitchSideBar(local_board,"align_mode", "Automatic alignement", "", ORIENTATION_INFO.BOTTOM, "align", "pointer", bottom_side_bar);
     align_action.trigger = () => {
-        local_board.view.is_aligning = align_action.selected;
+        local_board.is_aligning = align_action.selected;
 
     }
 
