@@ -1,5 +1,5 @@
 import { ClientBoard } from "../board/board";
-import { CanvasCoord } from "../board/canvas_coord";
+import { CanvasCoord } from "../board/display/canvas_coord";
 import { ElementSideBar, ORIENTATION_INFO, ORIENTATION_SIDE_BAR } from "./element_side_bar";
 import { SideBar } from "./side_bar";
 

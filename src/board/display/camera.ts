@@ -1,6 +1,6 @@
 import { Coord, Vect } from "gramoloss";
-import { CanvasCoord } from "../canvas_coord";
-import { CanvasVect } from "../canvasVect";
+import { CanvasCoord } from "./canvas_coord";
+import { CanvasVect } from "./canvasVect";
 
 
 

@@ -1,6 +1,6 @@
 import { Option } from "gramoloss";
 import { ClientArea } from "../board/area";
-import { CanvasCoord } from "../board/canvas_coord";
+import { CanvasCoord } from "../board/display/canvas_coord";
 import { ClientLink } from "../board/link";
 import { ClientRectangle } from "../board/rectangle";
 import { ClientRepresentation } from "../board/representations/client_representation";

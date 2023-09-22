@@ -1,7 +1,7 @@
 import { Area, Option } from 'gramoloss';
 import { BoardElementType, ClientBoard } from '../../board/board';
-import { CanvasVect } from '../../board/canvasVect';
-import { CanvasCoord } from '../../board/canvas_coord';
+import { CanvasVect } from '../../board/display/canvasVect';
+import { CanvasCoord } from '../../board/display/canvas_coord';
 import { DOWN_TYPE, RESIZE_TYPE } from '../../interactors/interactor';
 import { ORIENTATION_INFO } from '../element_side_bar';
 import { InteractorV2 } from '../interactor_side_bar';

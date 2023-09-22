@@ -1,9 +1,9 @@
 import { View } from "./display/camera";
 import { ClientVertex, ClientVertexData } from "./vertex";
-import { CanvasCoord } from "./canvas_coord";
+import { CanvasCoord } from "./display/canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
 import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
-import { CanvasVect } from "./canvasVect";
+import { CanvasVect } from "./display/canvasVect";
 import { draw_circle, draw_head } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";

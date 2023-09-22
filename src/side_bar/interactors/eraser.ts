@@ -1,6 +1,6 @@
 import { Option } from "gramoloss";
 import { ClientBoard } from "../../board/board";
-import { CanvasCoord } from "../../board/canvas_coord";
+import { CanvasCoord } from "../../board/display/canvas_coord";
 import { draw_circle } from "../../draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PointedElementData } from "../../interactors/pointed_element_data";

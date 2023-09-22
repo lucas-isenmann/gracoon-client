@@ -1,4 +1,4 @@
-import { CanvasCoord } from "../board/canvas_coord";
+import { CanvasCoord } from "../board/display/canvas_coord";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { selectInteractor } from "../interactors/interactor_manager";
 import { ORIENTATION_INFO } from "./element_side_bar";

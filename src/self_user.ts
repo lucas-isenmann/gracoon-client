@@ -1,6 +1,6 @@
 import { Option } from "gramoloss";
 import { COLOR_BACKGROUND } from "./board/board";
-import { CanvasCoord } from "./board/canvas_coord";
+import { CanvasCoord } from "./board/display/canvas_coord";
 import { Multicolor } from "./multicolor";
 import { socket } from "./socket";
 import { User } from "./user";

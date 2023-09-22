@@ -1,5 +1,5 @@
 import { INDEX_TYPE, VERTEX_RADIUS } from "./board/board";
-import { CanvasCoord } from "./board/canvas_coord";
+import { CanvasCoord } from "./board/display/canvas_coord";
 import { Multicolor } from "./multicolor";
 
 const ARC_ARROW_LENGTH = 12

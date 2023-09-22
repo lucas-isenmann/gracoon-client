@@ -1,6 +1,6 @@
 import { bezierValue, Coord } from "gramoloss";
-import { solutionQuadratic } from "../utils";
-import { View } from "./display/camera";
+import { solutionQuadratic } from "../../utils";
+import { View } from "./camera";
 import { CanvasVect } from "./canvasVect";
 
 /**

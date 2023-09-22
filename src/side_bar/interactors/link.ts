@@ -1,5 +1,5 @@
 import { Coord, Option, ORIENTATION } from "gramoloss";
-import { CanvasCoord } from "../../board/canvas_coord";
+import { CanvasCoord } from "../../board/display/canvas_coord";
 import { draw_head } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { ORIENTATION_INFO } from "../element_side_bar";

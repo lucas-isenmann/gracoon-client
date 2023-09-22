@@ -1,7 +1,7 @@
 import { Coord, Rectangle } from "gramoloss";
 import { View } from "./display/camera";
-import { CanvasVect } from "./canvasVect";
-import { CanvasCoord } from "./canvas_coord";
+import { CanvasVect } from "./display/canvasVect";
+import { CanvasCoord } from "./display/canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
 

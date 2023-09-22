@@ -1,6 +1,6 @@
 import { Coord, Option } from "gramoloss";
 import { ClientRectangle } from "../../board/rectangle";
-import { CanvasCoord } from "../../board/canvas_coord";
+import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";

@@ -14,8 +14,9 @@
 
 ## Refacto
 
+- view should be renamed in camera, alignements variables out of it
 - aggregate Modifications when the mousmove is not over
-- après caméra change: update tous les canvas
+- après caméra change: update tous les canvas: tous les éléments doivent avoir une fonction
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
 - mieux gérer les sorties du canvas/ecran
 - dans Selection : Resizable: translate_by_canvas_vect. En fait le translate doit avoir un spécifique (genre les area quand on les translate déplacent les sommets dedans, les repre aussi) et le translate générique translate les c1 c2 ...

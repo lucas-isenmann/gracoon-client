@@ -5,8 +5,8 @@
 import { Option, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../../board/board";
 import { resize_corner, resize_side, translate_by_canvas_vect } from "../../board/resizable";
-import { CanvasVect } from "../../board/canvasVect";
-import { CanvasCoord } from "../../board/canvas_coord";
+import { CanvasVect } from "../../board/display/canvasVect";
+import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { socket } from "../../socket";
 import { ORIENTATION_INFO } from "../element_side_bar";

@@ -1,6 +1,6 @@
 import { Option } from "gramoloss";
 import { ClientBoard } from "../board/board";
-import { CanvasCoord } from "../board/canvas_coord";
+import { CanvasCoord } from "../board/display/canvas_coord";
 import { ORIENTATION_INFO } from "./element_side_bar";
 import { ItemSideBar } from "./item_side_bar";
 import { SideBar } from "./side_bar";

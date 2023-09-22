@@ -1,8 +1,8 @@
 import { Coord } from "gramoloss";
 import { RESIZE_TYPE } from "../interactors/interactor";
 import { View } from "./display/camera";
-import { CanvasVect } from "./canvasVect";
-import { CanvasCoord } from "./canvas_coord";
+import { CanvasVect } from "./display/canvasVect";
+import { CanvasCoord } from "./display/canvas_coord";
 
 export interface Resizable {
     c1: Coord,

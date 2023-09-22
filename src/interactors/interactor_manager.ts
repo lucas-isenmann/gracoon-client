@@ -1,8 +1,8 @@
 import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { socket } from '../socket';
 import { regenerate_graph } from '../generators/dom';
-import { CanvasCoord } from '../board/canvas_coord';
-import { CanvasVect } from '../board/canvasVect';
+import { CanvasCoord } from '../board/display/canvas_coord';
+import { CanvasVect } from '../board/display/canvasVect';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
 import { InteractorV2 } from '../side_bar/interactor_side_bar';

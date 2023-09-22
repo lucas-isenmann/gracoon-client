@@ -1,7 +1,7 @@
 import { View } from "./display/camera";
-import { CanvasCoord } from "./canvas_coord";
+import { CanvasCoord } from "./display/canvas_coord";
 import { Area, Coord } from "gramoloss";
-import { CanvasVect } from "./canvasVect";
+import { CanvasVect } from "./display/canvasVect";
 import { BoardElementType, ClientBoard } from "./board";
 import { setupLoadedParam } from "./area_div";
 
