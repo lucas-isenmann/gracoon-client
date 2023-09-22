@@ -481,7 +481,6 @@ export function setupHandlers(board: ClientBoard) {
         console.log("[" + s + "]");
         */
 
-        g.compute_vertices_index_string(board.view);
 
 
         const sensi = get_sensibilities(sensibilities);

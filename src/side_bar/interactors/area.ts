@@ -1,6 +1,6 @@
 import { Area, Coord, Option } from 'gramoloss';
 import { BoardElementType, ClientBoard } from '../../board/board';
-import { CanvasVect } from '../../board/vect';
+import { CanvasVect } from '../../board/canvasVect';
 import { CanvasCoord } from '../../board/canvas_coord';
 import { DOWN_TYPE, RESIZE_TYPE } from '../../interactors/interactor';
 import { ORIENTATION_INFO } from '../element_side_bar';

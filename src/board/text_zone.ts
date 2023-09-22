@@ -2,7 +2,7 @@ import { Coord, TextZone } from "gramoloss";
 import renderMathInElement from "../katex-auto-render/auto-render";
 import { BoardElementType, ClientBoard } from "./board";
 import { View } from "./camera";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
 import { marked } from "marked";
 import { INTERACTOR_TYPE } from "../interactors/interactor";

@@ -1,9 +1,9 @@
 import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
 import { draw_circle } from "../draw_basics";
-import { INDEX_TYPE, View } from "./camera";
-import { CanvasVect } from "./vect";
+import { View } from "./camera";
+import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
-import {  ClientBoard, VERTEX_RADIUS } from "./board";
+import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "../colors_v2";
 
@@ -24,6 +24,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         super(index, data);
         this.board = board;
         updateWeightDiv(this, board);
+        this.updateIndexString();
     }
 
     static from(other: Vertex<ClientVertexData>, board: ClientBoard): ClientVertex{
@@ -70,16 +71,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         this.setAutoWeightDivPos();
     }
 
-    // clone(): ClientVertex {
-    //     const newVertex = new ClientVertex(this.data.pos.x, this.data.pos.y, this.data.weight, board.view);
-    //     newVertex.data.color = this.data.color;
-    //     newVertex.data.is_selected = this.data.is_selected;
-    //     newVertex.data.index_string = this.data.index_string;
-    //     for (const [index, paramValue] of this.data.parameter_values){
-    //         newVertex.data.parameter_values.set(index, paramValue);
-    //     }
-    //     return newVertex;
-    // }
+
 
 
     update_after_view_modification(view: View){
@@ -145,7 +137,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
      */
     draw(board: ClientBoard) {
         let vertex_radius = VERTEX_RADIUS;
-        if (board.view.index_type != INDEX_TYPE.NONE) {
+        if (board.getIndexType() != INDEX_TYPE.NONE) {
             vertex_radius = 2 * VERTEX_RADIUS;
         }
 
@@ -172,16 +164,12 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         draw_circle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
 
         // DRAW INDEX 
-        if (board.view.index_type != INDEX_TYPE.NONE) {
+        if (board.getIndexType() != INDEX_TYPE.NONE) {
             board.ctx.font = "17px Arial";
-            const measure = board.ctx.measureText(this.data.index_string);
-            if ( board.view.dark_mode){
-                board.ctx.fillStyle = "black";
-            } else {
-                board.ctx.fillStyle = "white";
-            }
-            const pos = this.data.canvas_pos
-            board.ctx.fillText(this.data.index_string, pos.x - measure.width / 2, pos.y + 5);
+            const measure = board.ctx.measureText(this.data.indexString);
+            board.ctx.fillStyle = (board.view.dark_mode) ? "black" : "white";
+            const pos = this.data.canvas_pos;
+            board.ctx.fillText(this.data.indexString, pos.x - measure.width / 2, pos.y + 5);
         }
 
         // DRAW PARAMETER VALUES
@@ -195,6 +183,37 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
 
+    /**
+     * Update the indexString according to the indexType of board
+     */
+    updateIndexString(){
+        const letters = "abcdefghijklmnopqrstuvwxyz";
+        if (this.board.getIndexType() == INDEX_TYPE.NONE) {
+            this.data.indexString = "";
+        } else if (this.board.getIndexType() == INDEX_TYPE.NUMBER_STABLE) {
+            this.data.indexString = "v" + String(this.index)
+        } else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_STABLE) {
+            this.data.indexString = letters.charAt(this.index % letters.length);
+        }
+        else if (this.board.getIndexType() == INDEX_TYPE.NUMBER_UNSTABLE) {
+            let counter = 0;
+            for (const key of this.board.graph.vertices.keys()) {
+                if (key < this.index) {
+                    counter++;
+                }
+            }
+            this.data.indexString = "v" + String(counter)
+        }
+        else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_UNSTABLE) {
+            let counter = 0;
+            for (const key of this.board.graph.vertices.keys()) {
+                if (key < this.index) {
+                    counter++;
+                }
+            }
+            this.data.indexString = letters.charAt(counter % letters.length);
+        }
+    }
 
 }
 
@@ -206,7 +225,7 @@ export class ClientVertexData extends BasicVertexData {
     color: Color;
     canvas_pos: CanvasCoord;
     is_selected: boolean;
-    index_string: string;
+    indexString: string;
     parameter_values: Map<string,ParameterValue>;
     weightDiv: HTMLDivElement | undefined; // set to undefined until a non empty weight is used
 
@@ -215,7 +234,7 @@ export class ClientVertexData extends BasicVertexData {
         this.color = color;
         this.canvas_pos = view.create_canvas_coord(this.pos );
         this.is_selected = false;
-        this.index_string = "";
+        this.indexString = "";
         // this.color = COLOR_INNER_VERTEX_DEFAULT;
         this.parameter_values = new Map();
         this.weightDiv = undefined;

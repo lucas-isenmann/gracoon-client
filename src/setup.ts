@@ -2,7 +2,7 @@ import { params_available_turn_off_div, params_available_turn_on_div, update_par
 import { setup_parametors_available } from "./parametors/parametor_manager";
 import { setupHandlers, socket } from "./socket";
 import { setup_generators_div, turn_on_generators_div } from "./generators/dom";
-import { ClientBoard, SocketMsgType } from "./board/board";
+import { ClientBoard, INDEX_TYPE, SocketMsgType } from "./board/board";
 import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
 import { SideBar } from "./side_bar/side_bar";
 import { ORIENTATION_INFO, ORIENTATION_SIDE_BAR } from "./side_bar/element_side_bar";
@@ -13,7 +13,6 @@ import { createAreaInteractor } from "./side_bar/interactors/area";
 import ENV from './.env.json';
 import { SideBarLauncher } from "./side_bar/side_bar_launcher";
 import { TikZ_create_file_data } from "./tikz";
-import { INDEX_TYPE } from "./board/camera";
 import { createPopup } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
@@ -218,37 +217,32 @@ function setup() {
 
     const change_to_none_index = new SideBarLauncher(local_board, "index_type_none", "Remove all labels", "", ORIENTATION_INFO.BOTTOM, "index_none", "pointer", 
     () => {
-        local_board.view.index_type = INDEX_TYPE.NONE;
-        local_board.graph.compute_vertices_index_string(local_board.view);
+        local_board.setIndexType(INDEX_TYPE.NONE);
     }
     ,autom_indices_bar);
 
     const change_to_number_stable_index = new SideBarLauncher(local_board, "index_type_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "index_number_stable", "pointer", 
     () => {
-        local_board.view.index_type = INDEX_TYPE.NUMBER_STABLE;
-        local_board.graph.compute_vertices_index_string(local_board.view);
+        local_board.setIndexType(INDEX_TYPE.NUMBER_STABLE);
     }
     ,autom_indices_bar);
 
     const change_to_number_unstable_index = new SideBarLauncher(local_board, "index_type_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", "", ORIENTATION_INFO.BOTTOM, "index_number_unstable", "pointer", 
     () => {
-        local_board.view.index_type = INDEX_TYPE.NUMBER_UNSTABLE;
-        local_board.graph.compute_vertices_index_string(local_board.view);
+        local_board.setIndexType(INDEX_TYPE.NUMBER_UNSTABLE);
     }
     ,autom_indices_bar);
 
     const change_to_alpha_stable_index = new SideBarLauncher(local_board, "index_type_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", "", ORIENTATION_INFO.BOTTOM, "index_alpha_stable", "pointer", 
     () => {
-        local_board.view.index_type = INDEX_TYPE.ALPHA_STABLE;
-        local_board.graph.compute_vertices_index_string(local_board.view);
+        local_board.setIndexType(INDEX_TYPE.ALPHA_STABLE);
     }
     ,autom_indices_bar);
 
 
     const change_to_alpha_unstable_index = new SideBarLauncher(local_board, "index_type_number_stable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", "", ORIENTATION_INFO.BOTTOM, "index_alpha_unstable", "pointer", 
     () => {
-        local_board.view.index_type = INDEX_TYPE.ALPHA_UNSTABLE;
-        local_board.graph.compute_vertices_index_string(local_board.view);
+        local_board.setIndexType(INDEX_TYPE.ALPHA_UNSTABLE);
     }
     ,autom_indices_bar);
 

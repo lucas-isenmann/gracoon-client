@@ -1,9 +1,9 @@
-import { INDEX_TYPE, View } from "./camera";
+import { View } from "./camera";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
 import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point, Vertex, Link } from "gramoloss";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 import { draw_circle, draw_head } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
@@ -28,7 +28,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
 
     set_vertex(index: number, vertexData: ClientVertexData): ClientVertex {
-        const newVertex = new ClientVertex(index, vertexData);
+        const newVertex = new ClientVertex(index, vertexData, this.board);
         this.vertices.set(index, newVertex);
         return newVertex;
     }
@@ -138,7 +138,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 if (typeof poscp != "string"){
                     cp = poscp
                 }
-                draw_head(ctx, cp, posv, this.board.view.index_type);
+                draw_head(ctx, cp, posv, this.board.getIndexType());
             }
         }
     }
@@ -253,34 +253,12 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
     }
 
-    compute_vertices_index_string(view: View) {
-        const letters = "abcdefghijklmnopqrstuvwxyz";
-        this.vertices.forEach((vertex, index) => {
-            if (view.index_type == INDEX_TYPE.NONE) {
-                vertex.data.index_string = "";
-            } else if (view.index_type == INDEX_TYPE.NUMBER_STABLE) {
-                vertex.data.index_string = "v" + String(index)
-            } else if (view.index_type == INDEX_TYPE.ALPHA_STABLE) {
-                vertex.data.index_string = letters.charAt(index % letters.length);
-            }
-            else if (view.index_type == INDEX_TYPE.NUMBER_UNSTABLE) {
-                let counter = 0;
-                for (const key of this.vertices.keys()) {
-                    if (key < index) {
-                        counter++;
-                    }
-                }
-                vertex.data.index_string = "v" + String(counter)
-            }
-            else if (view.index_type == INDEX_TYPE.ALPHA_UNSTABLE) {
-                let counter = 0;
-                for (const key of this.vertices.keys()) {
-                    if (key < index) {
-                        counter++;
-                    }
-                }
-                vertex.data.index_string = letters.charAt(counter % letters.length);
-            }
+    /**
+     * Update the index string of every vertex according to the indexType of board
+     */
+    compute_vertices_index_string() {
+        this.vertices.forEach((vertex, index) => { 
+            vertex.updateIndexString();
         })
     }
 
@@ -442,7 +420,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
     addVertex(vertexData: ClientVertexData): ClientVertex {
         const v = super.addVertex(vertexData);
-        const v2 = new ClientVertex(v.index, vertexData);
+        const v2 = new ClientVertex(v.index, vertexData, this.board);
         this.vertices.set(v.index, v2);
         return v2;
     }
@@ -466,8 +444,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     addLink(startIndex: number, endIndex: number, orientation: ORIENTATION, data: ClientLinkData): Option<ClientLink> {
         const link = super.addLink(startIndex, endIndex, orientation, data);
         if (typeof link == "undefined") return undefined;
-        const startVertex = new ClientVertex(link.startVertex.index, link.startVertex.data);
-        const endVertex = new ClientVertex(link.endVertex.index, link.endVertex.data);
+        const startVertex = new ClientVertex(link.startVertex.index, link.startVertex.data, this.board);
+        const endVertex = new ClientVertex(link.endVertex.index, link.endVertex.data, this.board);
         const link2 = new ClientLink(link.index, startVertex, endVertex, orientation, data, this.board);
         this.links.set(link.index, link2);
         return link2;

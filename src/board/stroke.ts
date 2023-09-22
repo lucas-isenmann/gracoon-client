@@ -1,6 +1,6 @@
 import { View } from "./camera";
 import { Coord, Stroke } from "gramoloss";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
 import { ClientBoard, SELECTION_COLOR } from "./board";

@@ -1,7 +1,7 @@
 import { bezierValue, Coord } from "gramoloss";
 import { solutionQuadratic } from "../utils";
 import { View } from "./camera";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 
 /**
  * A CanvasCoord is the coordinates of a point on a canvas.

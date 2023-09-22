@@ -2,7 +2,7 @@ import { Coord, DegreeWidthRep, ORIENTATION } from "gramoloss";
 import { draw_circle } from "../../draw_basics";
 import { View } from "../camera";
 import { ClientLinkData } from "../link";
-import { CanvasVect } from "../vect";
+import { CanvasVect } from "../canvasVect";
 import { ClientVertex } from "../vertex";
 import { CanvasCoord } from "../canvas_coord";
 import { BoardElementType, ClientBoard } from "../board";

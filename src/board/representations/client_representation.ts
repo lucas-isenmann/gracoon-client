@@ -1,6 +1,6 @@
 import { Representation } from "gramoloss";
 import { View } from "../camera";
-import { CanvasVect } from "../vect";
+import { CanvasVect } from "../canvasVect";
 import { CanvasCoord } from "../canvas_coord";
 import { BoardElementType } from "../board";
 

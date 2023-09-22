@@ -11,7 +11,7 @@ import { ClientRepresentation } from "./representations/client_representation";
 import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
@@ -76,6 +76,13 @@ export enum SocketMsgType {
     GENERATE_GRAPH = "generate-graph"
 }
 
+export enum INDEX_TYPE {
+    NONE,
+    NUMBER_STABLE,
+    NUMBER_UNSTABLE,
+    ALPHA_STABLE,
+    ALPHA_UNSTABLE
+}
 
 
 export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
@@ -100,6 +107,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     entireZone: EntireZone;
 
+    // Display parameters
+    private indexType: INDEX_TYPE;
+
 
     constructor(){
         super();
@@ -110,7 +120,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
         this.interactorLoadedId = undefined;
-        this.isGraphClipboardGenerated = false;        
+        this.isGraphClipboardGenerated = false;      
+        
+        // Display parameters
+        this.indexType = INDEX_TYPE.NONE;
+
 
         this.canvas = document.createElement("canvas");
         document.body.appendChild(this.canvas);
@@ -158,6 +172,17 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         //     this.afterVariableChange();
         // })
 
+    }
+
+    setIndexType(newIndexType: INDEX_TYPE){
+        if (this.indexType != newIndexType){
+            this.indexType = newIndexType;
+            this.graph.compute_vertices_index_string();
+        }
+    }
+
+    getIndexType(): INDEX_TYPE {
+        return this.indexType;
     }
 
     afterVariableChange(){

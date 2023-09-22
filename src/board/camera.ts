@@ -1,15 +1,9 @@
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { ClientBoard } from "./board";
 import { CanvasCoord } from "./canvas_coord";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 
-export enum INDEX_TYPE {
-    NONE,
-    NUMBER_STABLE,
-    NUMBER_UNSTABLE,
-    ALPHA_STABLE,
-    ALPHA_UNSTABLE
-}
+
 
 export class View {
     camera: Coord;
@@ -39,7 +33,7 @@ export class View {
     alignement_vertical: boolean;
     alignement_vertical_x: number;
 
-    index_type: INDEX_TYPE;
+
 
 
 
@@ -60,7 +54,6 @@ export class View {
         this.grid_show = false;
         this.is_link_creating = false;
         this.is_rectangular_selecting = false;
-        this.index_type = INDEX_TYPE.NONE;
         this.is_aligning = false;
         this.alignement_horizontal = false;
         this.alignement_vertical = false;

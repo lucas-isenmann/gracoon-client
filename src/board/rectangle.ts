@@ -1,6 +1,6 @@
 import { Coord, Rectangle } from "gramoloss";
 import { View } from "./camera";
-import { CanvasVect } from "./vect";
+import { CanvasVect } from "./canvasVect";
 import { CanvasCoord } from "./canvas_coord";
 import { Color, getCanvasColor } from "../colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
