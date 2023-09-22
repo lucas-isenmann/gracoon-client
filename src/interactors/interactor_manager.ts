@@ -62,7 +62,7 @@ export function setupInteractions(board: ClientBoard) {
             //     const width = board.getVariableValue("width");
 
             //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
-            //         board.graph.drawCombinatorialMap("", ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
+            //         board.graph.drawCombinatorialMap("", board.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
             //     }
             // }
             // if (e.key == "v"){
@@ -76,9 +76,8 @@ export function setupInteractions(board: ClientBoard) {
             //     const width = board.getVariableValue("width");
             //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
             //         // board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
-            //         board.graph.drawCombinatorialMap(undefined, ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width)
+            //         board.graph.drawCombinatorialMap(undefined, board.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width)
             //     }
-
             // }
             
             if (e.key == "Delete") {

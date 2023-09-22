@@ -221,7 +221,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         // this.draw();
         // if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
-        //     this.graph.drawCombinatorialMap(undefined, ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
+        //     this.graph.drawCombinatorialMap(undefined, this.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
         // }
     }
 

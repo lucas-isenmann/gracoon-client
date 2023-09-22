@@ -555,7 +555,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     neighbor.index,
                     nbQP+1,
                     vertex );
-                prepareEdgeAdj[nbQP] = neighbor.index;
+                prepareEdgeAdj.set(nbQP,neighbor.index);
                 vertexQPadj.push(qp1);
 
                 // nbQP+1
@@ -564,18 +564,18 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     neighbor.index,
                     nbQP,
                     vertex );
-                prepareEdgeAdj[nbQP+1] = neighbor.index;
+                prepareEdgeAdj.set(nbQP+1, neighbor.index);
                 vertexQPadj.push(qp2);
 
                 // compute the edgeAdj if possible
                 const neighborAdj = adjQP.get(neighbor.index);
                 if (neighborAdj){
                     for (const neighborQP of neighborAdj){
-                        if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 1){
+                        if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 1){
                             qp1.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp1.id;
                             // draw_line(this.board.view.create_canvas_coord(qp1.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
-                        } else if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 0){
+                        } else if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 0){
                             qp2.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp2.id;
                             // draw_line(this.board.view.create_canvas_coord(qp2.pos), this.board.view.create_canvas_coord(neighborQP.pos), ctx, "gray" )
@@ -608,7 +608,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     neighbor.index,
                     nbQP+1,
                     vertex );
-                prepareEdgeAdj[nbQP] = neighbor.index;
+                prepareEdgeAdj.set(nbQP, neighbor.index);
                 vertexQPadj.push(qp1);
 
                 // nbQP+1
@@ -617,7 +617,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     neighbor.index,
                     nbQP,
                     vertex );
-                prepareEdgeAdj[nbQP+1] = neighbor.index;
+                prepareEdgeAdj.set(nbQP+1, neighbor.index);
                 vertexQPadj.push(qp2);
 
                 
@@ -626,10 +626,10 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 const neighborAdj = adjQP.get(neighbor.index);
                 if (neighborAdj){
                     for (const neighborQP of neighborAdj){
-                        if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 1){
+                        if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 1){
                             qp1.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp1.id;
-                        } else if (prepareEdgeAdj[neighborQP.id] == vertex.index && neighborQP.id %2 == 0){
+                        } else if (prepareEdgeAdj.get(neighborQP.id) == vertex.index && neighborQP.id %2 == 0){
                             qp2.edgeAdj = neighborQP.id;
                             neighborQP.edgeAdj = qp2.id;
                         }
@@ -648,13 +648,15 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         for (const qp of quarterPoints.values()){
             const qpJump = quarterPoints.get(qp.jumpAdj);
             const qpEdge = quarterPoints.get(qp.edgeAdj);
-            qp.computeEdgePoint(qpJump, qpEdge);
+            if (typeof qpJump != "undefined" && typeof qpEdge != "undefined")
+                qp.computeEdgePoint(qpJump, qpEdge);
         }
 
         // compute QuarterEdgePoints and MiddleEdgePoints
         for (const qp of quarterPoints.values()){
             const qpEdge = quarterPoints.get(qp.edgeAdj);
-            qp.computeQuarterMiddlePoints(qpEdge, h, ratio, crossRatio);
+            if (typeof qpEdge != "undefined")
+                qp.computeQuarterMiddlePoints(qpEdge, h, ratio, crossRatio);
         }
 
         return quarterPoints;
@@ -668,6 +670,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     drawCombinatorialMap(file: string | undefined, ctx: CanvasRenderingContext2D, h: number, h2: number, crossRatio: number, adaptToEdgeLength: boolean, ratio: number, durete: number, width: number){
         const drawOnBoard = (typeof file === "undefined");
 
+        
         const quarterPoints = this.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
 
         let svgString = "";
@@ -700,7 +703,9 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     visited.add(currentQp.id);
 
                     let nextQp = quarterPoints.get(currentQp.edgeAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     nextQp = quarterPoints.get(nextQp.jumpAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     visited.add(nextQp.id);
                     // if (adaptToEdgeLength){
                     //     const edgeDir = Vect.from_coords(currentQp.vertexAdj.getPos(), nextQp.vertexAdj.getPos());
@@ -741,6 +746,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     currentQp = nextQp;
 
                     nextQp = quarterPoints.get(currentQp.interiorAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     this.board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, colors[currentColor], width);
                     d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
 
@@ -829,7 +835,9 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     visited.add(currentQp.id);
 
                     let nextQp = quarterPoints.get(currentQp.edgeAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     nextQp = quarterPoints.get(nextQp.jumpAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     visited.add(nextQp.id);
                     if (adaptToEdgeLength){
                         const edgeDir = Vect.from_coords(currentQp.vertexAdj.getPos(), nextQp.vertexAdj.getPos());
@@ -858,6 +866,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     currentQp = nextQp;
 
                     nextQp = quarterPoints.get(currentQp.interiorAdj);
+                    if (typeof nextQp == "undefined") { throw Error("bug");  };
                     d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
                     currentQp = nextQp;
                 }
@@ -1008,8 +1017,16 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             const middleB = middle.copy();
             middleB.rtranslate(dir);
 
-            const ap1 = angleCWPoints.get(v1.index).get(v2.index);
-            const ap2 = angleCCWPoints.get(v2.index).get(v1.index);
+            const acwp1 = angleCWPoints.get(v1.index);
+            if (typeof acwp1 == "undefined" )  throw Error("bug");
+            const ap1 = acwp1.get(v2.index);
+            if (typeof ap1 == "undefined" )  throw Error("bug");
+
+            const accwp2 = angleCCWPoints.get(v2.index);
+            if (typeof accwp2 == "undefined" )  throw Error("bug");
+            const ap2 = accwp2.get(v1.index);
+            if (typeof ap2 == "undefined" )  throw Error("bug");
+
             const middle1 = middleA.copy();
             const middle2 = middleA.copy();
             const dir1 = Vect.from_coords(ap1, ap2);
@@ -1022,8 +1039,16 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             svgString += segmentToSVGLine(ap1, middle1, "black", 1);
             // svgString += segmentToSVGLine(middle2, ap2, "black", 1);
 
-            const ap3 = angleCWPoints.get(v2.index).get(v1.index);
-            const ap4 = angleCCWPoints.get(v1.index).get(v2.index);
+            const acwp2 = angleCWPoints.get(v2.index);
+            if (typeof acwp2 == "undefined") throw Error("bug");
+            const ap3 = acwp2.get(v1.index);
+            if (typeof ap3 == "undefined") throw Error("bug");
+            const accwp1 = angleCCWPoints.get(v1.index);
+            if (typeof accwp1 == "undefined") throw Error("bug");
+            const ap4 = accwp1.get(v2.index);
+            if (typeof ap4 == "undefined") throw Error("bug");
+
+
             const middle3 = middleB.copy();
             const middle4 = middleB.copy();
             const dir2 = Vect.from_coords(ap3, ap4);
