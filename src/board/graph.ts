@@ -733,11 +733,11 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     // }
 
 
-                    this.board.drawCircle(ctx, currentQp.cp, 3, "green");
+                    this.board.drawCircle(currentQp.cp, 3, "green", 1);
                     if ( currentQp.id %2 == 0 ){
-                        this.board.drawCircle(ctx, currentQp.pos, 3, "blue");
+                        this.board.drawCircle(currentQp.pos, 3, "blue", 1);
                     } else {
-                        this.board.drawCircle(ctx, currentQp.pos, 3, "red");
+                        this.board.drawCircle(currentQp.pos, 3, "red", 1);
                     }
 
                     currentQp = nextQp;
@@ -746,11 +746,11 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     this.board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, colors[currentColor], width);
                     d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
 
-                    this.board.drawCircle(ctx, currentQp.cp, 3, "green");
+                    this.board.drawCircle(currentQp.cp, 3, "green", 1);
                     if ( currentQp.id %2 == 0 ){
-                        this.board.drawCircle(ctx, currentQp.pos, 3, "blue");
+                        this.board.drawCircle(currentQp.pos, 3, "blue", 1);
                     } else {
-                        this.board.drawCircle(ctx, currentQp.pos, 3, "red");
+                        this.board.drawCircle(currentQp.pos, 3, "red", 1);
                     }
 
                     currentQp = nextQp;

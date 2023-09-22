@@ -257,9 +257,24 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         drawLine(canvasP1, canvasP2, ctx, color, scaledWidth);
     }
 
-    drawCircle(ctx: CanvasRenderingContext2D, center: Coord, radius: number, color: string){
+    drawLineUnscaled(p1: Coord, p2: Coord, color: string, width: number){
+        const canvasP1 = this.view.create_canvas_coord(p1);
+        const canvasP2 = this.view.create_canvas_coord(p2);
+        drawLine(canvasP1, canvasP2, this.ctx, color, width);
+    }
+
+    drawCanvasLine(p1: CanvasCoord, p2: CanvasCoord, color: string, width: number){
+        const scaledWidth = width*this.view.zoom;
+        drawLine(p1, p2, this.ctx, color, scaledWidth);
+    }
+
+    drawCircle(center: Coord, radius: number, color: string, alpha: number){
         const canvasCenter = this.view.create_canvas_coord(center);
-        draw_circle(canvasCenter, color, radius, 1, ctx)
+        draw_circle(canvasCenter, color, radius, alpha, this.ctx)
+    }
+
+    drawCanvasCircle(center: CanvasCoord, radius: number, color: string, alpha: number){
+        draw_circle(center, color, radius, alpha, this.ctx)
     }
     
 

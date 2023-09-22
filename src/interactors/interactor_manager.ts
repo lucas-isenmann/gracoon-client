@@ -24,7 +24,6 @@ export function selectInteractor(interactor: InteractorV2, board: ClientBoard, p
     board.interactorLoadedId = interactor.id;
 
     board.canvas.style.cursor = interactor.cursor_style;
-    board.view.is_creating_vertex = false;
     interactor.trigger(board, pos);
     select_interactor_div(interactor);
     board.requestDraw();

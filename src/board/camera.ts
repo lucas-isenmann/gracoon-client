@@ -16,12 +16,6 @@ export class View {
 
     display_triangular_grid: boolean;
     
-    is_link_creating: boolean;
-    link_creating_type: ORIENTATION;
-    link_creating_start: CanvasCoord;
-
-    is_creating_vertex: boolean;
-    creating_vertex_pos: CanvasCoord;
 
     is_rectangular_selecting: boolean;
     selection_corner_1: CanvasCoord;
@@ -51,14 +45,11 @@ export class View {
         this.grid_initial_size = 70;
         this.grid_size = this.grid_initial_size;
         this.grid_show = false;
-        this.is_link_creating = false;
         this.is_rectangular_selecting = false;
         this.is_aligning = false;
         this.alignement_horizontal = false;
         this.alignement_vertical = false;
 
-        this.is_creating_vertex = false;
-        this.creating_vertex_pos = new CanvasCoord(0,0);
 
 
         this.is_drawing_interactor = true;
