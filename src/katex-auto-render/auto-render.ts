@@ -100,7 +100,7 @@ const renderMathInElement = function(elem: HTMLElement) {
     const optionsCopy = new RenderOptions();
 
     // default options
-    optionsCopy.delimiters = Array(new Delimiter("$", "$", false));
+    optionsCopy.delimiters = Array(new Delimiter("$", "$", false), new Delimiter("\[", "\]", false));
     optionsCopy.ignoredTags = optionsCopy.ignoredTags || [
         "script", "noscript", "style", "textarea", "pre", "code", "option",
     ];

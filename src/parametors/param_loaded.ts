@@ -5,6 +5,9 @@ import { remove_loaded_param, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
 import { Zone } from "./zone";
 import { ClientArea } from "../board/area";
+import { createPopup } from "../popup";
+import { marked } from "marked";
+import renderMathInElement from "../katex-auto-render/auto-render";
 
 export class ParametorLoaded {
     parametor: Parametor;
@@ -133,33 +136,22 @@ export class ParametorLoaded {
             svg_info_parametor.title = "Information on this parameter";
             svg_info_parametor.src = svgParamIcons["info"];
             svg_info_parametor.addEventListener('click', ()=>{
-                console.log("INFO")
-                const xhr= new XMLHttpRequest();
-                xhr.open('GET', `parameters_info/${this.parametor.id}.html`, true);
-                xhr.onreadystatechange= function() {
-                    if (this.readyState!==4) return;
-                    if (this.status!==200) return; // or whatever error handling you want
-                    // document.getElementById('y').innerHTML= this.responseText;
-                    const divInfoContent = document.getElementById('info_content');
-                    if (divInfoContent == null) return;
-                     divInfoContent.innerHTML = this.responseText;
-
-                    const divInfoParametorContainer = document.getElementById('info_parametor_container');
-                    if (divInfoParametorContainer == null) return;
-                    divInfoParametorContainer.classList.toggle("show");
-
-                    const divInfoClosingButton = document.getElementById('info_closing_button');
-                    if (divInfoClosingButton) divInfoClosingButton.onclick = () => {
-                        divInfoContent.innerHTML = "";
-                        divInfoParametorContainer.classList.remove("show");
-                    }
-
-
-                   
-                   
-                };
-                xhr.send();
-
+                const div = document.getElementById("parameter-info-" + this.id);
+                if (div){
+                    div.style.display = "block";
+                } else {
+                    console.log("send get-parameter-info", this.parametor.id);
+                    board.emitGetParameterInfo(this.parametor.id, (response: string) => {
+                        const div = createPopup("parameter-info-" + this.id, this.parametor.name);
+                        div.style.display = "block";
+                        const popup_content = document.getElementById(div.id + "_content");
+                        if (popup_content){
+                            popup_content.innerHTML = marked.parse(response);
+                            renderMathInElement(popup_content);
+                        }
+                    });
+                }
+                
 
             });
             // svg_info_parametor.classList.add("reload_img");

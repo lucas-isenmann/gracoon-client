@@ -311,7 +311,7 @@ export function setupHandlers(board: ClientBoard) {
 
 
     function handleUpdateElement(data: {kind: string, param: string, index: number, value: any}){
-        console.log("handleUpdateElement", data);
+        // console.log("handleUpdateElement", data);
         if (data.kind == "TextZone"){
             const textZone = board.text_zones.get(data.index);
             if (typeof textZone == "undefined") return;

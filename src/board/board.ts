@@ -73,7 +73,8 @@ export enum SocketMsgType {
     LOAD_JSON = "load_json",
     GET_JSON = "get_json",
     SUBDIVIDE_LINK = "subdivide_link",
-    GENERATE_GRAPH = "generate-graph"
+    GENERATE_GRAPH = "generate-graph",
+    GetParameterInfo = "get-parameter-info"
 }
 
 export enum INDEX_TYPE {
@@ -714,6 +715,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     emit_resize_element(type: BoardElementType, index: number, pos: Coord, resize_type: RESIZE_TYPE){
         socket.emit(SocketMsgType.RESIZE_ELEMENT, type, index, pos.x, pos.y, resize_type);
+    }
+
+    emitGetParameterInfo(paramId: string, callback: (response: string) => void){
+        socket.emit(SocketMsgType.GetParameterInfo, paramId, callback);
     }
 
     emit_apply_modifyer(modifyer: GraphModifyer){
