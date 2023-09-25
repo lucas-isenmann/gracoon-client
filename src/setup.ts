@@ -17,7 +17,7 @@ import { createPopup } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
 import { ORIENTATION } from "gramoloss";
-import { colorsData, getCanvasColor } from "./colors_v2";
+import { colorsData, getCanvasColor } from "./board/display/colors_v2";
 import { EraserInteractor } from "./side_bar/interactors/eraser";
 import { createTextInteractor } from "./side_bar/interactors/text";
 import { createSelectionInteractor } from "./side_bar/interactors/selection";

@@ -14,7 +14,7 @@ import { handleServerVersion } from "./handlers/serverVersion";
 import ENV from './.env.json';
 
 import { io } from "socket.io-client";
-import { Color } from "./colors_v2";
+import { Color } from "./board/display/colors_v2";
 
 const port = ENV.port;
 const adress = "http://" + ENV.serverAdress + ":" + port;

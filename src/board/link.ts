@@ -5,7 +5,7 @@ import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { updateWeightDiv } from "./weightable";
-import { Color } from "../colors_v2";
+import { Color } from "./display/colors_v2";
 
 
 export class LinkPreData extends BasicLinkData {

@@ -3,7 +3,7 @@ import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
-import { Color, colorsData, getCanvasColor } from "../../colors_v2";
+import { Color, colorsData, getCanvasColor } from "../../board/display/colors_v2";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
 

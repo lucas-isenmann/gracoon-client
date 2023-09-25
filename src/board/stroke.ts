@@ -2,7 +2,7 @@ import { View } from "./display/camera";
 import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
-import { Color, getCanvasColor } from "../colors_v2";
+import { Color, getCanvasColor } from "./display/colors_v2";
 import { ClientBoard, SELECTION_COLOR } from "./board";
 
 export class ClientStroke extends Stroke{

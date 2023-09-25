@@ -1,7 +1,7 @@
 import { Option } from "gramoloss";
 import { ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { draw_circle } from "../../draw_basics";
+import { drawCircle } from "../../draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { ORIENTATION_INFO } from "../element_side_bar";
@@ -40,7 +40,7 @@ export class EraserInteractor extends InteractorV2 {
 
         interactor.draw = ((board: ClientBoard, mousePos: Option<CanvasCoord>) => {
             if ( typeof mousePos != "undefined"){
-                draw_circle(mousePos, "white", interactor.ERASE_DISTANCE, 0.4, board.ctx);
+                drawCircle(mousePos, "white", interactor.ERASE_DISTANCE, 0.4, board.ctx);
             }
         })
     }

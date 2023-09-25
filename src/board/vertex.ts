@@ -1,11 +1,11 @@
 import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
-import { draw_circle } from "../draw_basics";
+import { drawCircle } from "../draw_basics";
 import { View } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { updateWeightDiv } from "./weightable";
-import { Color, getCanvasColor } from "../colors_v2";
+import { Color, getCanvasColor } from "./display/colors_v2";
 
 export class ParameterValue {
     value: string;
@@ -145,7 +145,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
 
         if ( board.elementOver instanceof ClientVertex && board.elementOver.index == this.index){
-            draw_circle(this.data.canvas_pos, color, vertex_radius*1.5, 0.5, board.ctx);
+            drawCircle(this.data.canvas_pos, color, vertex_radius*1.5, 0.5, board.ctx);
         }
 
         if (this.data.is_selected ) {
@@ -156,12 +156,12 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
             board.ctx.stroke();
         } else {
             /* DISABLED for new draw of vertices
-            draw_circle(vertex.pos.canvas_pos, COLOR_BORDER_VERTEX, vertex_radius, 1, ctx);
+            drawCircle(vertex.pos.canvas_pos, COLOR_BORDER_VERTEX, vertex_radius, 1, ctx);
             */
         }
         
         
-        draw_circle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
+        drawCircle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
 
         // DRAW INDEX 
         if (board.getIndexType() != INDEX_TYPE.NONE) {

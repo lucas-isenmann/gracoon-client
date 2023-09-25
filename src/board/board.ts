@@ -15,8 +15,8 @@ import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
-import { drawBezierCurve, drawLine, draw_circle } from "../draw_basics";
-import { Color } from "../colors_v2";
+import { drawBezierCurve, drawLine, drawCircle } from "../draw_basics";
+import { Color } from "./display/colors_v2";
 import { User } from "../user";
 import { InteractorV2 } from "../side_bar/interactor_side_bar";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
@@ -290,11 +290,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     drawCircle(center: Coord, radius: number, color: string, alpha: number){
         const canvasCenter = this.camera.create_canvas_coord(center);
-        draw_circle(canvasCenter, color, radius, alpha, this.ctx)
+        drawCircle(canvasCenter, color, radius, alpha, this.ctx)
     }
 
     drawCanvasCircle(center: CanvasCoord, radius: number, color: string, alpha: number){
-        draw_circle(center, color, radius, alpha, this.ctx)
+        drawCircle(center, color, radius, alpha, this.ctx)
     }
     
 

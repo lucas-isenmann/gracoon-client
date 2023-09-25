@@ -1,13 +1,13 @@
 import { Coord, Option, ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { draw_head } from "../../draw_basics";
+import { drawHead } from "../../draw_basics";
 import { DOWN_TYPE } from "../../interactors/interactor";
 import { ORIENTATION_INFO } from "../element_side_bar";
 import { InteractorV2 } from "../interactor_side_bar";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
 import { SideBar } from "../side_bar";
-import { getCanvasColor } from "../../colors_v2";
+import { getCanvasColor } from "../../board/display/colors_v2";
 import { ClientBoard } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 
@@ -148,7 +148,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
                 board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.camera), color ,4);
                 if ( orientation == ORIENTATION.DIRECTED) {
-                    draw_head(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, board.getIndexType());
+                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, board.getIndexType());
                 }
             }
         }

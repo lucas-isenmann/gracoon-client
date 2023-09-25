@@ -2,8 +2,8 @@ import { Coord, Option } from "gramoloss";
 import { ClientBoard } from "./board/board";
 import { View } from "./board/display/camera";
 import { CanvasCoord } from "./board/display/canvas_coord";
-import { draw_user_label } from "./draw_basics";
-import { Multicolor } from "./multicolor";
+import { drawUserLabel } from "./draw_basics";
+import { Multicolor } from "./board/display/multicolor";
 import { clamp } from "./utils";
 
 
@@ -162,13 +162,13 @@ export class User {
 
             // Date.now() is to prevent the label to fade when shown on the side of the screen
             // TODO: Change this.
-            draw_user_label(x + shift_x, y + shift_y, this.label, this.multicolor, Date.now(), ctx);
+            drawUserLabel(x + shift_x, y + shift_y, this.label, this.multicolor, Date.now(), ctx);
             
 
         }
         else{
             // DRAW USERNAME 
-            draw_user_label(this.canvas_pos.x + 10, this.canvas_pos.y + 17, this.label, this.multicolor, this.timer_refresh, ctx);
+            drawUserLabel(this.canvas_pos.x + 10, this.canvas_pos.y + 17, this.label, this.multicolor, this.timer_refresh, ctx);
         
 
             // DRAW ARROW

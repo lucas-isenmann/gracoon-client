@@ -1,5 +1,5 @@
 import { Coord, DegreeWidthRep, ORIENTATION } from "gramoloss";
-import { draw_circle } from "../../draw_basics";
+import { drawCircle } from "../../draw_basics";
 import { View } from "../display/camera";
 import { ClientLinkData } from "../link";
 import { CanvasVect } from "../display/canvasVect";
@@ -95,9 +95,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         // draw points
         for (const [index, x] of this.x.entries()){
             const canvas_coord = this.board.camera.create_canvas_coord(new Coord(x,y));
-            draw_circle(canvas_coord, "black", 14, 1, this.board.ctx);
-            draw_circle(canvas_coord, "blue", 12, 1, this.board.ctx);
-            draw_circle(canvas_coord, "black", 10, 1, this.board.ctx);
+            drawCircle(canvas_coord, "black", 14, 1, this.board.ctx);
+            drawCircle(canvas_coord, "blue", 12, 1, this.board.ctx);
+            drawCircle(canvas_coord, "black", 10, 1, this.board.ctx);
             this.board.ctx.font = "17px Arial";
             const measure = this.board.ctx.measureText(String(index));
             this.board.ctx.fillStyle = "white";
@@ -138,7 +138,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const measure = this.board.ctx.measureText(String(dwc));
             const pos = this.board.camera.create_canvas_coord(new Coord(x1,y));
             if (dwc == dw){
-                draw_circle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, this.board.ctx);
+                drawCircle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, this.board.ctx);
             }
             if ( this.board.isDarkMode()){
                 this.board.ctx.fillStyle = "white";

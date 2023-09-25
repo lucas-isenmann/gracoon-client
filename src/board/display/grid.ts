@@ -117,7 +117,7 @@ export class Grid {
         //         let pos = new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2);
         //         pos = pos.add(camera.camera);
         //         let cpos = new CanvasCoord(pos.x, pos.y);
-        //         draw_circle(cpos, "red", 10, 1, ctx);
+        //         drawCircle(cpos, "red", 10, 1, ctx);
         //     }
         // }
 
@@ -130,12 +130,12 @@ export class Grid {
         // let pos = new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2);
         // pos = pos.add(camera.camera);
         // let cpos = new CanvasCoord(pos.x, pos.y);
-        // draw_circle(cpos, "blue", 10, 1, ctx);
+        // drawCircle(cpos, "blue", 10, 1, ctx);
 
         // let pos2 = new Coord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2);
         // pos2 = pos2.add(camera.camera);
         // let cpos2 = new CanvasCoord(pos2.x, pos2.y);
-        // draw_circle(cpos2, "blue", 10, 1, ctx);
+        // drawCircle(cpos2, "blue", 10, 1, ctx);
 
 
     }

@@ -4,10 +4,10 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
 import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
-import { draw_circle, draw_head } from "../draw_basics";
+import { drawCircle, drawHead } from "../draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
-import { Color, getCanvasColor } from "../colors_v2";
+import { Color, getCanvasColor } from "./display/colors_v2";
 import { ClientBoard } from "./board";
 import { GridType } from "./display/grid";
 
@@ -131,7 +131,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             
         if (typeof poscp != "string"){
                 if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
-                    draw_circle(poscp, "grey", 4, 1, ctx);
+                    drawCircle(poscp, "grey", 4, 1, ctx);
                 }
             }
             if (link.orientation == ORIENTATION.DIRECTED) {
@@ -139,7 +139,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 if (typeof poscp != "string"){
                     cp = poscp
                 }
-                draw_head(ctx, cp, posv, this.board.getIndexType());
+                drawHead(ctx, cp, posv, this.board.getIndexType());
             }
         }
     }

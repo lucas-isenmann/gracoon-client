@@ -1,6 +1,6 @@
 import { INDEX_TYPE, VERTEX_RADIUS } from "./board/board";
 import { CanvasCoord } from "./board/display/canvas_coord";
-import { Multicolor } from "./multicolor";
+import { Multicolor } from "./board/display/multicolor";
 
 const ARC_ARROW_LENGTH = 12
 
@@ -23,7 +23,7 @@ export function drawLine(start: CanvasCoord, end: CanvasCoord, ctx: CanvasRender
     ctx.stroke();
 }
 
-export function drawBezierCurve(ctx: CanvasRenderingContext2D,  p1: CanvasCoord, c1: CanvasCoord, c2: CanvasCoord, p2: CanvasCoord, color: string, width: number){
+export function drawBezierCurve(ctx: CanvasRenderingContext2D,  p1: CanvasCoord, c1: CanvasCoord, c2: CanvasCoord, p2: CanvasCoord, color: string, width: number): void{
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
     ctx.lineWidth = width;
@@ -33,7 +33,7 @@ export function drawBezierCurve(ctx: CanvasRenderingContext2D,  p1: CanvasCoord,
 }
 
 
-export function draw_circle(center: CanvasCoord, fillStyle: string, radius: number, alpha: number, ctx: CanvasRenderingContext2D) {
+export function drawCircle(center: CanvasCoord, fillStyle: string, radius: number, alpha: number, ctx: CanvasRenderingContext2D): void {
     if(center != null){
         ctx.beginPath();
         ctx.fillStyle = fillStyle;
@@ -68,7 +68,7 @@ export function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: numbe
     ctx.closePath();
 }
 
-export function draw_head(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord, indexType: INDEX_TYPE) {
+export function drawHead(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord, indexType: INDEX_TYPE) {
     const headlen = ARC_ARROW_LENGTH;
     let vertex_radius = VERTEX_RADIUS;
     if (indexType != INDEX_TYPE.NONE) {
@@ -90,7 +90,7 @@ export function draw_head(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord,
 
 
 
-export function draw_user_label(x:number, y:number, label:string, multicolor:Multicolor, timer_refresh:number, ctx: CanvasRenderingContext2D){
+export function drawUserLabel(x:number, y:number, label:string, multicolor:Multicolor, timer_refresh:number, ctx: CanvasRenderingContext2D){
     
     // We set up a two second delay before starting to fade
     if(Date.now() - timer_refresh > 2000){
