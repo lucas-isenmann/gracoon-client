@@ -7,6 +7,9 @@
 
 ## Features
 
+- [grid-polar] change the center
+- [grid-polar] change the angle division
+- [grid-polar] align on the circles
 - sanitize content-editable
 - invert arc on right click
 - move vertex on link -> subdivide

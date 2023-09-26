@@ -44,6 +44,14 @@ export function drawCircle(center: CanvasCoord, fillStyle: string, radius: numbe
     }
 }
 
+export function drawArc(ctx: CanvasRenderingContext2D, center: CanvasCoord, strokeStyle: string, radius: number, alpha: number){
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = strokeStyle;
+    ctx.stroke();
+}
+
 export function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fillColor?: string, strokeColor?: string) {
     if (w < 2 * r) r = w / 2;
     if (h < 2 * r) r = h / 2;

@@ -1,5 +1,7 @@
-import { Option } from "gramoloss";
+import { Coord, Option, Vect } from "gramoloss";
 import { Camera } from "./camera";
+import { CanvasCoord } from "./canvas_coord";
+import { drawArc, drawCircle, drawLine } from "./draw_basics";
 
 const GRID_COLOR = '#777777';
 
@@ -42,6 +44,8 @@ export class Grid {
             this.drawRectangularGrid(canvas, ctx, camera);
         } else if ( this.type == GridType.GridVerticalTriangular){
             this.drawVerticalTriangularGrid(canvas, ctx, camera);
+        } else if ( this.type == GridType.GridPolar){
+            this.drawPolarGrid(canvas, ctx, camera);
         }
     }
 
@@ -68,6 +72,49 @@ export class Grid {
             ctx.lineTo(canvas.width, i);
             ctx.stroke();
         }
+    }
+
+    drawPolarGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
+        const color = GRID_COLOR;
+        const c = new Coord(0,0);
+        const center = CanvasCoord.fromCoord(c, camera);
+
+        const d1 =  Math.sqrt((new CanvasCoord(canvas.width, canvas.height)).toCoord(camera).norm2());
+        const d2 =  Math.sqrt((new CanvasCoord(0, canvas.height)).toCoord(camera).norm2());
+        const d3 =  Math.sqrt((new CanvasCoord(0, 0)).toCoord(camera).norm2());
+        const d4 =  Math.sqrt((new CanvasCoord(canvas.width, 0)).toCoord(camera).norm2());
+        
+        let min = Math.min(d1, d2, d3, d4);
+        let max = Math.max(d1, d2, d3, d4);
+
+        const cBotLeft = new CanvasCoord(0, canvas.height).toCoord(camera);
+        const cTopRight = new CanvasCoord(canvas.width, 0).toCoord(camera);
+
+        if (0 <= center.x && center.x <= canvas.width){
+            const dBot = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(1,0)).norm2());
+            const dTop = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(1,0)).norm2());
+            min = Math.min(min, dBot, dTop);
+            max = Math.max(max, dBot, dTop);
+        }
+        if ( 0 <= center.y  && center.y <= canvas.height){
+            const dLeft = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(0,1)).norm2());
+            const dRight = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(0,1)).norm2());
+            min = Math.min(min, dLeft, dRight);
+            max = Math.max(max, dLeft, dRight);
+        }
+
+        const mini = (0 <= center.x && center.x <= canvas.width && 0 <= center.y && center.y <= canvas.height ) ? 0 :  Math.floor(min*camera.zoom/(this.grid_size*2));
+        for (let i = mini ; i <= max*camera.zoom/(this.grid_size*2) ; i ++ ){
+            drawArc(ctx, center, color, i*this.grid_size*2, 1);
+        }
+
+        const c1 = new CanvasCoord(0, center.y);
+        const c2 = new CanvasCoord(canvas.width, center.y);
+        drawLine(c1, c2, ctx, color, 3 );
+
+        const c3 = new CanvasCoord(center.x, 0);
+        const c4 = new CanvasCoord(center.x, canvas.height);
+        drawLine(c3, c4, ctx, color, 3 );
     }
 
 

@@ -100,7 +100,7 @@ function setup() {
         [   
             new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
             new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
-            new PreFolder( "grid_polar", [
+            new PreFolder( "grid", [
                 new PreSwitch(false, "triangular_grid", "Vertical triangular grid", () => {
                     local_board.setGridType(GridType.GridVerticalTriangular);
                     local_board.draw();
@@ -110,6 +110,13 @@ function setup() {
                 }),
                 new PreSwitch(false, "grid", "Rectangular grid", () => {
                     local_board.setGridType(GridType.GridRect);
+                    local_board.draw();
+                }, () => {
+                    local_board.setGridType(undefined);
+                    local_board.draw();
+                }),
+                new PreSwitch(false, "grid_polar", "Polar grid", () => {
+                    local_board.setGridType(GridType.GridPolar);
                     local_board.draw();
                 }, () => {
                     local_board.setGridType(undefined);
