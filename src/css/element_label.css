@@ -1,6 +1,6 @@
 .element-label {
     position: fixed;
-    color: white;
+    color: var(--background_color_div);
     user-select: none;
     -webkit-user-select: none;
 }

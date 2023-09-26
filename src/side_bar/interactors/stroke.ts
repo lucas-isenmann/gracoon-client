@@ -1,8 +1,7 @@
 import { ClientStroke } from "../../board/stroke";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { DOWN_TYPE } from "../../interactors/interactor";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
+import { PreInteractor } from "../pre_interactor";
 import { ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
@@ -14,7 +13,7 @@ const SAMPLE_PERIOD = 3; // number of frames between two points, skipping the ot
 
 export function createStrokeInteractor(board: ClientBoard){
 
-    const stroke_interactorV2 = new InteractorV2(board, "pen", "Pen", "p", ORIENTATION_INFO.RIGHT, "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
+    const stroke_interactorV2 = new PreInteractor(INTERACTOR_TYPE.PEN, "Pen", "p", "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
 
     stroke_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
         const server_pos = board.camera.create_server_coord(pointed.pointedPos);

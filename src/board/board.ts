@@ -18,7 +18,7 @@ import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, drawCircle } from "../draw_basics";
 import { Color } from "./display/colors_v2";
 import { User } from "../user";
-import { InteractorV2 } from "../side_bar/interactor_side_bar";
+import { PreInteractor } from "../side_bar/pre_interactor";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { AreaChoice, AreaIndex } from "../generators/attribute";
 import { EntireZone } from "../parametors/zone";
@@ -97,7 +97,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     selfUser: Self;
     colorSelected: Color;
     keyPressed: Set<string>;
-    interactorLoaded: Option<InteractorV2>;
+    interactorLoaded: Option<PreInteractor>;
     interactorLoadedId: Option<string>;
 
     graphClipboard: Option<ClientGraph>;
@@ -929,9 +929,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 img.style.filter = "";
             })
 
-            document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
-                (div as HTMLDivElement).style.color = "white";
-            })
+            // document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
+            //     (div as HTMLDivElement).style.color = "white";
+            // })
 
         }
         else{
@@ -947,14 +947,15 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 img.style.filter = "invert(100%) sepia(0%) saturate(2%) hue-rotate(115deg) brightness(102%) contrast(100%)";
             })
 
-            document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
-                (div as HTMLDivElement).style.color = "black";
-            })
+            // document.querySelectorAll("div.element-label, div.text_zone").forEach( (div) => {
+            //     (div as HTMLDivElement).style.color = "black";
+            // })
         }
+        this.draw();
     }
 
 
-    setGridType(type: GridType) {
+    setGridType(type: Option<GridType>) {
         this.grid.type = type;
     }
 

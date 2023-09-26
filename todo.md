@@ -96,7 +96,6 @@
 - control Z
   - [ ] load_json
 
-
 - Representations
   - [ ] le recadagre d'une représentation devrait être la même que pour area et une forme rectangulaire
   - [ ] mise à jour de la repré
@@ -124,15 +123,8 @@
     - [ ] degreewidth
     - [ ] unit disk graph (v est relié w ssi la distance graphique <= 1 )
 
-- SideBars and InteractorV2
-  - [ ] rename InteractorV2 to Interactor
-  - [ ] move right_side_bar to left
-  - [ ] shortcut
-  - [ ] select interactor in folder
-  - [ ] fix color interactor
+- SideBars and PreInteractor
   - [ ] fix cursors ( color_interactorV2 and pen)
-  - [ ] bottom_side_bar
-  - [ ] change label action to graph modifyer
 
 - [ ] code break dans les compute function (voir la note dans le fichier parametor.ts)
 - [ ] copier/coller le sous-graphe induit par la sélection de sommets

@@ -1,9 +1,16 @@
 
 export enum INTERACTOR_TYPE {
+    EDGE = "edge",
+    ARC = "arc",
     COLOR = "color",
     SELECTION = "selection",
     ERASER = "eraser",
-    TEXT = "text"
+    TEXT = "text",
+    CONTROL_POINT = "control_point",
+    AREA = "area",
+    DETECTOR = "detector",
+    RECTANGLE = "rectangle",
+    PEN = "pen"
 }
 
 

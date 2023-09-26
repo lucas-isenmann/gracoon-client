@@ -1,12 +1,10 @@
 import { Coord, Option, ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { drawHead } from "../../draw_basics";
-import { DOWN_TYPE } from "../../interactors/interactor";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
+import { PreInteractor } from "../pre_interactor";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
-import { SideBar } from "../side_bar";
 import { getCanvasColor } from "../../board/display/colors_v2";
 import { ClientBoard } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
@@ -18,25 +16,25 @@ import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../.
  * Generic Interactor class for creating Edge and Arc interactor.
  * This class has the index of the last created vertex.
  */
-class LinkInteractor extends InteractorV2 {
+class LinkInteractor extends PreInteractor {
     indexLastCreatedVertex: number | undefined;
     lastVertexPos: Option<Coord>;
 
 
-    constructor(board: ClientBoard, id:string, info: string, shortcut: string, orientationInfo: ORIENTATION_INFO, iconSrc: string, cursorStyle: string, interactableElementTypes: Set<DOWN_TYPE>, mySideBar?: SideBar, rootSidebar?: SideBar)
+    constructor( id: INTERACTOR_TYPE, info: string, shortcut: string, iconSrc: string, cursorStyle: string, interactableElementTypes: Set<DOWN_TYPE>)
     {
-        super(board, id, info, shortcut, orientationInfo, iconSrc, cursorStyle, interactableElementTypes, mySideBar, rootSidebar);
+        super(id, info, shortcut, iconSrc, cursorStyle, interactableElementTypes);
         this.indexLastCreatedVertex = undefined;
         this.lastVertexPos = undefined;
     }
 }
 
-export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATION): InteractorV2{
-    const id = orientation == ORIENTATION.UNDIRECTED ? "edge" : "arc";
+export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATION): PreInteractor{
+    const id = orientation == ORIENTATION.UNDIRECTED ? INTERACTOR_TYPE.EDGE : INTERACTOR_TYPE.ARC;
     const info = orientation == ORIENTATION.UNDIRECTED ? "Create edges" : "Create arcs";
     const shortcutLetter = orientation == ORIENTATION.UNDIRECTED ? "e" : "a";
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
-    const linkInteractor = new LinkInteractor(board, id, info, shortcutLetter, ORIENTATION_INFO.RIGHT, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
+    const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
 
 
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {

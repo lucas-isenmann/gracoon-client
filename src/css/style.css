@@ -100,14 +100,17 @@ body {
 }
 
 .interactor_recap {
-    position: fixed;
-    background-color: #303030;
-    max-width: 350px;
-    color: white;
+    position:absolute;
+    /* height: 30px; */
+    width: 250px;
+    /* background-color: #303030; */
+    background-color: #ffffff00;
+    color: var(--background_color_div);
     border-radius: 2px;
     padding: 10px;
-    transition: 1000ms;
-    display: none;
+    display: block;
+    /* transition: 1000ms; */
+    /* display: none; */
 }
 
 .action_button {

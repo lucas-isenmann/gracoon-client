@@ -38,7 +38,7 @@ transform: translateY(calc(-50% + 27px)); */
     background-color: rgb(19, 117, 229);
 }
 
-.side_bar_item:hover {
+.side_bar_element:hover {
     background: lightcoral;
     border: 1px solid #c7c7c7;
     border-top: none;
@@ -46,7 +46,7 @@ transform: translateY(calc(-50% + 27px)); */
     transition: all .1s;
 }
 
-.side_bar_item:hover>img {
+.side_bar_element:hover>img {
     scale: 1.2;
     transition: all .2s ease-in-out;
 }
@@ -56,12 +56,12 @@ transform: translateY(calc(-50% + 27px)); */
     height: 27px;
 }
 
-.side_bar_folder::before {
+/* .side_bar_folder::before {
     content: "";
     position: absolute;
-}
+} */
 
-.side_bar_folder_expand_top:not(.side_bar_expanded_folder):before {
+/* .side_bar_folder_expand_top:not(.side_bar_expanded_folder):before {
     height: 1px;
     width: 13px;
     border-top: 3px solid var(--background_color_page);
@@ -73,21 +73,50 @@ transform: translateY(calc(-50% + 27px)); */
     width: 1px;
     border-left: 3px solid var(--background_color_page);
     left: -3px;
-}
+} */
 
-.side_bar_folder_expand_bottom:not(.side_bar_expanded_folder):before {
+/* .side_bar_folder_expand_bottom:not(.side_bar_expanded_folder):before {
     height: 1px;
     width: 13px;
     border-bottom: 3px solid var(--background_color_page);
     bottom: -3px;
-}
+} */
 
-.side_bar_folder_expand_right:not(.side_bar_expanded_folder):before {
+/* .side_bar_folder_expand_right:not(.side_bar_expanded_folder):before {
     height: 13px;
     width: 1px;
     border-right: 3px solid var(--background_color_page);
     right: -3px;
+} */
+
+.side_bar_folder_expand_right::after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    left: 38px;
+
+    background-color: var(--background_color_div);
+    width: 16px;
+    height: 37px;
+    z-index: -1;
+    border-radius: 5px;
 }
+
+.side_bar_folder_expand_bottom::before {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    bottom: -9px;
+    left: 3px;
+
+    background-color: var(--background_color_div);
+    width: 37px;
+    height: 16px;
+    z-index: -1;
+    border-radius: 5px;
+}
+
+
 
 .side_bar_expanded_folder {
     /* border: 1px solid #c7c7c7;
@@ -95,11 +124,11 @@ transform: translateY(calc(-50% + 27px)); */
     border-top: none;
     transform: translateY(-3px);
     transition: all 0.1s; */
-    border: 1px solid #c7c7c7;
+    /* border: 1px solid #c7c7c7;
     border-top: none;
     border-bottom: 3px solid #000;
     background: lightcoral;
-    transition: all .2s;
+    transition: all .2s; */
 }
 
 .side_bar_expanded_folder>img {

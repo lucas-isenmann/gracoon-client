@@ -4,19 +4,18 @@ import { CanvasCoord } from "../../board/display/canvas_coord";
 import { drawCircle } from "../../draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PointedElementData } from "../../interactors/pointed_element_data";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { PreInteractor } from "../pre_interactor";
 
 // INTERACTOR ERASER
 
 
-export class EraserInteractor extends InteractorV2 {
+export class EraserInteractor extends PreInteractor {
     isErasing: boolean;
     ERASE_DISTANCE: number;
 
     constructor(board: ClientBoard)
     {
-        super(board, INTERACTOR_TYPE.ERASER, "Erase objects", "r", ORIENTATION_INFO.RIGHT, "eraser", 'url("../img/cursors/eraser.svg"), auto', new Set([DOWN_TYPE.STROKE]));
+        super(INTERACTOR_TYPE.ERASER, "Erase objects", "r", "eraser", 'url("../img/cursors/eraser.svg"), auto', new Set([DOWN_TYPE.STROKE]));
         this.isErasing = false;
         this.ERASE_DISTANCE = 8;
 

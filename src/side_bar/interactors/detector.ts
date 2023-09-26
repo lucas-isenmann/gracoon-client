@@ -1,8 +1,7 @@
 import { ClientLink } from '../../board/link';
 import { CanvasCoord } from '../../board/display/canvas_coord';
-import { DOWN_TYPE } from '../../interactors/interactor';
-import { ORIENTATION_INFO } from '../element_side_bar';
-import { InteractorV2 } from '../interactor_side_bar';
+import { DOWN_TYPE, INTERACTOR_TYPE } from '../../interactors/interactor';
+import { PreInteractor } from '../pre_interactor';
 import { ClientVertex } from '../../board/vertex';
 import { ClientBoard } from '../../board/board';
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from '../../interactors/pointed_element_data';
@@ -12,7 +11,7 @@ import { Option } from 'gramoloss';
 
 export function createDetectorInteractor(board: ClientBoard){
 
-    const interactor = new InteractorV2(board, "detector", "DEV Tool", "d", ORIENTATION_INFO.LEFT, "detector", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
+    const interactor = new PreInteractor( INTERACTOR_TYPE.DETECTOR, "DEV Tool", "d", "detector", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
 
     const infobox = document.createElement("div");
     infobox.id = "the_infobox";

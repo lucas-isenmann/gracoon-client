@@ -1,16 +1,15 @@
 import { Coord, Option } from "gramoloss";
 import { ClientRectangle } from "../../board/rectangle";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { DOWN_TYPE } from "../../interactors/interactor";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { INTERACTOR_TYPE } from "../../interactors/interactor";
+import { PreInteractor } from "../pre_interactor";
 import { ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 
 
 export function createRectangleInteractor(board: ClientBoard){
 
-    const rectangle_interactorV2 = new InteractorV2(board, "rectangle", "Draw rectangle", "", ORIENTATION_INFO.RIGHT, "rectangle", "default", new Set([]));
+    const rectangle_interactorV2 = new PreInteractor(INTERACTOR_TYPE.RECTANGLE, "Draw rectangle", "", "rectangle", "default", new Set([]));
 
     let firstCorner : Option<Coord>;
     let currentRectangle: Option<ClientRectangle> = undefined;

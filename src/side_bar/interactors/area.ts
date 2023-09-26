@@ -2,15 +2,14 @@ import { Area, Option } from 'gramoloss';
 import { BoardElementType, ClientBoard } from '../../board/board';
 import { CanvasVect } from '../../board/display/canvasVect';
 import { CanvasCoord } from '../../board/display/canvas_coord';
-import { DOWN_TYPE, RESIZE_TYPE } from '../../interactors/interactor';
-import { ORIENTATION_INFO } from '../element_side_bar';
-import { InteractorV2 } from '../interactor_side_bar';
+import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from '../../interactors/interactor';
+import { PreInteractor } from '../pre_interactor';
 import { ELEMENT_DATA_AREA, PointedElementData } from '../../interactors/pointed_element_data';
 
 
-export function createAreaInteractor(board: ClientBoard): InteractorV2{
+export function createAreaInteractor(board: ClientBoard): PreInteractor{
 
-    const area_interactorV2 = new InteractorV2(board, "area", "Create areas", "g", ORIENTATION_INFO.RIGHT, "area", "default", new Set([DOWN_TYPE.AREA]));
+    const area_interactorV2 = new PreInteractor(INTERACTOR_TYPE.AREA, "Create areas", "g", "area", "default", new Set([DOWN_TYPE.AREA]));
 
     let is_creating_area : boolean;
     let last_created_area_index: Option<number> = undefined;

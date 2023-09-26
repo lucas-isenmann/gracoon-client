@@ -4,15 +4,11 @@
     color: #000;
     border-radius: 5px;
     transition: 200ms;
-    top: 50%;
-    left: -100px;
-    transform: translateY(-50%);
-    /* display: flex;
-    flex-flow: column wrap; */
     width: 41px;
-    /* height: 185px;
-    justify-content: center;
-    align-items: center; */
+    display: none;
+
+    left: 72px;
+    top: 154px;
 }
 
 .color_choice {

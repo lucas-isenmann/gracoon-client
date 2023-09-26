@@ -1,17 +1,16 @@
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { PreInteractor } from "../pre_interactor";
 import { Color, colorsData, getCanvasColor } from "../../board/display/colors_v2";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
 
 
 
-export function createColorInteractor(board: ClientBoard): InteractorV2{
+export function createColorInteractor(board: ClientBoard): PreInteractor{
 
-    const color_interactorV2 = new InteractorV2(board, INTERACTOR_TYPE.COLOR, "Edit colors", "c", ORIENTATION_INFO.RIGHT, "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
+    const color_interactorV2 = new PreInteractor(INTERACTOR_TYPE.COLOR, "Edit colors", "c", "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
     
     // Local variables
     const colors_available = new Array<Color>();

@@ -14,15 +14,14 @@ import { Option, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasVect } from "../../board/display/canvasVect";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { DOWN_TYPE } from "../../interactors/interactor";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
+import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, PointedElementData } from "../../interactors/pointed_element_data";
 
 
 export function createControlPointInteractor(board: ClientBoard){
 
-    const control_point_interactorV2 = new InteractorV2(board, "control_point", "Edit control points", "h", ORIENTATION_INFO.RIGHT, "control_point", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.CONTROL_POINT]));
+    const control_point_interactorV2 = new PreInteractor(INTERACTOR_TYPE.CONTROL_POINT, "Edit control points", "h",  "control_point", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.CONTROL_POINT]));
 
     let previous_shift: Vect = new Vect(0,0);
     let previous_canvas_shift = new CanvasVect(0,0);

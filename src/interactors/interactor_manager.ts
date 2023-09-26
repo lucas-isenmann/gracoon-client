@@ -5,7 +5,7 @@ import { CanvasCoord } from '../board/display/canvas_coord';
 import { CanvasVect } from '../board/display/canvasVect';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
-import { InteractorV2 } from '../side_bar/interactor_side_bar';
+import { PreInteractor } from '../side_bar/pre_interactor';
 import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, PointedElementData } from './pointed_element_data';
 import { Option } from 'gramoloss';
 
@@ -15,19 +15,6 @@ import { Option } from 'gramoloss';
 
 
 
-export function selectInteractor(interactor: InteractorV2, board: ClientBoard, pos: Option<CanvasCoord>) {
-    if ( typeof board.interactorLoaded != "undefined" && interactor.id != board.interactorLoadedId ){
-        board.interactorLoaded.onleave();
-    }
-
-    board.interactorLoaded = interactor;
-    board.interactorLoadedId = interactor.id;
-
-    board.canvas.style.cursor = interactor.cursor_style;
-    interactor.trigger(board, pos);
-    select_interactor_div(interactor);
-    board.requestDraw();
-}
 
 
 export function setupInteractions(board: ClientBoard) {
@@ -274,20 +261,6 @@ export function setupInteractions(board: ClientBoard) {
 }
 
 
-
-
-
-
-function select_interactor_div(interactor: InteractorV2 ) {
-    document.querySelectorAll(".interactor").forEach( div => {
-        if (div.id == interactor.id) {
-            div.classList.add("selected");
-        }
-        else {
-            div.classList.remove("selected");
-        }
-    })
-}
 
 
 

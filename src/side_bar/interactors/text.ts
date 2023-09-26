@@ -3,13 +3,12 @@ import { boardElementType, ClientBoard } from "../../board/board";
 import { initWeightDiv } from "../../board/weightable";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { PreInteractor } from "../pre_interactor";
 
 
 
-export function createTextInteractor(board: ClientBoard): InteractorV2{
-    const text_interactorV2 = new InteractorV2(board, INTERACTOR_TYPE.TEXT, "Create and edit text zones", "t", ORIENTATION_INFO.RIGHT, "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+export function createTextInteractor(board: ClientBoard): PreInteractor{
+    const text_interactorV2 = new PreInteractor(INTERACTOR_TYPE.TEXT, "Create and edit text zones", "t", "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
 
     text_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
 

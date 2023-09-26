@@ -9,14 +9,13 @@ import { CanvasVect } from "../../board/display/canvasVect";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { socket } from "../../socket";
-import { ORIENTATION_INFO } from "../element_side_bar";
-import { InteractorV2 } from "../interactor_side_bar";
+import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { ClientVertex } from "../../board/vertex";
 import { ClientArea } from "../../board/area";
 
 
-export function createSelectionInteractor(board: ClientBoard): InteractorV2{
+export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
     let previous_shift: Vect = new Vect(0,0);
     let previous_canvas_shift = new CanvasVect(0,0);
@@ -31,7 +30,7 @@ export function createSelectionInteractor(board: ClientBoard): InteractorV2{
     let rectSelectC2: Option<CanvasCoord> = undefined;
 
 
-    const selectionV2 = new InteractorV2(board, INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", ORIENTATION_INFO.RIGHT, "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
+    const selectionV2 = new PreInteractor(INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
 
 
 
