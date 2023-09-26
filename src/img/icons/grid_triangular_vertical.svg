@@ -13,7 +13,7 @@
    version="1.1"
    id="svg840"
    inkscape:version="1.0.2 (1.0.2+r75+1)"
-   sodipodi:docname="triangular_grid.svg">
+   sodipodi:docname="grid_triangular_vertical.svg">
   <defs
      id="defs834">
     <inkscape:path-effect
@@ -57,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -67,28 +67,28 @@
      id="layer1">
     <g
        id="g934"
-       style="stroke-width:0.49779705;stroke-miterlimit:4;stroke-dasharray:none"
-       transform="matrix(1.0124608,0,0,1.0124608,0.2168077,0.27205171)">
+       style="stroke-width:0.497797;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0,1.0124608,-1.0124608,0,25.890374,-0.31885124)">
       <path
-         style="fill:none;stroke:#000000;stroke-width:0.49779705;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;stroke:#000000;stroke-width:0.497797;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="M 12.970608,6.7368827 6.4464416,-4.5633031 -0.07772438,6.7368835 6.4464424,18.037073 l -6.52416664,11.300186 13.04833724,5e-6 6.524166,-11.300187 6.524165,11.300187 6.524168,-11.300188 -6.52417,-11.300192 -6.524168,-11.3001876 z"
          id="path905" />
       <path
-         style="fill:none;stroke:#000000;stroke-width:0.49779705;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;stroke:#000000;stroke-width:0.497797;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m -6.6018907,18.037073 13.0483349,4e-6 6.5241688,11.300187"
          id="path923" />
       <path
-         style="fill:none;stroke:#000000;stroke-width:0.49779705;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;stroke:#000000;stroke-width:0.497797;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m -0.07772446,6.736885 13.04833246,-2.3e-6 13.048334,1.3e-6 -6.524163,11.300193 13.04833,-7e-6"
          id="path925" />
     </g>
     <path
        style="fill:none;stroke:#000000;stroke-width:2.722;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 6.7435789,18.53388 6.6054601,-11.4409973 6.605464,11.4409953 -13.2109234,7e-6"
+       d="M 7.6285448,6.2079218 19.069542,12.813382 7.6285468,19.418846 7.6285398,6.2079225"
        id="path871" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 0,26.458333 V 0 h 26.458333 v 26.458333 z"
+       d="M 0,0 H 26.458333 V 26.458333 H 0 Z"
        id="path936" />
   </g>
 </svg>

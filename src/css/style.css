@@ -21,6 +21,11 @@ body {
     bottom: 30px;
 }
 
+
+a {
+    color: lightblue;
+}
+
 #actions {
     border-radius: 5px;
     background-color: var(--background_color_div);

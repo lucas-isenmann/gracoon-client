@@ -24,6 +24,7 @@ import { createDetectorInteractor } from "./side_bar/interactors/detector";
 import { setupInteractions } from "./interactors/interactor_manager";
 import { GridType } from "./board/display/grid";
 import { INTERACTOR_TYPE } from "./interactors/interactor";
+import { launchHelpPopUp } from "./actions/help";
 
 
 
@@ -99,7 +100,7 @@ function setup() {
         [   
             new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
             new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
-            new PreFolder( "triangular_grid", [
+            new PreFolder( "grid_polar", [
                 new PreSwitch(false, "triangular_grid", "Vertical triangular grid", () => {
                     local_board.setGridType(GridType.GridVerticalTriangular);
                     local_board.draw();
@@ -165,10 +166,10 @@ function setup() {
                         */
                 });
             }),
-            new PreLauncher("import", "Load .gco file",  "", loadFile)
+            new PreLauncher("import", "Load .gco file",  "", loadFile),
+            new PreLauncher("help", "Help", "", launchHelpPopUp)
 
     ]);
-
 
 
     sb.collapse();

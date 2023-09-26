@@ -1,4 +1,5 @@
 .popup {
+    padding: 10px;
     display: none;
     position: absolute;
     left: 70px;
@@ -27,7 +28,7 @@
 
 .popup_content {
     overflow-y: scroll;
-    padding: 0 20px 20px 20px;
+    padding: 30px;
     background: inherit;
     color: rgb(209, 209, 209);
 }

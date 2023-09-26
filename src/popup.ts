@@ -18,7 +18,7 @@ export function createPopup(id: string, title: string){
     // Title -----
     const title_div = document.createElement("div");
     title_div.classList.add("popup_title");
-    title_div.textContent = title;
+    title_div.innerHTML = title;
     div.appendChild(title_div);
 
     // Close button ------
