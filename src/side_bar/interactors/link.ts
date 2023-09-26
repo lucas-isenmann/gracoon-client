@@ -1,12 +1,12 @@
 import { Coord, Option, ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { drawHead } from "../../draw_basics";
+import { drawHead } from "../../board/display/draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
 import { getCanvasColor } from "../../board/display/colors_v2";
-import { ClientBoard } from "../../board/board";
+import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 
 
@@ -146,7 +146,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
                 board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.camera), color ,4);
                 if ( orientation == ORIENTATION.DIRECTED) {
-                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, board.getIndexType());
+                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, (board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS);
                 }
             }
         }

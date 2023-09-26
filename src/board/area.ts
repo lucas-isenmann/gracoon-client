@@ -1,4 +1,4 @@
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Area, Coord } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
@@ -157,7 +157,7 @@ export class ClientArea extends Area{
 
     
     // supposing only CanvasCornerTopLeft and BotRight have been changed
-    recompute_corners(camera: View){
+    recompute_corners(camera: Camera){
         const c1 = this.canvas_corner_top_left.copy();
         const c2 = this.canvas_corner_bottom_right.copy();
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -176,7 +176,7 @@ export class ClientArea extends Area{
 
 
 
-    resize_side_area(pos: CanvasCoord, opposite_coord: number, side_number:AREA_SIDE, camera: View){
+    resize_side_area(pos: CanvasCoord, opposite_coord: number, side_number:AREA_SIDE, camera: Camera){
         if (side_number == AREA_SIDE.TOP || side_number == AREA_SIDE.BOT){
             this.canvas_corner_top_right.y = Math.min(pos.y, opposite_coord);
             this.canvas_corner_top_left.y = Math.min(pos.y, opposite_coord);
@@ -193,7 +193,7 @@ export class ClientArea extends Area{
 
 
 
-    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, camera: View){
+    resize_corner_area(c1:CanvasCoord, c2:CanvasCoord, camera: Camera){
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -204,7 +204,7 @@ export class ClientArea extends Area{
         this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, camera: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: Camera){
         // this.canvas_corner_bottom_left.translate_by_canvas_vect(shift);
         // this.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
         // this.canvas_corner_top_left.translate_by_canvas_vect(shift);
@@ -213,14 +213,14 @@ export class ClientArea extends Area{
         // this.c2.translate(camera.server_vect(shift));
     }
 
-    update_canvas_pos(camera: View){
+    update_canvas_pos(camera: Camera){
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
         this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    update_after_camera_change(camera: View){
+    update_after_camera_change(camera: Camera){
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());

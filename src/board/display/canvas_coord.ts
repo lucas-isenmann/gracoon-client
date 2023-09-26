@@ -1,6 +1,6 @@
 import { bezierValue, Coord } from "gramoloss";
 import { solutionQuadratic } from "../../utils";
-import { View } from "./camera";
+import { Camera } from "./camera";
 import { CanvasVect } from "./canvasVect";
 
 /**
@@ -43,11 +43,11 @@ export class CanvasCoord extends Coord {
     /**
      * Return the Server coordinates of the Canvas coordinates.
      */
-    toCoord(view: View): Coord {
+    toCoord(view: Camera): Coord {
         return new Coord( (this.x - view.camera.x)/ view.zoom, (this.y - view.camera.y)/ view.zoom);
     }
 
-    static fromCoord(c: Coord, view: View): CanvasCoord{
+    static fromCoord(c: Coord, view: Camera): CanvasCoord{
         return new CanvasCoord(c.x*view.zoom + view.camera.x, c.y*view.zoom+view.camera.y);
     }
 

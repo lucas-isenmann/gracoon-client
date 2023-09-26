@@ -1,6 +1,6 @@
 import { BasicVertex, BasicVertexData,  Coord, Vect, Vertex } from "gramoloss";
-import { drawCircle } from "../draw_basics";
-import { View } from "./display/camera";
+import { drawCircle } from "./display/draw_basics";
+import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
@@ -74,7 +74,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
 
 
-    update_after_view_modification(camera: View){
+    update_after_view_modification(camera: Camera){
         this.data.canvas_pos = camera.create_canvas_coord(this.data.pos);
         this.setAutoWeightDivPos();
     }
@@ -84,14 +84,14 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         return this.data.canvas_pos.dist2(pos) <= rsquared;
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, camera: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: Camera){
         this.data.canvas_pos.translate_by_canvas_vect(shift);
         this.data.pos.x += shift.x/camera.zoom;
         this.data.pos.y += shift.y/camera.zoom;
         this.setAutoWeightDivPos();
     }
 
-    translate_by_server_vect(shift: Vect, camera: View){
+    translate_by_server_vect(shift: Vect, camera: Camera){
         const canvas_shift = camera.create_canvas_vect(shift);
         this.data.canvas_pos.translate_by_canvas_vect(canvas_shift);
         this.data.pos.x += shift.x;
@@ -229,7 +229,7 @@ export class ClientVertexData extends BasicVertexData {
     parameter_values: Map<string,ParameterValue>;
     weightDiv: HTMLDivElement | undefined; // set to undefined until a non empty weight is used
 
-    constructor(x:number, y:number, weight: string, camera: View, color: Color) {
+    constructor(x:number, y:number, weight: string, camera: Camera, color: Color) {
         super(new Coord(x,y), weight, color);
         this.color = color;
         this.canvas_pos = camera.create_canvas_coord(this.pos );

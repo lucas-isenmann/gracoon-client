@@ -1,6 +1,5 @@
-import { INDEX_TYPE, VERTEX_RADIUS } from "./board/board";
-import { CanvasCoord } from "./board/display/canvas_coord";
-import { Multicolor } from "./board/display/multicolor";
+import { CanvasCoord } from "./canvas_coord";
+import { Multicolor } from "./multicolor";
 
 const ARC_ARROW_LENGTH = 12
 
@@ -68,15 +67,11 @@ export function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: numbe
     ctx.closePath();
 }
 
-export function drawHead(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord, indexType: INDEX_TYPE) {
+export function drawHead(ctx: CanvasRenderingContext2D, start_pos: CanvasCoord, end_pos: CanvasCoord, vertexRadius: number) {
     const headlen = ARC_ARROW_LENGTH;
-    let vertex_radius = VERTEX_RADIUS;
-    if (indexType != INDEX_TYPE.NONE) {
-        vertex_radius = VERTEX_RADIUS * 2;
-    }
     const d = Math.sqrt(start_pos.dist2(end_pos))
-    const tox2 = end_pos.x + (start_pos.x - end_pos.x) * vertex_radius / d
-    const toy2 = end_pos.y + (start_pos.y - end_pos.y) * vertex_radius / d
+    const tox2 = end_pos.x + (start_pos.x - end_pos.x) * vertexRadius / d
+    const toy2 = end_pos.y + (start_pos.y - end_pos.y) * vertexRadius / d
     const dx = tox2 - start_pos.x;
     const dy = toy2 - start_pos.y;
     const angle = Math.atan2(dy, dx);

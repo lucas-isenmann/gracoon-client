@@ -3,7 +3,7 @@ import { CanvasCoord } from "./canvas_coord";
 import { CanvasVect } from "./canvasVect";
 
 
-export class View {
+export class Camera {
     camera: Coord;
     zoom: number;
 

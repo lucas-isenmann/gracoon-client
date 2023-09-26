@@ -1,8 +1,8 @@
 import { Coord, Option } from "gramoloss";
 import { ClientBoard } from "./board/board";
-import { View } from "./board/display/camera";
+import { Camera } from "./board/display/camera";
 import { CanvasCoord } from "./board/display/canvas_coord";
-import { drawUserLabel } from "./draw_basics";
+import { drawUserLabel } from "./board/display/draw_basics";
 import { Multicolor } from "./board/display/multicolor";
 import { clamp } from "./utils";
 
@@ -16,7 +16,7 @@ export class User {
     timer_refresh : number; // Date since the last change of position
     id_timeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
 
-    constructor(id: string, label: string, color: string, camera: View, pos?: Coord) {
+    constructor(id: string, label: string, color: string, camera: Camera, pos?: Coord) {
         this.id = id;
         this.label = label;
         this.multicolor = new Multicolor(color);

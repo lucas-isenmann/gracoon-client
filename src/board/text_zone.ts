@@ -1,7 +1,7 @@
 import { Coord, TextZone } from "gramoloss";
 import renderMathInElement from "../katex-auto-render/auto-render";
 import { BoardElementType, ClientBoard } from "./board";
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { marked } from "marked";
@@ -143,7 +143,7 @@ export class ClientTextZone extends TextZone {
         this.update_text(text);
     }
 
-    translate(shift: CanvasVect, camera: View) {
+    translate(shift: CanvasVect, camera: Camera) {
         this.canvas_pos.translate_by_canvas_vect(shift);
         this.pos = camera.create_server_coord(this.canvas_pos);
         this.reset_div_pos();
@@ -174,7 +174,7 @@ export class ClientTextZone extends TextZone {
         return (this.canvas_pos.x <= canvas_pos.x && canvas_pos.x <= this.canvas_pos.x + this.div.clientWidth) && (this.canvas_pos.y <= canvas_pos.y && canvas_pos.y <= this.canvas_pos.y + this.div.clientHeight);
     }
 
-    update_after_camera_change(camera: View){
+    update_after_camera_change(camera: Camera){
         this.canvas_pos = camera.create_canvas_coord(this.pos);
         this.reset_div_pos();
     }

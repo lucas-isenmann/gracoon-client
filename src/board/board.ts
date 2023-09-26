@@ -3,7 +3,7 @@ import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
 import { ClientArea } from "./area";
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { ClientGraph } from "./graph";
 import { ClientLink, ClientLinkData, LinkPreData } from "./link";
 import { ClientRectangle } from "./rectangle";
@@ -15,7 +15,7 @@ import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
-import { drawBezierCurve, drawLine, drawCircle } from "../draw_basics";
+import { drawBezierCurve, drawLine, drawCircle } from "./display/draw_basics";
 import { Color } from "./display/colors_v2";
 import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
@@ -87,7 +87,7 @@ export enum INDEX_TYPE {
 
 
 export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
-    camera: View;
+    camera: Camera;
     graph: ClientGraph;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
@@ -147,7 +147,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         
 
         this.graph = new ClientGraph(this);
-        this.camera = new View();
+        this.camera = new Camera();
         
         this.elementOver = undefined;
 

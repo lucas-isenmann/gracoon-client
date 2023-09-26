@@ -1,4 +1,4 @@
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { Coord, Stroke } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
@@ -12,7 +12,7 @@ export class ClientStroke extends Stroke{
     canvas_corner_top_left: CanvasCoord;
     canvas_corner_bottom_right: CanvasCoord;
     
-    constructor(pos: Array<Coord>, color: Color, width:number, camera: View, index: number){
+    constructor(pos: Array<Coord>, color: Color, width:number, camera: Camera, index: number){
         super(pos, color, width, index);
         this.color = color;
         this.is_selected = false;
@@ -25,7 +25,7 @@ export class ClientStroke extends Stroke{
     }
 
 
-    is_nearby(pos:CanvasCoord, camera: View): boolean{
+    is_nearby(pos:CanvasCoord, camera: Camera): boolean{
         const bot_right_canvas = camera.create_canvas_coord(this.bot_right);
         const top_left_canvas = camera.create_canvas_coord(this.top_left);
         // if (pos.x > bot_right_canvas.x +5 || pos.x < top_left_canvas.x - 5 || pos.y > bot_right_canvas.y +5 || pos.y < top_left_canvas.y - 5)
@@ -45,7 +45,7 @@ export class ClientStroke extends Stroke{
     }
 
 
-    push(cpos:CanvasCoord, camera: View){
+    push(cpos:CanvasCoord, camera: Camera){
         const pos = camera.create_server_coord(cpos);
         this.positions.push(pos);
         this.bot_right.x = Math.max(pos.x, this.bot_right.x);
@@ -55,7 +55,7 @@ export class ClientStroke extends Stroke{
         this.canvas_positions.push(cpos);
     }
 
-    translate_by_canvas_vect(shift: CanvasVect, camera: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: Camera){
         const server_shift = camera.server_vect(shift);
         this.translate(server_shift);
 
@@ -66,7 +66,7 @@ export class ClientStroke extends Stroke{
         this.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
     }
 
-    update_after_camera_change(camera: View){
+    update_after_camera_change(camera: Camera){
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left);
         this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right);
         for( let i = 0 ; i < this.positions.length; i ++){

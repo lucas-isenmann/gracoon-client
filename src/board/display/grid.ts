@@ -1,5 +1,5 @@
 import { Option } from "gramoloss";
-import { View } from "./camera";
+import { Camera } from "./camera";
 
 const GRID_COLOR = '#777777';
 
@@ -37,7 +37,7 @@ export class Grid {
         }
     }
 
-    draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: View){
+    draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera){
         if ( this.type == GridType.GridRect){
             this.drawRectangularGrid(canvas, ctx, camera);
         } else if ( this.type == GridType.GridVerticalTriangular){
@@ -48,7 +48,7 @@ export class Grid {
     /**
      * The length of the grid is `grid_size`
      */
-    drawRectangularGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: View) {
+    drawRectangularGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
         const grid_size = this.grid_size;
 
         for (let i = camera.camera.x % grid_size; i < canvas.width; i += grid_size) {
@@ -76,7 +76,7 @@ export class Grid {
      * Draw a triangular grid. 
      * The length of the equilateral triangle is `grid_size` of camera.
      */
-    drawVerticalTriangularGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: View) {
+    drawVerticalTriangularGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
         const grid_size = this.grid_size;
         const h = grid_size*Math.sqrt(3)/2;
 

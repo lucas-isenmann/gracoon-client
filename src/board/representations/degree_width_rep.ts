@@ -1,6 +1,6 @@
 import { Coord, DegreeWidthRep, ORIENTATION } from "gramoloss";
-import { drawCircle } from "../../draw_basics";
-import { View } from "../display/camera";
+import { drawCircle } from "../display/draw_basics";
+import { Camera } from "../display/camera";
 import { ClientLinkData } from "../link";
 import { CanvasVect } from "../display/canvasVect";
 import { ClientVertex } from "../vertex";
@@ -15,7 +15,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     canvas_corner_top_right : CanvasCoord;
     board: ClientBoard;
 
-    constructor(board: ClientBoard, c1: Coord, c2: Coord, camera: View){
+    constructor(board: ClientBoard, c1: Coord, c2: Coord, camera: Camera){
         super(board.graph,c1,c2);
         this.board = board;
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
@@ -24,7 +24,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    static from_embedding(board: ClientBoard, camera: View): ClientDegreeWidthRep{
+    static from_embedding(board: ClientBoard, camera: Camera): ClientDegreeWidthRep{
         if ( board.graph.vertices.size > 0){
             let minX = NaN;
             let maxX = NaN;
@@ -149,14 +149,14 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         }
     }
 
-    update_after_camera_change(camera: View){
+    update_after_camera_change(camera: Camera){
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
         this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
         this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
         this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
     }
 
-    click_over(pos: CanvasCoord, camera: View): number | string {
+    click_over(pos: CanvasCoord, camera: Camera): number | string {
         const y = (this.c1.y + this.c2.y)/2;
         for ( const [index, x] of this.x.entries()){
             const canvas_coord = camera.create_canvas_coord(new Coord(x,y));
@@ -167,7 +167,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         return "";
     }
 
-    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, camera: View){
+    translate_element_by_canvas_vect(index: number, cshift: CanvasVect, camera: Camera){
         const shift = camera.server_vect(cshift);
         const x = this.x.get(index);
         if (typeof x != "undefined"){
@@ -175,7 +175,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         }
     }
 
-    translate_by_canvas_vect(cshift: CanvasVect, camera: View){
+    translate_by_canvas_vect(cshift: CanvasVect, camera: Camera){
         const shift = camera.server_vect(cshift);
         for (const [index, x] of this.x.entries()){
             if (typeof x != "undefined"){
@@ -184,7 +184,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         }
     }
 
-    onmouseup(camera: View){
+    onmouseup(camera: Camera){
         this.distribute();
     }
 }

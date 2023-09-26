@@ -1,6 +1,6 @@
 import { Coord } from "gramoloss";
 import { RESIZE_TYPE } from "../interactors/interactor";
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 
@@ -13,7 +13,7 @@ export interface Resizable {
     canvas_corner_bottom_right: CanvasCoord
 }
 
-export function translate_by_canvas_vect<R extends Resizable>(element: R, shift: CanvasVect, view: View){
+export function translate_by_canvas_vect<R extends Resizable>(element: R, shift: CanvasVect, view: Camera){
     element.canvas_corner_bottom_left.translate_by_canvas_vect(shift);
     element.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
     element.canvas_corner_top_left.translate_by_canvas_vect(shift);
@@ -77,7 +77,7 @@ export function resize_type_nearby<R extends Resizable>(element: R, pos: CanvasC
 }
 
 
-export function resize_side<R extends Resizable>(element: R, pos: CanvasCoord, opposite_coord: number, resize_type: RESIZE_TYPE, view: View){
+export function resize_side<R extends Resizable>(element: R, pos: CanvasCoord, opposite_coord: number, resize_type: RESIZE_TYPE, view: Camera){
     if (resize_type == RESIZE_TYPE.TOP || resize_type == RESIZE_TYPE.BOTTOM){
         element.canvas_corner_top_right.y = Math.min(pos.y, opposite_coord);
         element.canvas_corner_top_left.y = Math.min(pos.y, opposite_coord);
@@ -95,7 +95,7 @@ export function resize_side<R extends Resizable>(element: R, pos: CanvasCoord, o
     element.c2 = view.create_server_coord(element.canvas_corner_bottom_right);
 }
 
-export function resize_corner<R extends Resizable>(element: R, c1: CanvasCoord, c2: CanvasCoord, view: View){
+export function resize_corner<R extends Resizable>(element: R, c1: CanvasCoord, c2: CanvasCoord, view: Camera){
     element.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
     element.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
     element.canvas_corner_top_left.x = Math.min(c1.x, c2.x);

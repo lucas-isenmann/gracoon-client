@@ -1,6 +1,6 @@
 import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
 import { ClientBoard } from "./board";
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
@@ -27,7 +27,7 @@ export class ClientLinkData extends BasicLinkData {
     is_selected: boolean;
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
 
-    constructor(cp: Option<Coord>,  color: Color, weight: string, camera: View) {
+    constructor(cp: Option<Coord>,  color: Color, weight: string, camera: Camera) {
         super(cp, weight, color);
         this.color = color;
         if (typeof cp == "undefined"){
@@ -76,7 +76,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
     }
 
 
-    set_cp(new_cp: Coord, camera: View){
+    set_cp(new_cp: Coord, camera: Camera){
         this.data.cp = new_cp;
         this.data.cp_canvas_pos = camera.create_canvas_coord(new_cp);
     }
@@ -87,7 +87,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         return this.startVertex.is_in_rect(c1, c2) || this.endVertex.is_in_rect(c1, c2);
     }
 
-    update_after_view_modification(camera: View){
+    update_after_view_modification(camera: Camera){
         if ( typeof this.data.cp != "undefined"){
             this.data.cp_canvas_pos = camera.create_canvas_coord(this.data.cp);
         }
@@ -117,7 +117,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
   
 
 
-    translate_cp_by_canvas_vect(shift: CanvasVect, camera: View){
+    translate_cp_by_canvas_vect(shift: CanvasVect, camera: Camera){
             if ( typeof this.data.cp != "undefined" && typeof this.data.cp_canvas_pos != "string"){
                 this.data.cp_canvas_pos.translate_by_canvas_vect(shift);
                 this.data.cp.x += shift.x/camera.zoom; 
@@ -164,7 +164,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
 
 
 
-    translateByServerVect(shift: Vect, camera: View) {
+    translateByServerVect(shift: Vect, camera: Camera) {
         if (typeof this.data.cp !== "undefined" && typeof this.data.cp_canvas_pos !== "string"){
             const canvas_shift = camera.create_canvas_vect(shift);
             this.data.cp_canvas_pos.translate_by_canvas_vect(canvas_shift);

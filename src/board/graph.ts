@@ -1,14 +1,14 @@
-import { View } from "./display/camera";
+import { Camera } from "./display/camera";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { ClientLink, ClientLinkData } from "./link";
 import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezier_curve_point } from "gramoloss";
 import { CanvasVect } from "./display/canvasVect";
-import { drawCircle, drawHead } from "../draw_basics";
+import { drawCircle, drawHead } from "./display/draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
 import { Color, getCanvasColor } from "./display/colors_v2";
-import { ClientBoard } from "./board";
+import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { GridType } from "./display/grid";
 
 
@@ -139,14 +139,14 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 if (typeof poscp != "string"){
                     cp = poscp
                 }
-                drawHead(ctx, cp, posv, this.board.getIndexType());
+                drawHead(ctx, cp, posv, (this.board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS  );
             }
         }
     }
 
 
 
-    translate_by_canvas_vect(shift: CanvasVect, camera: View){
+    translate_by_canvas_vect(shift: CanvasVect, camera: Camera){
         for ( const vertex of this.vertices.values()){
             vertex.translate_by_canvas_vect(shift, camera);
         }
@@ -155,7 +155,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
     }
 
-    translateByServerVect(shift: Vect, camera: View){
+    translateByServerVect(shift: Vect, camera: Camera){
         for ( const vertex of this.vertices.values()){
             vertex.translate_by_server_vect(shift, camera);
         }
@@ -236,7 +236,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
     }
 
-    is_click_over_link(link_index: number, e: CanvasCoord, camera: View) {
+    is_click_over_link(link_index: number, e: CanvasCoord, camera: Camera) {
         const link = this.links.get(link_index);
         if (typeof link == "undefined") return;
         const v = link.startVertex;
@@ -265,7 +265,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
     // align_position
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
-    align_position(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: View): CanvasCoord {
+    align_position(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
         const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
         if (this.board.is_aligning) {
             this.board.alignement_horizontal_y = undefined;
@@ -376,7 +376,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      * Est ce qu'on veut pas un AbstractGraph ?
      * Ah non peut être ça sert pour la copie d'un sous-graphe induit.
      */
-    get_induced_subgraph_from_selection(camera: View): ClientGraph{
+    get_induced_subgraph_from_selection(camera: Camera): ClientGraph{
         const subgraph = new ClientGraph(this.board);
         for (const [index, v] of this.vertices.entries()) {
             if(v.data.is_selected){
@@ -423,7 +423,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         return v2;
     }
 
-    addDefaultVertexFromCoord(pos: Coord, camera: View): ClientVertex{
+    addDefaultVertexFromCoord(pos: Coord, camera: Camera): ClientVertex{
         const vData = new ClientVertexData( pos.x, pos.y, "", camera, Color.Neutral);
         const v = this.addVertex(vData);
         return v;
@@ -473,7 +473,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, camera: View){
+    translate_vertex_by_canvas_vect(index: number, cshift: CanvasVect, camera: Camera){
         const vertex = this.vertices.get(index);
  
         if (typeof vertex != "undefined") {
