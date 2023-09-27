@@ -8,7 +8,6 @@ import { PreInteractor } from "../pre_interactor";
 
 // INTERACTOR ERASER
 
-
 export class EraserInteractor extends PreInteractor {
     isErasing: boolean;
     ERASE_DISTANCE: number;
@@ -22,6 +21,7 @@ export class EraserInteractor extends PreInteractor {
         const interactor = this;
 
         interactor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+            board.regenAgregId();
             board.eraseAt(pointed.pointedPos, interactor.ERASE_DISTANCE);
             interactor.isErasing = true;
         })
@@ -43,9 +43,6 @@ export class EraserInteractor extends PreInteractor {
             }
         })
     }
-
-    
-    
 }
 
 

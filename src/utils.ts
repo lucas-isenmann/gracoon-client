@@ -1,4 +1,20 @@
 
+
+/**
+ * Create a random id consisting in `length` alphanumerical characters.
+ * @param length the length of the result
+ */
+export function makeid(length: number): string {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+
+
 export function clamp(val: number, min:number, max:number):number{
     if(val < min){
         return min;

@@ -24,6 +24,7 @@ import { AreaChoice, AreaIndex } from "../generators/attribute";
 import { EntireZone } from "../parametors/zone";
 import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
+import { makeid } from "../utils";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -108,6 +109,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     entireZone: EntireZone;
 
+    private agregId: string;
+
     // Display parameters
     private indexType: INDEX_TYPE;
     private darkMode: boolean;
@@ -127,7 +130,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
         this.interactorLoadedId = undefined;
-        this.isGraphClipboardGenerated = false;      
+        this.isGraphClipboardGenerated = false;  
+        this.agregId = makeid(5);    
         
         // Display parameters
         this.indexType = INDEX_TYPE.NONE;
@@ -676,6 +680,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
+    /**
+     * Regenerate the agregation id
+     */
+    regenAgregId(){
+        this.agregId = makeid(5);
+    }
+
+
     emitSubdivideLink(linkIndex: number, pos: Coord, weight: string, color: Color, callback: (response: number) => void) {
         socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, weight, color, callback);
     }
@@ -697,11 +709,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emit_delete_elements(indices: Array<[BoardElementType,number]>){
-        socket.emit(SocketMsgType.DELETE_ELEMENTS, indices);
+        console.log("emit delete elements: ", indices);
+        socket.emit(SocketMsgType.DELETE_ELEMENTS, this.agregId, indices);
     }
 
     emit_update_element(type: BoardElementType, index: number, attribute: string, value: any){
-        socket.emit(SocketMsgType.UPDATE_ELEMENT, type, index, attribute, value);
+        socket.emit(SocketMsgType.UPDATE_ELEMENT, this.agregId, type, index, attribute, value);
     }
 
     emit_vertices_merge(index1: number, index2: number){

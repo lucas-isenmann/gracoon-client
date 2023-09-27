@@ -72,6 +72,7 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
     
     
     color_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
+        board.regenAgregId();
         if ( pointed.data instanceof ELEMENT_DATA_VERTEX  ) {
             if ( pointed.data.element.data.color != board.colorSelected){
                 board.emit_update_element( BoardElementType.Vertex, pointed.data.element.index, "color", board.colorSelected);
