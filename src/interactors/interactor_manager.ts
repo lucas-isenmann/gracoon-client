@@ -136,6 +136,7 @@ export function setupInteractions(board: ClientBoard) {
     });
 
     board.canvas.addEventListener('mouseup', function (e) {
+        // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         mousePos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
@@ -197,6 +198,7 @@ export function setupInteractions(board: ClientBoard) {
     })
 
     board.canvas.addEventListener('mousedown', function (e) {
+        // console.log("mousedwon")
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
@@ -223,20 +225,31 @@ export function setupInteractions(board: ClientBoard) {
         }
     })
 
+
+    // -----------------------------------------------------------
+    // Touch Events
+
     board.canvas.addEventListener('touchstart', (et: TouchEvent) => {
-        console.log("touchstart");
-        const click_pos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
+        // console.log("touchstart");
+        mousePos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
 
         if (typeof board.interactorLoaded == "undefined") return;
-        const data = board.get_element_nearby(click_pos, board.interactorLoaded.interactable_element_type);
-        const pointedPos = board.graph.align_position(click_pos, new Set(), board.canvas, board.camera);
+        const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+        const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
         lastPointedElement = new PointedElementData(pointedPos, 0, data );
         board.interactorLoaded.mousedown(board, lastPointedElement);
         board.requestDraw();
     });
 
     board.canvas.addEventListener('touchmove', (e) => {
+        // console.log("touchmove")
         mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
+        if ( typeof board.selfUser.canvasPos != "undefined"){
+            board.selfUser.canvasPos.copy_from(mousePos);
+        } else {
+            board.selfUser.canvasPos = mousePos.copy();
+        }
+
         if ( typeof lastPointedElement != "undefined" && typeof board.interactorLoaded != "undefined"){
             if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
                 board.requestDraw();
@@ -248,13 +261,15 @@ export function setupInteractions(board: ClientBoard) {
     });
 
     board.canvas.addEventListener('touchend', (e) => {
-        lastPointedElement = undefined;
-        if ( typeof lastPointedElement != "undefined" && typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
+        board.selfUser.canvasPos = undefined;
+        if ( typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
         board.alignement_horizontal_y = undefined;
         board.alignement_vertical_x = undefined;
         board.requestDraw();
+        lastPointedElement = undefined;
+
     });
 
 
