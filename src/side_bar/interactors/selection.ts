@@ -13,6 +13,7 @@ import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { ClientVertex } from "../../board/vertex";
 import { ClientArea } from "../../board/area";
+import { GridType } from "../../board/display/grid";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -40,6 +41,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         previous_shift = new Vect(0,0);
         previous_canvas_shift = new CanvasVect(0,0);
         if ( typeof pointed.data === "undefined") {
+            if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
+                board.grid.polarCenter = pointed.pointedPos.toCoord(board.camera);
+                board.draw();
+            }
             if (board.keyPressed.has("Control")) {
                 isRectangularSelecting = true;
                 rectSelectC1 = pointed.pointedPos.copy(); 
@@ -47,6 +52,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
         }else if ( pointed.data.element instanceof ClientVertex){
             const v = pointed.data.element;
+            if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
+                board.grid.polarCenter.copy_from(v.data.pos);
+                board.draw();
+            }
             vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.data.canvas_pos);
         } else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             const element = pointed.data.element;

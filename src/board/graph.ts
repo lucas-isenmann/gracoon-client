@@ -356,6 +356,39 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 }
             }
             
+        } else if (this.board.grid.type == GridType.GridPolar){
+            const size = this.board.grid.grid_size;
+            const center = CanvasCoord.fromCoord(this.board.grid.polarCenter, this.board.camera);
+            const p = aligned_pos;
+
+            let d = Math.sqrt(p.dist2(center));
+            if (d != 0){
+                const i = Math.floor(d/(2*size));
+                let alignToCenter = false;
+                if ( d - i*2*size <= 20){
+                    if (i == 0) {
+                        alignToCenter = true;
+                    }
+                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*(i*2*size)/d;
+                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*(i*2*size)/d;
+                } else if ( (i+1)*2*size - d <= 20){
+                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*((i+1)*2*size)/d;
+                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*((i+1)*2*size)/d;
+                }
+                
+                if (alignToCenter == false){
+                    for (let j = 0 ; j < this.board.grid.polarDivision; j ++){
+                        const angle = 2*Math.PI*j/this.board.grid.polarDivision;
+                        const end = new Vect(1,0);
+                        end.rotate(angle);
+                        const projection = aligned_pos.orthogonal_projection(center, end);
+                        if ( Math.sqrt(aligned_pos.dist2(projection)) <= 20){
+                            aligned_pos.x = projection.x;
+                            aligned_pos.y = projection.y;
+                        }
+                    }
+                }
+            }
         }
         return aligned_pos;
     }

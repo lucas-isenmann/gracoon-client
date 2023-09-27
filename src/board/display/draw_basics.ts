@@ -44,10 +44,10 @@ export function drawCircle(center: CanvasCoord, fillStyle: string, radius: numbe
     }
 }
 
-export function drawArc(ctx: CanvasRenderingContext2D, center: CanvasCoord, strokeStyle: string, radius: number, alpha: number){
+export function drawArc(ctx: CanvasRenderingContext2D, center: CanvasCoord, strokeStyle: string, radius: number, alpha: number, width: number){
     ctx.beginPath();
     ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
-    ctx.lineWidth = 4;
+    ctx.lineWidth = width;
     ctx.strokeStyle = strokeStyle;
     ctx.stroke();
 }
