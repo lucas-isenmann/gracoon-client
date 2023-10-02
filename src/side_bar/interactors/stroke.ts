@@ -9,7 +9,7 @@ import { Option } from "gramoloss";
 let lastStroke: Option<ClientStroke> = undefined;
 let indexLastStroke: Option<number> = undefined;
 let pointsCounter = 0;
-const SAMPLE_PERIOD = 3; // number of frames between two points, skipping the others; 3 is empirically a good value
+const SAMPLE_PERIOD = 2; // >=1,  number of frames between two points, skipping the others; 3 is empirically a good value
 
 export function createStrokeInteractor(board: ClientBoard){
 
@@ -37,6 +37,9 @@ export function createStrokeInteractor(board: ClientBoard){
     stroke_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof lastStroke != "undefined"){
             lastStroke.push(e, board.camera);
+            const serializedArray = JSON.stringify(lastStroke.positions);
+            const memorySize = new Blob([serializedArray]).size;
+            console.log(`Memory size: ${memorySize} bytes`);
     
             board.emit_add_element( lastStroke, (response: number) => { })
         

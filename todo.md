@@ -12,10 +12,11 @@
 - invert arc on right click
 - move vertex on link -> subdivide
 - deleteInteractor: has a radius, change it with wheel
+- export graph into pdf via tikz
 
 ## Refacto
 
-- view should be renamed in camera, alignements variables out of it
+- view should be renamed in camera
 - aggregate Modifications when the mousmove is not over
 - après caméra change: update tous les canvas: tous les éléments doivent avoir une fonction
 - mousePos dans les interactors: plus nécessaires car dans board.selfUser.canvasPos
@@ -37,6 +38,7 @@
 - when we create links with Control, stop appuyer on Control, the link does not disappear, and if you use another interactor and you got back to link interactor, then the last vertex is still used ...
 - representations
 - bug when undo delete the weights of the links
+- Latex in TextZone $$ $$
 
 ------------------------------------------------------
 
@@ -48,13 +50,11 @@
   - [ ] améliorer pour plus de visibilité
 
 - parametre
-  - [ ] doc gestion latex
   - [ ] verbose
   - [ ] import à partir d'une fonction de gramoloss
 
 - grid
   - [ ] vertical triangular grid
-  - [ ] polar grid
   - [ ] hexagonal grid ???
 
 - [ ] gestion tablette
@@ -84,7 +84,6 @@
   - [ ] highlight
   - [ ] set carret to the position of the click (difficulty: hard)
   - [ ] improve tab insertion
-  - [ ] too much Modification to cancel
 
 - copier coller
   - [ ] est ce que ça serait pas plus logique un Control D ?
@@ -108,7 +107,6 @@
   - [ ] collabiser les représ
   - [ ] annulable
 
-- [ ] exporter Latex
 - [ ] exporter pdf
 - [ ] export graphviz ?
 - [ ] diapo graphe

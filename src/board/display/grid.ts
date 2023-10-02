@@ -26,7 +26,9 @@ export class Grid {
 
     constructor(){
         this.type = undefined;
-        this.polarCenter = new Coord(400,400);
+
+        this.polarCenter = new Coord(window.innerWidth/2, window.innerHeight/2);
+        console.log(this.polarCenter)
         this.polarDivision = 12;
         this.grid_min_size = 40;
         this.grid_max_size = 100;

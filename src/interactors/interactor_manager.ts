@@ -135,6 +135,9 @@ export function setupInteractions(board: ClientBoard) {
         board.requestDraw();
     });
 
+    // ----------------------------------------------------------------
+    // Mouse actions
+
     board.canvas.addEventListener('mouseup', function (e) {
         // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY);

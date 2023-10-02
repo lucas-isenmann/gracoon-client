@@ -150,8 +150,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.ctx = ctx; 
         
 
-        this.graph = new ClientGraph(this);
+
         this.camera = new Camera();
+        this.graph = new ClientGraph(this);
+        
         
         this.elementOver = undefined;
 
@@ -767,27 +769,27 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         switch(element.constructor){
             case ClientVertexData: {
                 const vertexData = element as ClientVertexData;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
                 break;
             }
             case LinkPreData: {
                 const data = element as LinkPreData;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation, weight: data.weight, color: data.color}, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation, weight: data.weight, color: data.color}, callback);
                 break;
             }
             case ClientStroke: {
                 const stroke = element as ClientStroke;
-                socket.emit(SocketMsgType.ADD_ELEMENT , BoardElementType.Stroke, {points: [... stroke.positions.entries()], color: stroke.color, width: stroke.width}, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Stroke, {points: [... stroke.positions.entries()], color: stroke.color, width: stroke.width}, callback);
                 break;
             }
             case TextZone: {
                 const text_zone = element as TextZone;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.TextZone, {pos: text_zone.pos}, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.TextZone, {pos: text_zone.pos}, callback);
                 break;
             }
             case Area: {
                 const area = element as Area;
-                socket.emit(SocketMsgType.ADD_ELEMENT, BoardElementType.Area, {c1: area.c1, c2: area.c2, label: area.label, color: area.color }, callback);
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Area, {c1: area.c1, c2: area.c2, label: area.label, color: area.color }, callback);
                 break;
             }
         }

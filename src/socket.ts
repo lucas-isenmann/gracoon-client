@@ -280,6 +280,7 @@ export function setupHandlers(board: ClientBoard) {
     function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
         console.log("handleDeleteElements", data);
         for ( const [kind, index] of data){
+            console.log(kind, index);
             if ( kind == "Stroke"){
                 board.strokes.delete(index);
             } else if (kind == "TextZone"){

@@ -5,7 +5,8 @@ import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { updateWeightDiv } from "./weightable";
-import { Color } from "./display/colors_v2";
+import { Color, getCanvasColor } from "./display/colors_v2";
+import { rgbTikzFromHexaColor } from "../tikz";
 
 
 export class LinkPreData extends BasicLinkData {
@@ -125,17 +126,26 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
             }
     }
 
-    tikzify_link(start: ClientVertex, start_index: number, end: ClientVertex, end_index: number) {
-        // TODO: ORIENTED CASE
+    /**
+     * TODO: ORIENTED CASE
+     * @returns 
+     */
+    getTikz() {
         let labelCode = "";
         // if (showLabels)
-        // labelCode = "node[midway, shift={(" + this.label.getExactLabelOffsetX() / 100 + "," + -this.label.getExactLabelOffsetY() / 100 + ")}, scale = \\scaleE] {" + this.label.text + "}";
-        if (typeof this.data.cp != "undefined" ){
-            return `\\draw[line width = \\scaleE, color = black] (${start.get_tikz_coordinate(start_index)}) .. controls (${Math.round(this.data.cp.x)/100}, ${Math.round(this.data.cp.y)/100}) .. (${end.get_tikz_coordinate(end_index)}) ${labelCode};`;
-        } else {
-            return ``; // TODO
+        if ( typeof this.data.weightDiv != "undefined" ){
+            // labelCode = "node[midway, shift={(" + this.data.weightDiv.offsetLeft / 100 + "," + - this.data.weightDiv.offsetTop / 100 + ")}, scale = \\scaleE] {" + this.data.weight + "}";
         }
-        
+
+        const arrowTikz =  (this.orientation == ORIENTATION.DIRECTED) ? "[->,>=latex]" : "";
+
+        const start = this.startVertex;
+        const end = this.endVertex;
+
+        const weightTikz = (this.data.weight == "") ? "" :  `node[scale=\\scaleL, fill=${this.data.color}, text=white] {${this.data.weight}}`;
+
+        const cpTikz = (typeof this.data.cp != "undefined" ) ? `.. controls (${Math.round(this.data.cp.x)/100}, ${Math.round(this.data.cp.y)/100}) ..`: "--";
+        return `\\draw${arrowTikz}[line width = \\scaleE, color = ${this.data.color}] (${start.getTikzCoordVar()}) ${cpTikz} ${weightTikz} (${end.getTikzCoordVar()}) ${labelCode};`;
     }
 
     /**

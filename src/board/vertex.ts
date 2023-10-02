@@ -6,6 +6,7 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "./display/colors_v2";
+import { rgbTikzFromHexaColor } from "../tikz";
 
 export class ParameterValue {
     value: string;
@@ -103,20 +104,18 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         return this.data.canvas_pos.is_in_rect(c1,c2);
     }
 
-    get_tikz_coordinate(index: number) {
-        return `v${index}`;
-    }
-    tikzify_coordinate(index: number) {
-        return `\\coordinate (${this.get_tikz_coordinate(index)}) at (${Math.round(this.data.pos.x)/100}, ${Math.round(this.data.pos.y)/100});`;
+    getTikzCoordVar() {
+        return `v${this.index}`;
     }
 
-    tikzify_node(index: number) {
-        // const c = "c" + COLORS.indexOf(this.color);
-        // if (this.color == DEFAULT_COLOR) {
-        //   c = "white";
-        // }
+    tikzify_coordinate() {
+        return `\\coordinate (${this.getTikzCoordVar()}) at (${Math.round(this.data.pos.x)/100}, ${Math.round(this.data.pos.y)/100});`;
+    }
 
-        return `\\node[scale = \\scaleV, nodes={white}{}{}{}] at  (${this.get_tikz_coordinate(index)})  {};`;
+    tikzify_node(): string {
+        const weightTikz = (this.data.weight == "") ? "" : `\n\\node[label={[scale=\\scaleL]below: ${this.data.weight}}] at (${this.getTikzCoordVar()}) {};`;
+
+        return `\\node[scale = \\scaleV, label={[text=white, scale=\\scaleL]center: ${this.index}}, nodes={${this.data.color}}{}{}{}] at  (${this.getTikzCoordVar()})  {};${weightTikz}`;
     }
 
     tikzify_label() {

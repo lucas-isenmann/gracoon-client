@@ -129,10 +129,24 @@ export class ClientStroke extends Stroke{
             board.ctx.strokeStyle = getCanvasColor(this.color, board.isDarkMode());
             board.ctx.lineWidth = this.width;
             board.ctx.moveTo(position_canvas.x, position_canvas.y);
-            for(let i = 1; i < this.positions.length; i++){
-                position_canvas = this.canvas_positions[i];
-                board.ctx.lineTo(position_canvas.x, position_canvas.y);
+
+            const version = 2;
+            if (version == 1){
+                for(let i = 1; i < this.positions.length; i++){
+                    position_canvas = this.canvas_positions[i];
+                    board.ctx.lineTo(position_canvas.x, position_canvas.y);
+                }
+            } else {
+                for(let i = 1; i < this.positions.length; i+=2){
+                    position_canvas = this.canvas_positions[i];
+                    // board.ctx.lineTo(position_canvas.x, position_canvas.y);
+                    //
+                    const cp = this.canvas_positions[i-1];
+                    board.ctx.quadraticCurveTo(cp.x, cp.y, position_canvas.x, position_canvas.y);
+                }
             }
+
+            
             board.ctx.stroke();
         }
     }
