@@ -218,8 +218,8 @@ export function setupInteractions(board: ClientBoard) {
             board.draw()
         } else {
             if (typeof board.interactorLoaded != "undefined"){
-                const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
                 const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+                const data = board.get_element_nearby(pointedPos, board.interactorLoaded.interactable_element_type);
                 lastPointedElement = new PointedElementData(pointedPos, e.buttons, data );
                 board.interactorLoaded.mousedown(board, lastPointedElement);
                 board.requestDraw();

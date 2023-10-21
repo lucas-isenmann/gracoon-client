@@ -665,6 +665,15 @@ function test(g: ClientGraph): boolean {
 
 
 
+// -------------------
+
+
+export const paramFVSN = new Parametor("Feedback Vertex Set Number", "fvsn", "fvsn", "Feedback Vertex Set Number", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramFVSN.compute = ((g: ClientGraph) => {
+    return g.fvsn().toString();
+})
+
 
 // --------------------
 

@@ -11,9 +11,9 @@ const cliqueGenerator = new GraphGenerator(GeneratorId.CliqueCircle, "clique Kn"
 const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "random tournament", [new Integer("n", 3)])
 const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "GNP", [new Integer("n", 3), new Percentage("p")]);
 const randomStar = new GraphGenerator(GeneratorId.Star, "star", [new Integer("n", 3)])
-const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "complete bipartie Knm", [new Integer("n",1),new Integer("m",1)]);
+const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartie Knm", [new Integer("n",1),new Integer("m",1)]);
 const gridGenerator = new GraphGenerator(GeneratorId.Grid, "grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
-const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "aztecDiamond", [new Integer("n",1)]);
+const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "Aztec Diamond", [new Integer("n",1)]);
 
 const generators_available = new Array<GraphGenerator>();
 generators_available.push(independentGenerator);
@@ -24,8 +24,9 @@ generators_available.push(completeBipartite);
 generators_available.push(gridGenerator);
 generators_available.push(randomTournament);
 generators_available.push(new GraphGenerator(GeneratorId.Paley, "Paley", [new Integer("q", 3)]));
-generators_available.push(new GraphGenerator(GeneratorId.UnitDisk, "UnitDisk", [new Integer("n", 2), new Integer("d", 0)]))
+generators_available.push(new GraphGenerator(GeneratorId.UnitDisk, "Unit Disk Graph", [new Integer("n", 2), new Integer("d", 0)]))
 generators_available.push(aztecDiamondGenerator);
+generators_available.push(new GraphGenerator(GeneratorId.UTournament, "U tournament", [new Integer("n", 3)]));
 
 
 

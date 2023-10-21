@@ -14,6 +14,10 @@
 - deleteInteractor: has a radius, change it with wheel
 - export graph into pdf via tikz
 
+## Improve
+
+- choose where you put the generated graph (and scale ? and rotate ?)
+
 ## Refacto
 
 - view should be renamed in camera
@@ -72,7 +76,6 @@
 
 - generators
   - [ ] prévisualisation du rendu ??
-  - [ ] Paley
 
 - text interactor
   - [ ] manually positioning labels

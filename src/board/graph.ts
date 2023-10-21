@@ -719,8 +719,17 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             height="100%"
             viewBox="${minx} ${miny} ${maxx} ${maxy}"
             preserveAspectRatio="xMidYMid meet"
-            xmlns="http://www.w3.org/2000/svg"
-            >`;
+            xmlns="http://www.w3.org/2000/svg">
+            `;
+        
+        svgString += `<g
+        id="glinks">`;
+
+        for (const link of this.links.values()){
+            let d = `M ${link.startVertex.data.pos.x} ${link.startVertex.data.pos.y} L ${link.endVertex.data.pos.x} ${link.endVertex.data.pos.y}`;
+            svgString += pathToSVGPath(d, width, "black" );
+        }
+        svgString += `</g>\n`;
         
 
         const visited = new Set<number>();

@@ -29,7 +29,7 @@ export class Grid {
 
         this.polarCenter = new Coord(window.innerWidth/2, window.innerHeight/2);
         console.log(this.polarCenter)
-        this.polarDivision = 12;
+        this.polarDivision = 10;
         this.grid_min_size = 40;
         this.grid_max_size = 100;
         this.grid_initial_size = 70;
