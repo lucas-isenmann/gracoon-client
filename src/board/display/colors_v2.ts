@@ -13,6 +13,33 @@ export enum Color {
     Brown = "Brown"
 }
 
+export function getColor(i: number): Color{
+    if (i == 0){
+        return Color.Neutral;
+    } else if (i == 1){
+        return Color.Gray;
+    } else if (i == 2){
+        return Color.Blue
+    } else if (i == 3){
+        return Color.Red
+    }  else if (i == 4){
+        return Color.Green
+    }  else if (i == 5){
+        return Color.Pink
+    }  else if (i == 6){
+        return Color.Purple
+    } else if (i == 7){
+        return Color.Yellow
+    } else if (i == 8){
+        return Color.Orange
+    } else if (i == 9){
+        return Color.Brown
+    } else {
+        return Color.Neutral
+    }
+}
+
+
 export class ColorData {
     dark: string;
     light: string;

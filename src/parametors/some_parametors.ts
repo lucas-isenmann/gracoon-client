@@ -1,11 +1,11 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { ORIENTATION } from 'gramoloss';
+import { AbstractGraph, ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
 import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
-import { Color } from '../board/display/colors_v2';
+import { Color, getColor } from '../board/display/colors_v2';
 
 export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
@@ -490,6 +490,7 @@ function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: 
     }
     const bridge_index = g.max_cut_edge();
     const bridge = g.links.get(bridge_index);
+    if (typeof bridge == "undefined") return;
     g.links.delete(bridge_index);
     const g1 = g.get_connected_component_of(bridge.startVertex.index) as ClientGraph;
     const g2 = g.get_connected_component_of(bridge.endVertex.index) as ClientGraph;
@@ -570,8 +571,10 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
 function test2(g: ClientGraph, constraints: Array<Array<[number,boolean]>>): boolean{
     for (const constraint of constraints){
         let sum = 0;
-        for (const [link_index, b] of constraint){
-            const weight = parseInt(g.links.get(link_index).data.weight);
+        for (const [linkIndex, b] of constraint){
+            const link = g.links.get(linkIndex);
+            if (typeof link == "undefined") continue;
+            const weight = parseInt(link.data.weight);
             if ( b ){
                 sum += weight;
             } else {
@@ -605,7 +608,9 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
                         stack.push(n_index);
                         visited.add(n_index);
                         const new_path = new Array<number>();
-                        for ( const lindex of paths_from_v.get(u_index)){
+                        const pathsvu = paths_from_v.get(u_index);
+                        if (typeof pathsvu == "undefined") continue;
+                        for ( const lindex of pathsvu){
                             new_path.push(lindex);
                         }
                         new_path.push(link_index);
@@ -623,15 +628,19 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
             if (u_index != v_index) {
                 for (const w_index of g.vertices.keys()) {
                     if (w_index != u_index && w_index != v_index) {
-                        if ( paths.get(v_index).get(u_index).indexOf(bridge_index) >= 0 || paths.get(v_index).get(w_index).indexOf(bridge_index) >= 0) {
+                        const pathv = paths.get(v_index);
+                        if (typeof pathv == "undefined") continue;
+                        const pathvu = pathv.get(u_index);
+                        if (typeof pathvu == "undefined") continue;
+                        const pathvw = pathv.get(w_index);
+                        if (typeof pathvw == "undefined") continue;
+                        if ( pathvu.indexOf(bridge_index) >= 0 || pathvw.indexOf(bridge_index) >= 0) {
                             const constraint = new Array<[number,boolean]>();
-                            const path1 = paths.get(v_index).get(u_index);
-                            const path2 = paths.get(v_index).get(w_index);
-                            for ( const link_index of path1){
-                                constraint.push([link_index, true]);
+                            for ( const linkIndex of pathvu){
+                                constraint.push([linkIndex, true]);
                             }
-                            for (const link_index of path2){
-                                constraint.push([link_index, false]);
+                            for (const linkIndex of pathvw){
+                                constraint.push([linkIndex, false]);
                             }
                             constraints.push(constraint);
                         }
@@ -652,7 +661,11 @@ function test(g: ClientGraph): boolean {
             if (u_index != v_index) {
                 for (const w_index of g.vertices.keys()) {
                     if (w_index != u_index && w_index != v_index) {
-                        if (FW.distances.get(u_index).get(v_index) == FW.distances.get(v_index).get(w_index)) {
+                        const du = FW.distances.get(u_index);
+                        const dv = FW.distances.get(v_index);
+                        if (typeof du == "undefined") continue;
+                        if (typeof dv == "undefined") continue;
+                        if (du.get(v_index) == dv.get(w_index)) {
                             return false;
                         }
                     }
@@ -774,8 +787,8 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
             for (const neighbor of g.getOutNeighbors(v)){
                 neighbor.data.color = Color.Neutral;
             }
-            for (const neighborId of g.get_in_neighbors_list(v.index)){
-                g.vertices.get(neighborId).data.color = Color.Neutral;
+            for (const neighbor of g.getInNeighbors(v)){
+                neighbor.data.color = Color.Neutral;
             }
         } else {
             treated.add(v.index);
@@ -784,8 +797,8 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
                 for (const outNeighbor2 of g.getOutNeighbors(outNeighbor)){
                     outNeighbor2.data.color = Color.Neutral;
                 }
-                for (const n2Id of g.get_in_neighbors_list(outNeighbor.index)){
-                    g.vertices.get(n2Id).data.color = Color.Neutral;
+                for (const inNeighbor2 of g.getInNeighbors(outNeighbor)){
+                    inNeighbor2.data.color = Color.Neutral;
                 }
                 break;
             }
@@ -805,3 +818,44 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
     return 2*counter <= g.vertices.size ? "true": "false";
 
 })
+
+
+
+
+
+
+
+
+export const paramGeomChromaticIndex = new Parametor("Geometric chromatic index", "paramGCI", "gci", "Geometric chromatic index", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
+
+    const cliques = new Set<Set<number>>();
+    for (const i of g.vertices.keys()){
+        const clique = new Set<number>();
+        for (const link of g.links.values()){
+            if (link.startVertex.index == i || link.endVertex.index == i){
+                clique.add(link.index);
+            }
+        }
+        cliques.add(clique);
+    }
+
+    const glg = AbstractGraph.geometricLineGraph(g);
+    const coloring = glg.minimalProperColoring(cliques);
+
+    for (const [linkId, color] of coloring.entries()){
+        const link = g.links.get(linkId);
+        if (typeof link != "undefined"){
+            link.data.color = getColor(color);
+        }
+    }
+
+    const gci = glg.chromatic_number(cliques);
+
+    return gci.toString();
+})
+
+
+
+
