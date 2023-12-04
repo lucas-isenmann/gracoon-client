@@ -61,31 +61,31 @@ function setupClientVersionDiv(){
 }
 
 function setup() {
-    const local_board = new ClientBoard();
+    const localBoard = new ClientBoard();
 
 
-    // setupStanchionDrawer(local_board);
+    // setupStanchionDrawer(localBoard);
 
     setupClientVersionDiv();
     
 
    
 
-    setupHandlers(local_board);
+    setupHandlers(localBoard);
 
-    local_board.ctx.canvas.width = window.innerWidth;
-    local_board.ctx.canvas.height = window.innerHeight;
+    localBoard.ctx.canvas.width = window.innerWidth;
+    localBoard.ctx.canvas.height = window.innerHeight;
     window.addEventListener('resize', function () { 
-        local_board.resizeCanvas(); 
+        localBoard.resizeCanvas(); 
     }, false);
     document.addEventListener('contextmenu', event => event.preventDefault());
-    setupInteractions(local_board);
+    setupInteractions(localBoard);
 
-    setup_generators_div(local_board.canvas, local_board);
-    setup_modifyers_div(local_board);
+    setup_generators_div(localBoard.canvas, localBoard);
+    setup_modifyers_div(localBoard);
 
     setup_parametors_available();
-    update_params_available_div(local_board);
+    update_params_available_div(localBoard);
 
     let params_loaded_button = document.getElementById("params_loaded_button");
     params_loaded_button?.addEventListener('click', () => {
@@ -100,50 +100,50 @@ function setup() {
 
 
     // Top SideBar
-    const sb = new SideBar(local_board, ORIENTATION_SIDE_BAR.HORIZONTAL, 150, 10, undefined, 
+    const sb = new SideBar(localBoard, ORIENTATION_SIDE_BAR.HORIZONTAL, 150, 10, undefined, 
         [   
             new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
             new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
             new PreFolder( "grid", [
                 new PreSwitch(false, "triangular_grid", "Vertical triangular grid", () => {
-                    local_board.setGridType(GridType.GridVerticalTriangular);
-                    local_board.draw();
+                    localBoard.setGridType(GridType.GridVerticalTriangular);
+                    localBoard.draw();
                 }, () => {
-                    local_board.setGridType(undefined);
-                    local_board.draw();
+                    localBoard.setGridType(undefined);
+                    localBoard.draw();
                 }),
                 new PreSwitch(false, "grid", "Rectangular grid", () => {
-                    local_board.setGridType(GridType.GridRect);
-                    local_board.draw();
+                    localBoard.setGridType(GridType.GridRect);
+                    localBoard.draw();
                 }, () => {
-                    local_board.setGridType(undefined);
-                    local_board.draw();
+                    localBoard.setGridType(undefined);
+                    localBoard.draw();
                 }),
                 new PreSwitch(false, "grid_polar", "Polar grid", () => {
-                    local_board.setGridType(GridType.GridPolar);
-                    local_board.draw();
+                    localBoard.setGridType(GridType.GridPolar);
+                    localBoard.draw();
                 }, () => {
-                    local_board.setGridType(undefined);
-                    local_board.draw();
+                    localBoard.setGridType(undefined);
+                    localBoard.draw();
                 }),
             ]),
             new PreSwitch(true, "align", "Align vertices to other vertices", () => {
-                local_board.is_aligning = true;
+                localBoard.is_aligning = true;
             }, () => {
-                local_board.is_aligning = false;
+                localBoard.is_aligning = false;
             }),
             new PreLauncher("dark_mode", "Switch to dark/light mode", "", () => {
-                local_board.toggle_dark_mode();
+                localBoard.toggle_dark_mode();
                 for( const color of colorsData.keys()){
                     const colorChoiceDiv = document.getElementById("color_choice_" + color);
                     if (colorChoiceDiv != null){
-                        colorChoiceDiv.style.backgroundColor = getCanvasColor(color, local_board.isDarkMode());
+                        colorChoiceDiv.style.backgroundColor = getCanvasColor(color, localBoard.isDarkMode());
                     }
                 } 
             }),
             new PreFolder("export", [
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
-                        const tikz_data = TikZ_create_file_data(local_board.graph);
+                        const tikz_data = TikZ_create_file_data(localBoard.graph);
                         const a = document.createElement("a");
                         a.href = window.URL.createObjectURL(new Blob([tikz_data], { type: "text/plain" }));
                         a.download = "file.tex";
@@ -159,10 +159,10 @@ function setup() {
                     })
             ]),
             new PreFolder("index_none", [
-                new PreSwitch(false, "index_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", () => {local_board.setIndexType(INDEX_TYPE.NUMBER_STABLE)}, () => {local_board.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", () => {local_board.setIndexType(INDEX_TYPE.NUMBER_UNSTABLE)}, () => {local_board.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", () => {local_board.setIndexType(INDEX_TYPE.ALPHA_STABLE)}, () => {local_board.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_alpha_unstable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", () => {local_board.setIndexType(INDEX_TYPE.ALPHA_UNSTABLE)}, () => {local_board.setIndexType(INDEX_TYPE.NONE)})
+                new PreSwitch(false, "index_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+                new PreSwitch(false, "index_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+                new PreSwitch(false, "index_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+                new PreSwitch(false, "index_alpha_unstable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)})
             ]),
             new PreLauncher("share", "Copy invitation url to clipboard", "", () => {
                 socket.emit("get_room_id", (room_id: string) => {
@@ -188,19 +188,19 @@ function setup() {
 
     // Left SideBar
 
-    const leftBar = new SideBar(local_board, ORIENTATION_SIDE_BAR.VERTICAL, 10, 100, undefined, [
-        createSelectionInteractor(local_board),
+    const leftBar = new SideBar(localBoard, ORIENTATION_SIDE_BAR.VERTICAL, 10, 100, undefined, [
+        createSelectionInteractor(localBoard),
         new PreFolder( "arc", [
-            createLinkInteractor(local_board, ORIENTATION.UNDIRECTED),
-            createLinkInteractor(local_board, ORIENTATION.DIRECTED),
-            createControlPointInteractor(local_board)
+            createLinkInteractor(localBoard, ORIENTATION.UNDIRECTED),
+            createLinkInteractor(localBoard, ORIENTATION.DIRECTED),
+            createControlPointInteractor(localBoard)
         ]),
-        createStrokeInteractor(local_board), 
-        createColorInteractor(local_board),
-        createAreaInteractor(local_board),
-        createRectangleInteractor(local_board),
-        createTextInteractor(local_board),
-        new EraserInteractor(local_board) 
+        createStrokeInteractor(localBoard), 
+        createColorInteractor(localBoard),
+        createAreaInteractor(localBoard),
+        createRectangleInteractor(localBoard),
+        createTextInteractor(localBoard),
+        new EraserInteractor(localBoard) 
     ]);
 
     leftBar.collapse();
@@ -210,13 +210,13 @@ function setup() {
 
 
     // if (ENV.mode == "dev"){
-    //     left_side_bar.add_elements(local_board, createDetectorInteractor(local_board));
+    //     left_side_bar.add_elements(localBoard, createDetectorInteractor(localBoard));
     // }
 
 
 
 
-    local_board.draw();
+    localBoard.draw();
 }
 
 
