@@ -2,6 +2,17 @@ import { bezier_curve_point, Coord, linesIntersection, Vect } from "gramoloss";
 import { ClientVertex } from "./vertex";
 
 
+export enum TwistMode {
+    Absolute,
+    Relative
+}
+
+export enum CrossMode {
+    Cut,
+    DoublePath
+}
+
+
 /**
  *  Coords are O, Control points are +
  * 
@@ -72,9 +83,9 @@ export class QuarterPoint {
     /**
      * 
      * @param h 
-     * @param ratio in [0, 1]
+     * @param twistValue must be in [0, 100] if twistMode is Relative and >= 0 if Absolute
      */
-    computeQuarterMiddlePoints(qpEdge: QuarterPoint, h: number, ratio: number, t: number){
+    computeQuarterMiddlePoints(qpEdge: QuarterPoint, h: number, twistValue: number, t: number, twistMode: TwistMode){
         const vpos = this.vertexAdj.getPos();
         const npos = qpEdge.vertexAdj.getPos();
 
@@ -88,7 +99,12 @@ export class QuarterPoint {
         middleB.rtranslate(dir);
 
         const dir1 = this.edgePoint.vectorTo(qpEdge.edgePoint);
-        dir1.rescale(ratio/2);
+        if (twistMode == TwistMode.Relative){
+            dir1.rescale(twistValue/200);
+        } else {
+            dir1.setNorm(twistValue)
+        }
+        
 
         
 
@@ -359,7 +375,9 @@ export function curvedStanchionUnder2(qp1: QuarterPoint, qp2: QuarterPoint, h : 
     }
 }
 
-
+export function pathStrToSVGPathClass(d: string, className: string): string {
+    return `<path d="${d}" class="${className}"/>`;
+}
 
 export function pathToSVGPath(d: string, width: number, color: string): string {
     return `<path d="${d}" stroke="${color}" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-width="${width}"/>`;

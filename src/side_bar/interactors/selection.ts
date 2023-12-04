@@ -14,6 +14,7 @@ import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_D
 import { ClientVertex } from "../../board/vertex";
 import { ClientArea } from "../../board/area";
 import { GridType } from "../../board/display/grid";
+import { blurProperties, showProperties } from "../../board/attributes";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -36,11 +37,14 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
 
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
-
+        blurProperties();
         hasMoved = false;
         previous_shift = new Vect(0,0);
         previous_canvas_shift = new CanvasVect(0,0);
         if ( typeof pointed.data === "undefined") {
+            if (pointed.buttonType == 2){
+                showProperties(board.grid, pointed.pointedPos, board);
+            }
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter = pointed.pointedPos.toCoord(board.camera);
                 board.draw();

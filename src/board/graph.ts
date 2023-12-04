@@ -6,7 +6,7 @@ import { BasicGraph, Coord,  ORIENTATION, Vect, Option, linesIntersection, bezie
 import { CanvasVect } from "./display/canvasVect";
 import { drawCircle, drawHead } from "./display/draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
-import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathToSVGPath, QuarterPoint, segmentToSVGLine } from "./stanchion";
+import { angleAround, auxCombMap, comparePointsByAngle, coordToSVGcircle, CrossMode, curvedStanchionUnder2, h2FromEdgeLength, hFromEdgeLength, pathStrToSVGPathClass, pathToSVGPath, QuarterPoint, segmentToSVGLine, TwistMode } from "./stanchion";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { GridType } from "./display/grid";
@@ -541,7 +541,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
 
 
 
-    getCombinatorialMap(ctx: CanvasRenderingContext2D, h: number, h2: number, crossRatio: number, adaptToEdgeLength: boolean, ratio: number, durete: number){
+    getCombinatorialMap(h: number,  crossRatio: number, adaptToEdgeLength: boolean, twistValue: number, durete: number, twistMode: TwistMode){
         const quarterPoints = new Map<number, QuarterPoint>(); // quarter points data
         
         // We cannot assign the edgeAdj of the QPs at the time of their creation.
@@ -689,7 +689,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         for (const qp of quarterPoints.values()){
             const qpEdge = quarterPoints.get(qp.edgeAdj);
             if (typeof qpEdge != "undefined")
-                qp.computeQuarterMiddlePoints(qpEdge, h, ratio, crossRatio);
+                qp.computeQuarterMiddlePoints(qpEdge, h, twistValue, crossRatio, twistMode);
         }
 
         return quarterPoints;
@@ -700,11 +700,13 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     /**
      * TODO: adaptToEdgeLength
      */
-    drawCombinatorialMap(file: string | undefined, ctx: CanvasRenderingContext2D, h: number, h2: number, crossRatio: number, adaptToEdgeLength: boolean, ratio: number, durete: number, width: number){
+    drawCombinatorialMap(file: string | undefined, ctx: CanvasRenderingContext2D, h: number, crossRatio: number, adaptToEdgeLength: boolean, twistValue: number, durete: number, width: number, twistMode: TwistMode, crossMode: CrossMode){
+        console.log("drawCombiMap", crossMode);
+
         const drawOnBoard = (typeof file === "undefined");
 
-        
-        const quarterPoints = this.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
+        crossRatio = (crossMode == CrossMode.DoublePath) ? 1 : crossRatio;
+        const quarterPoints = this.getCombinatorialMap( h,  crossRatio, adaptToEdgeLength, twistValue, durete, twistMode);
 
         let svgString = "";
 
@@ -722,19 +724,85 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             xmlns="http://www.w3.org/2000/svg">
             `;
         
-        svgString += `<g
-        id="glinks">`;
+        
+        
+        svgString += 
+        `
+        <style>
+            .crossBorder {
+                fill: none;
+                stroke-linejoin: round;
+                stroke-linecap: butt;
+                stroke-width: ${width*3};
+                stroke: black;
+            }
+            .cycle0 {
+                fill: none;
+                stroke-linejoin: round;
+                stroke-linecap: round;
+                stroke-width: ${width};
+                stroke: white;
+            }
+            .cycle1 {
+                fill: none;
+                stroke-linejoin: round;
+                stroke-linecap: round;
+                stroke-width: ${width};
+                stroke: red;
+            }
+            .cycle2 {
+                fill: none;
+                stroke-linejoin: round;
+                stroke-linecap: round;
+                stroke-width: ${width};
+                stroke: green;
+            }
+            .cycle3 {
+                fill: none;
+                stroke-linejoin: round;
+                stroke-linecap: round;
+                stroke-width: ${width};
+                stroke: blue;
+            }
+        </style>
 
+        <rect
+        style="fill:#000000;fill-opacity:1; fill"
+        id="rect0"
+        width="600"
+        height="600"
+        x="0"
+        y="0" />
+        `
+
+        // Draw graph in file
+        svgString += `<g id="glinks">\n`;
         for (const link of this.links.values()){
             let d = `M ${link.startVertex.data.pos.x} ${link.startVertex.data.pos.y} L ${link.endVertex.data.pos.x} ${link.endVertex.data.pos.y}`;
-            svgString += pathToSVGPath(d, width, "black" );
+            svgString += pathToSVGPath(d, width, "white" ) + "\n";
         }
         svgString += `</g>\n`;
-        
 
-        const visited = new Set<number>();
-        const colors = ["black", "red", "blue", "green"];
+        const colors = ["white", "red", "blue", "green"];
         let currentColor = 0;
+
+        
+        // For crossMode DoublePath
+        const pathsByZ: Array<Array<string>> = new Array();
+        for (let i = 0 ; i < 4 ; i ++){
+            pathsByZ.push([]);
+        }
+        
+        const paths: Array<Array<string>> = new Array(); // first index is the color, second the level
+        for (let i = 0 ; i < colors.length ; i ++){
+            paths.push(["", "", "", ""]);
+        }
+
+        let underPath = "";
+
+
+        // Start a DFS to find all the cycles
+        const visited = new Set<number>();
         
         for (const qp of quarterPoints.values()){
             if (visited.has(qp.id) == false){
@@ -756,56 +824,100 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     //     d += curvedStanchionUnder2(currentQp, nextQp, hh, hh2, crossRatio);
                     // } else {
                         this.board.drawLine(ctx, currentQp.pos, currentQp.quarterEdgePoint, colors[currentColor], width);
-
+                        pathsByZ[3].push(pathStrToSVGPathClass(`M ${currentQp.pos.x} ${currentQp.pos.y} L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`, `cycle${currentColor}` ));
+                        paths[currentColor][3] += `M ${currentQp.pos.x} ${currentQp.pos.y} L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
                         d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
-                        if ( currentQp.id %2 == 1){
-                            this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, currentQp.middleEdgeCP, currentQp.middleEdgePoint, colors[currentColor], width);
-                            this.board.drawBezierCurve(ctx, nextQp.middleEdgePoint, nextQp.middleEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
 
-                            
+
+                        if ( currentQp.id %2 == 1){
+                            if (crossMode == CrossMode.DoublePath){
+                                this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
+                            } else {
+                                this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, currentQp.middleEdgeCP, currentQp.middleEdgePoint, colors[currentColor], width);
+                                this.board.drawBezierCurve(ctx, nextQp.middleEdgePoint, nextQp.middleEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
+                            }
+                            pathsByZ[0].push(pathStrToSVGPathClass(`M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`, `cycle${currentColor}` ));
+                            paths[currentColor][0] += `M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
+
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${currentQp.middleEdgeCP.x} ${currentQp.middleEdgeCP.y}, ${currentQp.middleEdgePoint.x} ${currentQp.middleEdgePoint.y}`;
                             d += `M ${nextQp.middleEdgePoint.x} ${nextQp.middleEdgePoint.y}`;
                             d += `C ${nextQp.middleEdgeCP.x} ${nextQp.middleEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                             
                         } else {
+                            if (crossMode == CrossMode.DoublePath){
+                                this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, "black", width*3);
+                            }
                             this.board.drawBezierCurve(ctx, currentQp.quarterEdgePoint, currentQp.quarterEdgeCP, nextQp.quarterEdgeCP, nextQp.quarterEdgePoint, colors[currentColor], width);
-                            
+                            pathsByZ[1].push(pathStrToSVGPathClass(`M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`, "crossBorder" ));
+                            pathsByZ[2].push(pathStrToSVGPathClass(`M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`, `cycle${currentColor}` ));
+                            underPath += `M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;                   
+                            paths[currentColor][2] += `M ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y} C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
+
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                         }
 
                         this.board.drawLine(ctx, nextQp.quarterEdgePoint, nextQp.pos, colors[currentColor], width);
+                        pathsByZ[3].push(pathStrToSVGPathClass(`M ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y} L ${nextQp.pos.x} ${nextQp.pos.y}`, `cycle${currentColor}` ));
+                        paths[currentColor][3] += `M ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y} L ${nextQp.pos.x} ${nextQp.pos.y}`;
                         d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
+                        
                     // }
 
 
-                    this.board.drawCircle(currentQp.cp, 3, "green", 1);
-                    if ( currentQp.id %2 == 0 ){
-                        this.board.drawCircle(currentQp.pos, 3, "blue", 1);
-                    } else {
-                        this.board.drawCircle(currentQp.pos, 3, "red", 1);
-                    }
+                    // this.board.drawCircle(currentQp.cp, 3, "green", 1);
+                    // if ( currentQp.id %2 == 0 ){
+                    //     this.board.drawCircle(currentQp.pos, 3, "blue", 1);
+                    // } else {
+                    //     this.board.drawCircle(currentQp.pos, 3, "red", 1);
+                    // }
 
                     currentQp = nextQp;
 
                     nextQp = quarterPoints.get(currentQp.interiorAdj);
                     if (typeof nextQp == "undefined") { throw Error("bug");  };
-                    this.board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, colors[currentColor], width);
+                    this.board.drawBezierCurve(ctx, currentQp.pos, currentQp.cp, nextQp.cp, nextQp.pos, "red", width);
+                    // 3 level path
+                    pathsByZ[3].push(pathStrToSVGPathClass(`M ${currentQp.pos.x} ${currentQp.pos.y} C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`, `cycle${currentColor}` ));
+                    paths[currentColor][3] += `M ${currentQp.pos.x} ${currentQp.pos.y} C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
+
                     d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
 
-                    this.board.drawCircle(currentQp.cp, 3, "green", 1);
-                    if ( currentQp.id %2 == 0 ){
-                        this.board.drawCircle(currentQp.pos, 3, "blue", 1);
-                    } else {
-                        this.board.drawCircle(currentQp.pos, 3, "red", 1);
-                    }
+                    // this.board.drawCircle(currentQp.cp, 3, "green", 1);
+                    // if ( currentQp.id %2 == 0 ){
+                    //     this.board.drawCircle(currentQp.pos, 3, "blue", 1);
+                    // } else {
+                    //     this.board.drawCircle(currentQp.pos, 3, "red", 1);
+                    // }
 
                     currentQp = nextQp;
                 }
 
                 d += `M ${currentQp.pos.x} ${currentQp.pos.y}`;
                 d += "Z";
-                svgString += pathToSVGPath(d, width, colors[currentColor] );
+                if (crossMode == CrossMode.Cut){
+                    svgString += pathToSVGPath(d, width, colors[currentColor] );
+                }
                 currentColor = (currentColor + 1) % colors.length;
+            }
+        }
+
+        if (crossMode == CrossMode.DoublePath){
+           
+            // for (let i = 0 ; i < pathsByZ.length ; i ++){
+            //     svgString += `<!-- level ${i} -->`;
+            //     for(const path of pathsByZ[i]){
+            //         svgString += path + "\n";
+            //     }
+            // }
+            for (let z = 0 ; z < 4 ; z ++){
+                svgString += `<!-- z-level ${z} -->\n`;
+                if (z == 1){
+                    svgString += pathStrToSVGPathClass(underPath, "crossBorder");
+                }
+                for (let i = 0 ; i < colors.length ; i ++){
+                    svgString += `<!-- path ${i} -->\n`;
+                    svgString += pathStrToSVGPathClass(paths[i][z], `cycle${i}`) + "\n";
+                }
             }
         }
 
@@ -820,341 +932,9 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    /**
-     * OBSOLETE
-     */
-    generateMSStoSVGversion2(ctx: CanvasRenderingContext2D, h: number, h2: number, t: number, adaptToEdgeLength: boolean, ratio: number, durete: number){
-        const quarterPoints = this.getCombinatorialMap(ctx, h, h2, t, adaptToEdgeLength, ratio, durete);
 
-        const width = 3;
 
-        let svgString = "";
 
-        let minx = 0;
-        let miny = 0;
-        let maxx = 600;
-        let maxy = 600;
-
-        svgString += `<?xml version="1.0" standalone="yes"?>
-        <svg
-            width="100%"
-            height="100%"
-            viewBox="${minx} ${miny} ${maxx} ${maxy}"
-            preserveAspectRatio="xMidYMid meet"
-            xmlns="http://www.w3.org/2000/svg"
-            >`;
-        
-        // for (const v of this.vertices.values()){
-        //     svgString += coordToSVGcircle(v.getPos(), 2, "black");
-        // }
-
-
-        // for (const qp of quarterPoints.values()){
-        //     svgString += coordToSVGcircle(qp.pos, 2, "blue");
-        //     svgString += coordToSVGcircle(qp.cp, 2, "green");
-
-        //     svgString +=
-        //       `<text 
-        //       font-size="5px"
-        //       x="${qp.pos.x}" 
-        //       y="${qp.pos.y+7}" 
-        //       text-anchor="middle" 
-        //       alignment-baseline="middle">${qp.id} ${qp.interiorAdj} ${qp.jumpAdj} ${qp.edgeAdj}</text>`;
-        // }
-
-
-
-        const visited = new Set<number>();
-        const colors = ["black", "red", "blue", "green"];
-        let currentColor = 0;
-        
-        for (const qp of quarterPoints.values()){
-            if (visited.has(qp.id) == false){
-                let currentQp = qp;
-                let d = `M ${qp.pos.x} ${qp.pos.y}`;
-                while (visited.has(currentQp.id) == false ){
-
-                    visited.add(currentQp.id);
-
-                    let nextQp = quarterPoints.get(currentQp.edgeAdj);
-                    if (typeof nextQp == "undefined") { throw Error("bug");  };
-                    nextQp = quarterPoints.get(nextQp.jumpAdj);
-                    if (typeof nextQp == "undefined") { throw Error("bug");  };
-                    visited.add(nextQp.id);
-                    if (adaptToEdgeLength){
-                        const edgeDir = Vect.from_coords(currentQp.vertexAdj.getPos(), nextQp.vertexAdj.getPos());
-                        const hh = hFromEdgeLength(edgeDir);
-                        const hh2 = h2FromEdgeLength(edgeDir);
-                        d += curvedStanchionUnder2(currentQp, nextQp, hh, hh2, t);
-                    } else {
-                        if ( currentQp.id %2 == 1){
-                            // this.board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, qp.middleEdgeCP, qp.middleEdgePoint, "gray");
-                            d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
-                            d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${currentQp.middleEdgeCP.x} ${currentQp.middleEdgeCP.y}, ${currentQp.middleEdgePoint.x} ${currentQp.middleEdgePoint.y}`;
-                            d += `M ${nextQp.middleEdgePoint.x} ${nextQp.middleEdgePoint.y}`;
-                            d += `C ${nextQp.middleEdgeCP.x} ${nextQp.middleEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
-                            d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
-                        } else {
-                            // this.board.drawBezierCurve(ctx, qp.quarterEdgePoint, qp.quarterEdgeCP, oppositeQp.quarterEdgeCP, oppositeQp.quarterEdgePoint, "gray");
-                            d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
-                            d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
-                            d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
-                        }
-
-                        // d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;
-                        // d += `L ${nextQp.pos.x} ${nextQp.pos.y}`; // line draw
-                        // d += curvedStanchionUnder2(currentQp, nextQp, h, h2, t);
-                    }
-                    currentQp = nextQp;
-
-                    nextQp = quarterPoints.get(currentQp.interiorAdj);
-                    if (typeof nextQp == "undefined") { throw Error("bug");  };
-                    d += `C ${currentQp.cp.x} ${currentQp.cp.y} ${nextQp.cp.x} ${nextQp.cp.y} ${nextQp.pos.x} ${nextQp.pos.y}`;
-                    currentQp = nextQp;
-                }
-
-                d += `M ${currentQp.pos.x} ${currentQp.pos.y}`;
-                d += "Z";
-                svgString += pathToSVGPath(d, 2, colors[currentColor] );
-                currentColor = (currentColor + 1) % colors.length;
-            }
-        }
-
-        svgString += "</svg>";
-        
-        const a = document.createElement("a");
-        a.href = window.URL.createObjectURL(new Blob([svgString], { type: "text/plain" }));
-        a.download = "moebius_stanchions.svg";
-        a.click();
-    }
-
-
-
-    /**
-     * OBSOLETE
-     */
-    generateMoebiusStanchionsSVG(){
-        const h = 5;
-        const h2 = 20;
-        const t = 0.40;
-        const width = 3;
-
-        //                           vertex      neighbor
-        const angleCWPoints = new Map<number, Map<number, Coord>>();
-        const angleCCWPoints = new Map<number, Map<number, Coord>>();
-
-        // for each vertex, for each neighbor the cp and the anglePoint next
-        const anglePointNext = new Map<number, Map<number, [Coord, Coord]>>();
-
-
-        let svgString = "";
-
-        let minx = 0;
-        let miny = 0;
-        let maxx = 600;
-        let maxy = 600;
-
-        svgString += `<?xml version="1.0" standalone="yes"?>
-        <svg
-            width="100%"
-            height="100%"
-            viewBox="${minx} ${miny} ${maxx} ${maxy}"
-            preserveAspectRatio="xMidYMid meet"
-            xmlns="http://www.w3.org/2000/svg"
-            >`;
-
-        for ( const [vertexId, vertex] of this.vertices){
-            console.log(vertexId);
-            const vAngleCWPoints = new Map();
-            const vAngleCCWPoints = new Map();
-
-
-            svgString += coordToSVGcircle(vertex.getPos(), 3, "black");
-
-            const neighbors = this.getNeighbors(vertex);
-            neighbors.sort((v1, v2) => comparePointsByAngle(vertex.getPos(), v1.getPos(), v2.getPos()));
-            console.log(neighbors);
-            if ( neighbors.length <= 1) continue;
-            for (let i = 0 ; i < neighbors.length; i ++){
-                console.log(neighbors[i].index);
-                const dir = Vect.from_coords(vertex.getPos(), neighbors[i].getPos());
-                
-                const save = dir.y; // rotate clockwise by 1/4 2pi
-                dir.y = dir.x;
-                dir.x = -save;
-                dir.setNorm(h);
-
-                const vshifted = vertex.getPos().copy();
-                vshifted.translate(dir);
-                const nshifted = neighbors[i].getPos().copy();
-                nshifted.translate(dir);
-
-                // svgString += segmentToSVGLine(vshifted, nshifted, "black", 1);
-                // svgString += coordToSVGcircle(vshifted, 2, "red");
-                // svgString += coordToSVGcircle(nshifted, 2, "red");
-
-                const j =  i+1 >= neighbors.length ? 0 : i+1; 
-                const dir2 = Vect.from_coords(vertex.getPos(), neighbors[j].getPos());
-                
-                const save2 = dir2.y; // rotate clockwise by 1/4 2pi
-                dir2.y = -dir2.x;
-                dir2.x = save2;
-                dir2.setNorm(h);
-
-                const vshifted2 = vertex.getPos().copy();
-                vshifted2.translate(dir2);
-                const nshifted2 = neighbors[j].getPos().copy();
-                nshifted2.translate(dir2);
-
-                // svgString += segmentToSVGLine(vshifted2, nshifted2, "black", 1);
-                // svgString += coordToSVGcircle(vshifted2, 2, "blue");
-                // svgString += coordToSVGcircle(nshifted2, 2, "blue");
-
-                const w = linesIntersection(vshifted, nshifted, vshifted2, nshifted2);
-                if (typeof w === "undefined"){
-                    vAngleCWPoints.set(neighbors[i].index, vshifted);
-                    vAngleCCWPoints.set(neighbors[j].index, vshifted2)
-                    continue;
-                } 
-                // svgString += coordToSVGcircle(w, 3, "green");
-
-                const angle = angleAround(vertex.getPos(), neighbors[i].getPos(), neighbors[j].getPos());
-                console.log(vertex.index, neighbors[i].index, neighbors[j].index, angle);
-                if ( -Math.PI < angle && angle < 0){
-                    svgString += `<path d="M ${vshifted.x} ${vshifted.y} C ${w.x} ${w.y}, ${w.x} ${w.y}, ${vshifted2.x} ${vshifted2.y}" stroke="black" fill="none"/>`;
-
-                    vAngleCWPoints.set(neighbors[i].index, vshifted);
-                    vAngleCCWPoints.set(neighbors[j].index, vshifted2)
-                    
-                } else {
-                    const m1 = new Coord(2*w.x - vshifted.x, 2*w.y - vshifted.y);
-                    const m2 = new Coord(2*w.x - vshifted2.x, 2*w.y - vshifted2.y);
-    
-                    svgString += `<path d="M ${m1.x} ${m1.y} C ${w.x} ${w.y}, ${w.x} ${w.y}, ${m2.x} ${m2.y}" stroke="black" fill="none"/>`;
-                
-                    vAngleCWPoints.set(neighbors[i].index, m1);
-                    vAngleCCWPoints.set(neighbors[j].index, m2)
-                }
-
-
-            }
-            angleCWPoints.set(vertex.index, vAngleCWPoints);
-            angleCCWPoints.set(vertex.index, vAngleCCWPoints);
-
-        }
-
-
-
-        for (const link of this.links.values()){
-            
-            const v1 = link.startVertex;
-            const v2 = link.endVertex;
-
-            const middle = v1.getPos().middle(v2.getPos());
-            const dir = Vect.from_coords(v1.getPos(), v2.getPos());
-            dir.rotate(Math.PI/2);
-            dir.setNorm(h);
-            const middleA = middle.copy();
-            middleA.translate(dir);
-            const middleB = middle.copy();
-            middleB.rtranslate(dir);
-
-            const acwp1 = angleCWPoints.get(v1.index);
-            if (typeof acwp1 == "undefined" )  throw Error("bug");
-            const ap1 = acwp1.get(v2.index);
-            if (typeof ap1 == "undefined" )  throw Error("bug");
-
-            const accwp2 = angleCCWPoints.get(v2.index);
-            if (typeof accwp2 == "undefined" )  throw Error("bug");
-            const ap2 = accwp2.get(v1.index);
-            if (typeof ap2 == "undefined" )  throw Error("bug");
-
-            const middle1 = middleA.copy();
-            const middle2 = middleA.copy();
-            const dir1 = Vect.from_coords(ap1, ap2);
-            dir1.setNorm(h2);
-            middle2.translate(dir1)
-            middle1.rtranslate(dir1);
-
-            
-
-            svgString += segmentToSVGLine(ap1, middle1, "black", 1);
-            // svgString += segmentToSVGLine(middle2, ap2, "black", 1);
-
-            const acwp2 = angleCWPoints.get(v2.index);
-            if (typeof acwp2 == "undefined") throw Error("bug");
-            const ap3 = acwp2.get(v1.index);
-            if (typeof ap3 == "undefined") throw Error("bug");
-            const accwp1 = angleCCWPoints.get(v1.index);
-            if (typeof accwp1 == "undefined") throw Error("bug");
-            const ap4 = accwp1.get(v2.index);
-            if (typeof ap4 == "undefined") throw Error("bug");
-
-
-            const middle3 = middleB.copy();
-            const middle4 = middleB.copy();
-            const dir2 = Vect.from_coords(ap3, ap4);
-            dir2.setNorm(h2);
-            middle4.translate(dir2)
-            middle3.rtranslate(dir2);
-
-            svgString += segmentToSVGLine(ap3, middle3, "black", 1);
-            // svgString += segmentToSVGLine(middle4, ap4, "black", 1);
-
-            // First complete branch
-            // svgString += `<path d="M ${middle1.x} ${middle1.y} C ${middleA.x} ${middleA.y}, ${middleB.x} ${middleB.y}, ${middle3.x} ${middle3.y}" stroke="black" fill="none"/>`;
-
-            // Incomplete branch
-            const w1 = bezier_curve_point(t, [middle1, middleA, middleB, middle3]);
-
-            const c1 = middle1.copy();
-            const cd1 = Vect.from_coords(middle1, middleA);
-            cd1.x *= t;
-            cd1.y *= t;
-            c1.translate(cd1);
-
-            const cw1 = w1.copy();
-            const cdw1 = Vect.from_coords(w1, c1);
-            cdw1.setNorm(cd1.norm());
-            cw1.translate(cdw1);
-
-            svgString += `<path d="M ${middle1.x} ${middle1.y} C ${c1.x} ${c1.y}, ${cw1.x} ${cw1.y}, ${w1.x} ${w1.y}" stroke="black" fill="none"/>`;
-
-            // --
-            const w3 = bezier_curve_point(t, [middle3, middleB, middleA, middle1]);
-
-            const c3 = middle3.copy();
-            const cd3 = Vect.from_coords(middle3, middleB);
-            cd3.x *= t;
-            cd3.y *= t;
-            c3.translate(cd3);
-
-            const cw3 = w3.copy();
-            const cdw3 = Vect.from_coords(w3, c3);
-            cdw3.setNorm(cd3.norm());
-            cw3.translate(cdw3);
-
-            svgString += `<path d="M ${middle3.x} ${middle3.y} C ${c3.x} ${c3.y}, ${cw3.x} ${cw3.y}, ${w3.x} ${w3.y}" stroke="black" fill="none"/>`;
-
-            
-            // 2eme branche
-            // ap2 m2 (mA) (mB) m4 ap4
-            let path2 = `M ${ap2.x} ${ap2.y}`;
-            path2 += `L ${middle2.x} ${middle2.y}`;
-            path2 += `C ${middleA.x} ${middleA.y}, ${middleB.x} ${middleB.y}, ${middle4.x} ${middle4.y}`;
-            path2 += `L ${ap4.x} ${ap4.y}`;
-            svgString += pathToSVGPath(path2, 4, "black");
-            // svgString += `<path d="M ${middle2.x} ${middle2.y} C ${middleA.x} ${middleA.y}, ${middleB.x} ${middleB.y}, ${middle4.x} ${middle4.y}" stroke="black" fill="none"/>`;
-
-        }
-
-        svgString += "</svg>";
-        
-        const a = document.createElement("a");
-        a.href = window.URL.createObjectURL(new Blob([svgString], { type: "text/plain" }));
-        a.download = "moebius_stanchions.svg";
-        a.click();
-    }
 
         
 

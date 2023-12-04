@@ -25,6 +25,7 @@ import { setupInteractions } from "./interactors/interactor_manager";
 import { GridType } from "./board/display/grid";
 import { INTERACTOR_TYPE } from "./interactors/interactor";
 import { launchHelpPopUp } from "./actions/help";
+import { CrossMode, TwistMode } from "./board/stanchion";
 
 
 
@@ -61,6 +62,9 @@ function setupClientVersionDiv(){
 
 function setup() {
     const local_board = new ClientBoard();
+
+
+    // setupStanchionDrawer(local_board);
 
     setupClientVersionDiv();
     
@@ -214,6 +218,97 @@ function setup() {
 
     local_board.draw();
 }
+
+
+
+
+
+
+function setupStanchionDrawer(board: ClientBoard){
+
+
+    board.afterVariableChange = () => {
+        const h = board.getVariableValue("h");
+        const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+        const twistValue = board.getVariableValue("twistValue");
+        const durete = board.getVariableValue("durete");
+        const crossRatio = board.getVariableValue("crossRatio");
+        const width = board.getVariableValue("width");
+        const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+        const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+
+        board.draw();
+        if ( typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
+            board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
+        }
+    }
+
+    board.addVariable("h", 0, 20, 50, 0.1, () => {
+        board.afterVariableChange()
+    });
+    board.addVariableBoolean("adaptToEdgeLength", false, () => {
+        board.afterVariableChange()
+    });
+    board.addVariableBoolean("middleOfEdge", false, () => {
+        board.afterVariableChange()
+    });
+    board.addVariable("twistValue", 0, 50, 100, 0.1, () => {
+        board.afterVariableChange()
+    });
+    board.addVariableBoolean("twistRelative", true, () => {
+        board.afterVariableChange()
+    });
+    board.addVariable("durete", 0, 10, 100, 0.1, () => {
+        board.afterVariableChange()
+    });
+    board.addVariable("crossRatio", 0, 0.4, 0.5, 0.01, () => {
+        board.afterVariableChange()
+    });
+    board.addVariable("width", 0, 3, 50, 0.1, () => {
+        board.afterVariableChange();
+    });
+    board.addVariableBoolean("crossModeCut", true, () => {
+        board.afterVariableChange()
+    });
+
+    window.addEventListener('keydown', function (e) {
+        if (e.key == "u"){
+            console.log("generate moebius stanchions SVG");
+            const h = board.getVariableValue("h");
+            const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+            const twistValue = board.getVariableValue("twistValue");
+            const durete = board.getVariableValue("durete");
+            const crossRatio = board.getVariableValue("crossRatio");
+            const width = board.getVariableValue("width");
+            const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+            const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+
+            if (typeof twistValue == "number" && typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean"){
+                board.graph.drawCombinatorialMap("", board.ctx, h,  crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
+            }
+        }
+        if (e.key == "v"){
+            console.log("generate moebius stanchions SVG");
+            const h = board.getVariableValue("h");
+            const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+            const twistValue = board.getVariableValue("twistValue");
+            const durete = board.getVariableValue("durete");
+            const crossRatio = board.getVariableValue("crossRatio");
+            const width = board.getVariableValue("width");
+            const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+            const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+
+            if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
+                // board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
+                board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode)
+            }
+        }
+
+    })
+}
+
+
+
 
 setup()
 

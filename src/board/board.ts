@@ -25,6 +25,7 @@ import { EntireZone } from "../parametors/zone";
 import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
+import { CrossMode, TwistMode } from "./stanchion";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -177,30 +178,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             board.draw();
         })
 
-        // this.addVariable("h", 0, 20, 50, 0.1, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariable("h2", 0, 20, 50, 0.1, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariableBoolean("adaptToEdgeLength", false, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariableBoolean("middleOfEdge", false, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariable("ratio", 0, 0.5, 1, 0.01, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariable("durete", 0, 10, 100, 0.1, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariable("crossRatio", 0, 0.4, 0.5, 0.01, () => {
-        //     this.afterVariableChange()
-        // });
-        // this.addVariable("width", 0, 3, 50, 0.1, () => {
-        //     this.afterVariableChange();
-        // })
 
     }
 
@@ -216,20 +193,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     afterVariableChange(){
-        // const canvas = document.getElementById('main') as HTMLCanvasElement;
-        // const ctx = canvas.getContext('2d');
-        // const h = this.getVariableValue("h");
-        // const h2 = this.getVariableValue("h2");
-        // const adaptToEdgeLength = this.getVariableValue("adaptToEdgeLength");
-        // const ratio = this.getVariableValue("ratio");
-        // const durete = this.getVariableValue("durete");
-        // const crossRatio = this.getVariableValue("crossRatio");
-        // const width = this.getVariableValue("width");
-
-        // this.draw();
-        // if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
-        //     this.graph.drawCombinatorialMap(undefined, this.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
-        // }
     }
 
     addVariable(id: string, min: number, value: number, max: number, step: number, onchangeHandler: () => void ){
@@ -274,14 +237,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         const canvasc2 = this.camera.create_canvas_coord(c2);
         const canvasp2 = this.camera.create_canvas_coord(p2);
         const scaledWidth = width*this.camera.zoom;
-        drawBezierCurve(ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
+        drawBezierCurve(this.ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
     }
 
     drawLine(ctx: CanvasRenderingContext2D, p1: Coord, p2: Coord, color: string, width: number){
         const canvasP1 = this.camera.create_canvas_coord(p1);
         const canvasP2 = this.camera.create_canvas_coord(p2);
         const scaledWidth = width*this.camera.zoom;
-        drawLine(canvasP1, canvasP2, ctx, color, scaledWidth);
+        drawLine(canvasP1, canvasP2, this.ctx, color, scaledWidth);
     }
 
     drawLineUnscaled(p1: Coord, p2: Coord, color: string, width: number){

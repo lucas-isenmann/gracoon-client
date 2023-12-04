@@ -21,7 +21,7 @@ export class VariableBoolean{
 
         // input div
         const input = document.createElement("input");
-        input.classList.add("attr_percentage");
+        // input.classList.add("");
         input.name = this.id;
         input.type = "checkbox";
         input.checked = this.value;

@@ -38,34 +38,7 @@ export function setupInteractions(board: ClientBoard) {
                 board.representations.set(0, dw_rep);
                 requestAnimationFrame(function () { board.draw() });
             }
-            // if (e.key == "u"){
-            //     console.log("generate moebius stanchions SVG");
-            //     const h = board.getVariableValue("h");
-            //     const h2 = board.getVariableValue("h2");
-            //     const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
-            //     const ratio = board.getVariableValue("ratio");
-            //     const durete = board.getVariableValue("durete");
-            //     const crossRatio = board.getVariableValue("crossRatio");
-            //     const width = board.getVariableValue("width");
-
-            //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
-            //         board.graph.drawCombinatorialMap("", board.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width);
-            //     }
-            // }
-            // if (e.key == "v"){
-            //     console.log("generate moebius stanchions SVG");
-            //     const h = board.getVariableValue("h");
-            //     const h2 = board.getVariableValue("h2");
-            //     const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
-            //     const ratio = board.getVariableValue("ratio");
-            //     const durete = board.getVariableValue("durete");
-            //     const crossRatio = board.getVariableValue("crossRatio");
-            //     const width = board.getVariableValue("width");
-            //     if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof h2 == "number" && typeof adaptToEdgeLength == "boolean" && typeof ratio == "number"){
-            //         // board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
-            //         board.graph.drawCombinatorialMap(undefined, board.ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete, width)
-            //     }
-            // }
+            
             
             if (e.key == "Delete") {
                 const data_socket = new Array();

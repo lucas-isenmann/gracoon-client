@@ -29,11 +29,22 @@ export class Grid {
 
         this.polarCenter = new Coord(window.innerWidth/2, window.innerHeight/2);
         console.log(this.polarCenter)
-        this.polarDivision = 10;
+        this.polarDivision = 6;
         this.grid_min_size = 40;
         this.grid_max_size = 100;
         this.grid_initial_size = 70;
         this.grid_size = this.grid_initial_size;
+    }
+
+    get(property: string): Option<string>{
+        if (property == "polarDivision") return this.polarDivision.toString();
+        else return undefined;
+    }
+
+    set(property: string, v: string){
+        if (property == "polarDivision"){
+            this.polarDivision = parseInt(v);
+        }
     }
 
     updateToZoom(newZoom: number){
