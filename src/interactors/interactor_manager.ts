@@ -32,12 +32,12 @@ export function setupInteractions(board: ClientBoard) {
         }
 
         if (document.activeElement != null && document.activeElement.nodeName == "BODY") { // otherwise focus is on a text
-            if (e.key == "d"){
-                console.log("add dw representation");
-                const dw_rep = ClientDegreeWidthRep.from_embedding(board, board.camera);
-                board.representations.set(0, dw_rep);
-                requestAnimationFrame(function () { board.draw() });
-            }
+            // if (e.key == "d"){
+            //     console.log("add dw representation");
+            //     const dw_rep = ClientDegreeWidthRep.from_embedding(board, board.camera);
+            //     board.representations.set(0, dw_rep);
+            //     requestAnimationFrame(function () { board.draw() });
+            // }
             
             
             if (e.key == "Delete") {
@@ -123,6 +123,7 @@ export function setupInteractions(board: ClientBoard) {
         board.alignement_vertical_x = undefined;
         board.requestDraw()
         lastPointedElement = undefined;
+        board.canvas.style.cursor = "default";
     })
 
     board.canvas.addEventListener("mouseout", function(e){
@@ -148,6 +149,20 @@ export function setupInteractions(board: ClientBoard) {
 
         if ( typeof board.graphClipboard != "undefined") {
             board.translateGraphClipboard(previous_canvas_shift, mousePos);
+        }
+        else if (typeof lastPointedElement != "undefined" && lastPointedElement.buttonType == 2){
+            const shift = CanvasVect.from_canvas_coords(lastPointedElement.pointedPos, mousePos);
+            // board.camera.translate_camera(shift.sub(previous_canvas_shift));
+            // board.update_after_camera_change();
+            board.translateCamera(shift.sub(previous_canvas_shift));
+            previous_canvas_shift.set_from(shift);
+            
+            // if(typeof board.selfUser.following != "undefined"){
+            //     board.selfUser.unfollow(board.selfUser.following);
+            // }
+            // socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
+            board.requestDraw();
+            board.canvas.style.cursor = "grab";
         } else if (typeof board.interactorLoaded != "undefined") {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
@@ -189,16 +204,18 @@ export function setupInteractions(board: ClientBoard) {
                 board.clearGraphClipboard();
             }
             board.draw()
-        } else {
-            if (typeof board.interactorLoaded != "undefined"){
-                const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
-                const data = board.get_element_nearby(pointedPos, board.interactorLoaded.interactable_element_type);
-                lastPointedElement = new PointedElementData(pointedPos, e.buttons, data );
-                board.interactorLoaded.mousedown(board, lastPointedElement);
-                board.requestDraw();
-            }
-            
+        } else if (e.buttons == 2){
+            console.log("clic droit");
+            const pointedPos = mousePos.copy();
+            lastPointedElement = new PointedElementData(pointedPos, e.buttons, undefined );
+        } else if (typeof board.interactorLoaded != "undefined"){
+            const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+            const data = board.get_element_nearby(pointedPos, board.interactorLoaded.interactable_element_type);
+            lastPointedElement = new PointedElementData(pointedPos, e.buttons, data );
+            board.interactorLoaded.mousedown(board, lastPointedElement);
+            board.requestDraw();
         }
+            
     })
 
 

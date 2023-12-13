@@ -36,11 +36,9 @@ let lastGenerator: Option<GraphGenerator>;
 
 
 export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoard) {
-    const main_div = createPopup("generators_div", "Generators");
-    const popup_content = document.getElementById("generators_div_content");
-    if (popup_content == null) return;
-    popup_content.style.display = "flex";
-    popup_content.classList.add("scrolling_y","non_scrolling_bar");
+    const [main_div, content] = createPopup("generators_div", "Generators");
+    content.style.display = "flex";
+    content.classList.add("scrolling_y","non_scrolling_bar");
 
     const generators_list_container = document.createElement("div");
     generators_list_container.id = "generators_list_container";
@@ -61,14 +59,14 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
 
     const generators_list = document.createElement("div");
     generators_list.id = "generators_list";
-    popup_content.appendChild(generators_list_container);
+    content.appendChild(generators_list_container);
     generators_list_container.appendChild(generators_list);
     
      
     const generator_activated_div = document.createElement("div");
     generator_activated_div.id = "generator_configuration";
     generator_activated_div.classList.add("non_scrolling_bar", "scrolling_y");
-    popup_content.appendChild(generator_activated_div);
+    content.appendChild(generator_activated_div);
     const generator_activated_container_div = document.createElement("div");
     generator_activated_div.appendChild(generator_activated_container_div);
 
@@ -93,7 +91,7 @@ function turn_off_generators_div() {
 export function turn_on_generators_div() {
     const div =  document.getElementById("generators_div");
     if (div == null) return;
-    div.style.display = "flex";
+    div.style.display = "block";
 }
 
 function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, board: ClientBoard) {

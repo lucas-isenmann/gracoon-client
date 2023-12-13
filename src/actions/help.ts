@@ -8,10 +8,8 @@ export function launchHelpPopUp(){
         div1.style.display = "block";
         return;
     } 
-    const div = createPopup("help", `<img src="${svgIcons["help"]}" class="help" /> Gracoon: Graph Collaborating Online`);
+    const [div, content] = createPopup("help", `<img src="${svgIcons["help"]}" class="help" /> Gracoon: Graph Collaborating Online`);
     div.style.display = "block";
-    const content = document.getElementById("help_content");
-    if (content == null) return;
 
     const text = `
 **Gracoon** aims to become a tool for collaborating online on graph theoretical problems.

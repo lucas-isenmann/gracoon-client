@@ -15,6 +15,7 @@ import { ClientVertex } from "../../board/vertex";
 import { ClientArea } from "../../board/area";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
+import { ClientRectangle } from "../../board/rectangle";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -150,14 +151,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 rectSelectC2 = e; // peut etre faut copier
             } else {
                 const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                board.camera.translate_camera(shift.sub(previous_canvas_shift));
+                board.translateCamera(shift.sub(previous_canvas_shift));
                 previous_canvas_shift.set_from(shift);
-                board.update_after_camera_change();
-                
-                if(typeof board.selfUser.following != "undefined"){
-                    board.selfUser.unfollow(board.selfUser.following);
-                }
-                socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
             }
             return true;
         }
@@ -333,14 +328,18 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         else if ( pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             if (typeof pointed.data.resizeType != "undefined"){
                 const esc  = board.camera.create_server_coord(e);
-
                 board.emit_resize_element(pointed.data.element.getType(), pointed.data.index, esc, pointed.data.resizeType);
             }
             else if ( pointed.data.element instanceof ClientArea ){
-                const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.camera.server_vect(canvas_shift);
-                board.translate_area(canvas_shift.opposite(), pointed.data.element, vertices_contained);
+                const canvasShift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
+                const shift = board.camera.server_vect(canvasShift);
+                board.translate_area(canvasShift.opposite(), pointed.data.element, vertices_contained);
                 board.emit_translate_elements([[BoardElementType.Area, pointed.data.index]], shift);
+            } else if (pointed.data.element instanceof ClientRectangle){
+                const canvasShift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
+                const shift = board.camera.server_vect(canvasShift);
+                translate_by_canvas_vect(pointed.data.element, canvasShift.opposite(), board.camera);
+                board.emit_translate_elements([[BoardElementType.Rectangle, pointed.data.index]], shift);
             }
             
         } 

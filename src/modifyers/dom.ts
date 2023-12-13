@@ -15,7 +15,7 @@ const intoTournament = new GraphModifyer(
 const removeRandomLinks = new GraphModifyer(
     "removeRandomLinks",
     "Remove random links",
-    `For every link, remove it with a certain probability.`,
+    `For every link (edge or arc), remove it with a certain probability.`,
         [new AreaIndex("area"), new Percentage("p")]);
 
 
@@ -29,16 +29,14 @@ const modifyers_available = new Array<GraphModifyer>(
 
 
 export function setup_modifyers_div(board: ClientBoard) {
-    createPopup("modifyers_div", "Modifyers");
-    const popup_content = document.getElementById("modifyers_div_content");
-    if (popup_content == null) return;
-    popup_content.style.display = "flex";
-    popup_content.classList.add("scrolling_y","non_scrolling_bar");
+    const [div, content] = createPopup("modifyers_div", "Modifyers");
+    content.style.display = "flex";
+    content.classList.add("scrolling_y","non_scrolling_bar");
 
     // List of the modifyers on the left
     const modifyers_list = document.createElement("div");
     modifyers_list.id = "modifyers_list";
-    popup_content.appendChild(modifyers_list);
+    content.appendChild(modifyers_list);
     
     // Search input
     const search_input = document.createElement("input");
@@ -52,7 +50,7 @@ export function setup_modifyers_div(board: ClientBoard) {
 
     const modifyer_activated_div = document.createElement("div");
     modifyer_activated_div.id = "modifyer_configuration";
-    popup_content.appendChild(modifyer_activated_div);
+    content.appendChild(modifyer_activated_div);
 
     // create list of modifyers
     for (const mod of modifyers_available) {

@@ -820,13 +820,47 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
 })
 
 
+export const paramVertexCover = new Parametor("Vertex cover number", "vertexCoverNumber", "VC", "Vertex cover number", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramVertexCover.compute = ((g: ClientGraph) => {
+    return g.vertex_cover_number().toString();
+})
 
 
+export const paramCliqueNumber = new Parametor("Clique number", "cliqueNumber", "w", "Clique number", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramCliqueNumber.compute = ((g: ClientGraph) => {
+    return g.clique_number().toString();
+})
 
 
+export const paramChromaticNumber = new Parametor("Chromatic number", "chromaticNumber", "χ", "Chromatic number", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramChromaticNumber.compute = ((g: ClientGraph) => {
+    return g.chromatic_number().toString();
+})
 
 
-export const paramGeomChromaticIndex = new Parametor("Geometric chromatic index", "paramGCI", "gci", "Geometric chromatic index", false, false, [SENSIBILITY.ELEMENT], false);
+export const paramChromaticIndex = new Parametor("Chromatic index", "chromaticIndex", "χ'", "Chromatic index", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramChromaticIndex.compute = ((g: ClientGraph) => {
+    const cliques = new Set<Set<number>>();
+    for (const i of g.vertices.keys()){
+        const clique = new Set<number>();
+        for (const link of g.links.values()){
+            if (link.startVertex.index == i || link.endVertex.index == i){
+                clique.add(link.index);
+            }
+        }
+        cliques.add(clique);
+    }
+
+    const glg = AbstractGraph.lineGraph(g);
+    return glg.chromatic_number(cliques).toString();
+})
+
+
+export const paramGeomChromaticIndex = new Parametor("Geometric chromatic index", "paramGCI", "gci", "Geometric chromatic index", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
 paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
 

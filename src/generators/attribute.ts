@@ -82,22 +82,25 @@ export class Percentage {
         new_input.max = "100";
         new_input.step = "0.1";
         new_input.value = String(this.value*100);
-
-        new_input.oninput = (e) => {
-            this.value = parseFloat((parseFloat(new_input.value)/100).toFixed(4));
-            const current_value_span = document.getElementById(this.name+"_current_value");
-            if(current_value_span){
-                current_value_span.innerText = String(this.value);
-            }
-        }
-
         this.div.appendChild(new_input);
-        
+
         const current_value = document.createElement("span");
         current_value.id = name+"_current_value";
         current_value.classList.add("attribute_range_current_value");
         current_value.innerText=String(this.value);
         this.div.appendChild(current_value);
+
+        new_input.oninput = (e) => {
+            this.value = parseFloat((parseFloat(new_input.value)/100).toFixed(4));
+            // const current_value_span = document.getElementById(this.name+"_current_value");
+            // if(current_value_span){
+                current_value.innerText = String(this.value);
+            // }
+        }
+
+        
+        
+        
     }
 
     reset_inputs(board: ClientBoard){

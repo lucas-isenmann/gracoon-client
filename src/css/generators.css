@@ -5,7 +5,8 @@
 }
 
 #generators_list_container {
-    background-color: #898989;
+    /* background-color: #898989; */
+    background-color: rgb(54, 54, 54);
     width: 50%;
     border-radius: 5px 0 0 5px;
     display: flex;
@@ -30,7 +31,6 @@
     width: 50%;
     padding: 20px;
     border-left: 1px solid rgb(107, 107, 107);
-    ;
     overflow: scroll;
     border-radius: 0 5px 5px 0;
     display: flex;
@@ -70,7 +70,7 @@
     color: white;
     width: 80%;
     padding: 12px 20px 12px 40px;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     margin-bottom: 12px;
     /* transition: 200ms; */
     display: flex;

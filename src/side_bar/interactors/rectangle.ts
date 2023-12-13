@@ -1,4 +1,4 @@
-import { Coord, Option } from "gramoloss";
+import { Coord, Option, Rectangle } from "gramoloss";
 import { ClientRectangle } from "../../board/rectangle";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { INTERACTOR_TYPE } from "../../interactors/interactor";
@@ -37,10 +37,9 @@ export function createRectangleInteractor(board: ClientBoard){
             
             currentRectangle.c1 = board.camera.create_server_coord(currentRectangle.canvas_corner_top_left); 
             currentRectangle.c2 = board.camera.create_server_coord(currentRectangle.canvas_corner_bottom_right); 
+            board.emit_add_element(new Rectangle(currentRectangle.c1, currentRectangle.c2, currentRectangle.color, board.get_next_available_index_rectangle()), () =>{});
             currentRectangle = undefined;
             firstCorner = undefined;
-    
-            //TODO: emit server
         }
     })
     

@@ -30,7 +30,7 @@ import { CrossMode, TwistMode } from "./board/stanchion";
 
 
     function loadFile() {
-        const popUpDiv = createPopup("loadFilePopUp", "Load file");
+        const [popUpDiv, content] = createPopup("loadFilePopUp", "Load file");
         popUpDiv.style.display = "block";
 
         const fileInput: HTMLInputElement = document.createElement("input");
@@ -73,8 +73,8 @@ function setup() {
 
     setupHandlers(localBoard);
 
-    localBoard.ctx.canvas.width = window.innerWidth;
-    localBoard.ctx.canvas.height = window.innerHeight;
+    localBoard.canvas.width = window.innerWidth;
+    localBoard.canvas.height = window.innerHeight;
     window.addEventListener('resize', function () { 
         localBoard.resizeCanvas(); 
     }, false);

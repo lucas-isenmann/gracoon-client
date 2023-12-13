@@ -1,4 +1,4 @@
-import { Area, Board, Coord, GeneratorId, Option, TextZone, Vect } from "gramoloss";
+import { Area, Board, Coord, GeneratorId, Option, Rectangle, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -403,6 +403,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 return true;
             }
         }
+        for(const [index,rectangle] of this.rectangles.entries()){
+            if( is_click_over(rectangle, e) ){
+                this.emit_delete_elements([[BoardElementType.Rectangle, index]]);
+                return true;
+            }
+        }
         return false;
     }
 
@@ -419,6 +425,16 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             text_zone.div.remove();
         }
         this.text_zones.clear();
+        this.rectangles.clear();
+    }
+
+    translateCamera(shift: CanvasVect){
+        this.camera.translate_camera(shift);
+        this.update_after_camera_change();
+        if(typeof this.selfUser.following != "undefined"){
+            this.selfUser.unfollow(this.selfUser.following);
+        }
+        socket.emit("my_view", this.camera.camera.x, this.camera.camera.y, this.camera.zoom);
     }
 
     update_after_camera_change(){
@@ -728,7 +744,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone, callback: (response: number) => void  ){
+    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | Rectangle, callback: (response: number) => void  ){
+        if (element instanceof Rectangle){
+            socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.c1, c2: element.c2, color: element.color}, callback);
+        }
         switch(element.constructor){
             case ClientVertexData: {
                 const vertexData = element as ClientVertexData;

@@ -5,7 +5,7 @@ import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { get_sensibilities, SENSIBILITY } from "./parametors/parametor";
 import { ClientVertexData } from "./board/vertex";
-import { Coord, ORIENTATION, Vect } from "gramoloss";
+import { Coord, ORIENTATION, Rectangle, Vect } from "gramoloss";
 import { ClientLinkData } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
 import { ClientBoard } from "./board/board";
@@ -15,6 +15,8 @@ import ENV from './.env.json';
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
+import { ClientRectangle } from "./board/rectangle";
+import { translate_by_canvas_vect } from "./board/resizable";
 
 const port = ENV.port;
 const adress = "http://" + ENV.serverAdress + ":" + port;
@@ -177,7 +179,12 @@ export function setupHandlers(board: ClientBoard) {
         const shift = new Vect(data.shift.x, data.shift.y);
         const cshift = board.camera.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
-            if ( kind == "TextZone"){
+            if (kind == "Rectangle"){
+                const rectangle = board.rectangles.get(index);
+                if (typeof rectangle != "undefined"){
+                    translate_by_canvas_vect(rectangle, cshift, board.camera);
+                }
+            } else if ( kind == "TextZone"){
                 const text_zone = board.text_zones.get(index);
                 if (typeof text_zone != "undefined") {
                     text_zone.translate(cshift, board.camera);
@@ -228,7 +235,13 @@ export function setupHandlers(board: ClientBoard) {
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
         // console.log("handleAddElements", datas);
         for(const data of datas){
-            if (data.kind == "Stroke"){
+            if (data.kind == "Rectangle"){
+                const c1 = new Coord(data.element.c1.x, data.element.c1.y);
+                const c2 = new Coord(data.element.c2.x,data.element.c2.y);
+                const color = data.element.color as Color;
+                const rectangle = new ClientRectangle(c1, c2, color, board, data.element.index);
+                board.rectangles.set(data.element.index, rectangle);
+            } else if (data.kind == "Stroke"){
                 const positions = new Array<Coord>();
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
@@ -278,10 +291,12 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
-        console.log("handleDeleteElements", data);
+        // console.log("handleDeleteElements", data);
         for ( const [kind, index] of data){
-            console.log(kind, index);
-            if ( kind == "Stroke"){
+            // console.log(kind, index);
+            if (kind == "Rectangle"){
+                board.rectangles.delete(index);
+            } else if ( kind == "Stroke"){
                 board.strokes.delete(index);
             } else if (kind == "TextZone"){
                 const textZone = board.text_zones.get(index);
@@ -381,13 +396,27 @@ export function setupHandlers(board: ClientBoard) {
                 area.c2 = new_c2;
                 area.update_canvas_pos(board.camera);
             }
+        } else if (data.kind == "Rectangle"){
+            const rectangle = board.rectangles.get(data.index);
+            if (typeof rectangle == "undefined") return;
+            if(data.param == "c1"){
+                const new_c1 = new Coord(data.value.x , data.value.y);
+                rectangle.c1 = new_c1;
+                rectangle.update_after_camera_change(board.camera);
+            } else if(data.param == "c2"){
+                const new_c2 = new Coord(data.value.x , data.value.y);
+                rectangle.c2 = new_c2;
+                rectangle.update_after_camera_change(board.camera);
+            } else if (data.param == "color"){
+                rectangle.color = data.value as Color;
+            }
         } else {
             console.log("Kind not supported :", data.kind);
         }
         board.requestDraw();
     }
 
-    function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]]){
+    function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
         // console.log("handle reset board");
         board.clear();
         for (const data of rawTextZones) {
@@ -396,6 +425,13 @@ export function setupHandlers(board: ClientBoard) {
             const text = data[1].text as string;
             const text_zone = new ClientTextZone(pos, width, text, board, data[0] )
             board.text_zones.set(data[0], text_zone);
+        }
+
+        for (const rectangle of rawRectangles){
+            const c1 = new Coord(rectangle.c1.x, rectangle.c1.y);
+            const c2 = new Coord(rectangle.c2.x, rectangle.c2.y);
+            const color = rectangle.color as Color;
+            board.rectangles.set(rectangle.index, new ClientRectangle(c1, c2, color, board, rectangle.index));
         }
 
         board.requestDraw();

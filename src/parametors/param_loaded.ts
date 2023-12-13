@@ -142,7 +142,7 @@ export class ParametorLoaded {
                 } else {
                     console.log("send get-parameter-info", this.parametor.id);
                     board.emitGetParameterInfo(this.parametor.id, (response: string) => {
-                        const div = createPopup("parameter-info-" + this.id, this.parametor.name);
+                        const [div, content] = createPopup("parameter-info-" + this.id, this.parametor.name);
                         div.style.display = "block";
                         const popup_content = document.getElementById(div.id + "_content");
                         if (popup_content){

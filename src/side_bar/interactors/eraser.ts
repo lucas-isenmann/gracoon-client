@@ -14,7 +14,7 @@ export class EraserInteractor extends PreInteractor {
 
     constructor(board: ClientBoard)
     {
-        super(INTERACTOR_TYPE.ERASER, "Erase objects", "r", "eraser", 'url("../img/cursors/eraser.svg"), auto', new Set([DOWN_TYPE.STROKE]));
+        super(INTERACTOR_TYPE.ERASER, "Erase objects", "r", "eraser", 'url("../img/cursors/eraser.svg"), auto', new Set([DOWN_TYPE.STROKE, DOWN_TYPE.RECTANGLE]));
         this.isErasing = false;
         this.ERASE_DISTANCE = 8;
 

@@ -3,14 +3,14 @@ import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { Color, colorsData, getCanvasColor } from "../../board/display/colors_v2";
-import { ELEMENT_DATA_LINK, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
+import { ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
 
 
 
 export function createColorInteractor(board: ClientBoard): PreInteractor{
 
-    const color_interactorV2 = new PreInteractor(INTERACTOR_TYPE.COLOR, "Edit colors", "c", "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE]));
+    const color_interactorV2 = new PreInteractor(INTERACTOR_TYPE.COLOR, "Edit colors", "c", "color", 'url("../img/cursors/color.svg"), auto', new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.RECTANGLE]));
     
     // Local variables
     const colors_available = new Array<Color>();
@@ -87,6 +87,10 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
             if ( pointed.data.element.color != board.colorSelected){
                 board.emit_update_element( BoardElementType.Stroke, pointed.data.index, "color", board.colorSelected);
             }
+        } else if (pointed.data instanceof ELEMENT_DATA_RECTANGLE){
+            if ( pointed.data.element.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Rectangle, pointed.data.index, "color", board.colorSelected);
+            }
         }
     })
     
@@ -111,6 +115,10 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
         else if (elt instanceof ELEMENT_DATA_STROKE ){
             if ( elt.element.color != board.colorSelected){
                 board.emit_update_element( BoardElementType.Stroke, elt.index, "color", board.colorSelected);
+            }
+        } else if (elt instanceof ELEMENT_DATA_RECTANGLE){
+            if ( elt.element.color != board.colorSelected){
+                board.emit_update_element( BoardElementType.Rectangle, elt.index, "color", board.colorSelected);
             }
         }
         return false;
