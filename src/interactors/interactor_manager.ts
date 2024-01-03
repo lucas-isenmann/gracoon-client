@@ -53,7 +53,7 @@ export function setupInteractions(board: ClientBoard) {
                     }
                 })
                 board.strokes.forEach((s, index) => {
-                    if (s.is_selected) {
+                    if (s.isSelected) {
                         data_socket.push([BoardElementType.Stroke, index]);
                     }
                 })
@@ -62,10 +62,13 @@ export function setupInteractions(board: ClientBoard) {
                 return;
             }
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
-                const subgraph = board.graph.get_induced_subgraph_from_selection(board.camera);
-                if ( subgraph.vertices.size > 0 && typeof mousePos != "undefined"){
-                    board.setGraphClipboard(subgraph, mousePos.copy(), false);
+                if (typeof mousePos != "undefined"){
+                    board.copySelectedElements(mousePos.copy());
                 }
+                // const subgraph = board.graph.get_induced_subgraph_from_selection(board.camera);
+                // if ( subgraph.vertices.size > 0 && typeof mousePos != "undefined"){
+                //     board.setGraphClipboard(subgraph, mousePos.copy(), false);
+                // }
                 return;
             }
             if (board.keyPressed.has("Control") && e.key.toLowerCase() == "z") {
@@ -147,10 +150,14 @@ export function setupInteractions(board: ClientBoard) {
             requestAnimationFrame(() => board.draw() );
         }
 
-        if ( typeof board.graphClipboard != "undefined") {
-            board.translateGraphClipboard(previous_canvas_shift, mousePos);
-        }
-        else if (typeof lastPointedElement != "undefined" && lastPointedElement.buttonType == 2){
+        board.translateClipboard(previous_canvas_shift, mousePos);
+
+
+        // if ( typeof board.graphClipboard != "undefined") {
+        //     board.translateGraphClipboard(previous_canvas_shift, mousePos);
+        // }
+        // else 
+        if (typeof lastPointedElement != "undefined" && lastPointedElement.buttonType == 2){
             const shift = CanvasVect.from_canvas_coords(lastPointedElement.pointedPos, mousePos);
             // board.camera.translate_camera(shift.sub(previous_canvas_shift));
             // board.update_after_camera_change();
@@ -194,17 +201,27 @@ export function setupInteractions(board: ClientBoard) {
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
 
-        if (typeof board.graphClipboard != "undefined") {
-            board.pasteGeneratedGraph();
-            if( board.keyPressed.has("Control") ){
-                if (board.isGraphClipboardGenerated){
-                    regenerate_graph(e, board);
-                }                    
+        if (board.clipboard.length > 0){
+            board.sendRequestPasteClipboard();
+            if( board.keyPressed.has("Control") == false ){
+                board.clearClipboard();
             } else {
-                board.clearGraphClipboard();
+                board.clipboardInitPos = mousePos.copy();
             }
-            board.draw()
-        } else if (e.buttons == 2){
+            board.draw();
+        }
+        // else if (typeof board.graphClipboard != "undefined") {
+        //     board.pasteGeneratedGraph();
+        //     if( board.keyPressed.has("Control") ){
+        //         if (board.isGraphClipboardGenerated){
+        //             regenerate_graph(e, board);
+        //         }                    
+        //     } else {
+        //         board.clearGraphClipboard();
+        //     }
+        //     board.draw()
+        // } 
+        else if (e.buttons == 2){
             console.log("clic droit");
             const pointedPos = mousePos.copy();
             lastPointedElement = new PointedElementData(pointedPos, e.buttons, undefined );

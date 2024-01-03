@@ -1,5 +1,5 @@
 import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
-import { ClientBoard } from "./board";
+import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData } from "./vertex";
@@ -7,6 +7,8 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { rgbTikzFromHexaColor } from "../tikz";
+import { drawCircle, drawHead } from "./display/draw_basics";
+import { DOWN_TYPE } from "../interactors/interactor";
 
 
 export class LinkPreData extends BasicLinkData {
@@ -184,5 +186,65 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         }
     }
 
+
+    draw(board: ClientBoard){
+        const u = this.startVertex;
+        const v = this.endVertex;
+
+        const posu = u.data.canvas_pos; 
+        const posv = v.data.canvas_pos; 
+        const poscp = this.data.cp_canvas_pos;
+        const color = getCanvasColor(this.data.color, this.board.isDarkMode());
+
+        const isMouseOver = (this.board.elementOver instanceof ClientLink && this.board.elementOver.index == this.index);
+
+        if (this.data.is_selected || isMouseOver) {
+            board.ctx.strokeStyle = color;
+            if (isMouseOver){
+                board.ctx.globalAlpha = 0.5;
+            }
+            board.ctx.beginPath();
+            board.ctx.moveTo(posu.x, posu.y);
+            board.ctx.lineWidth = 8;
+            if (isMouseOver){
+                board.ctx.lineWidth = 12;
+            }
+
+            if ( typeof poscp == "string"){
+                board.ctx.lineTo(posv.x, posv.y);
+            }else {
+                board.ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
+                //board.ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
+            }
+            board.ctx.stroke();
+            board.ctx.globalAlpha = 1;
+        }
+
+        board.ctx.beginPath();
+        board.ctx.moveTo(posu.x, posu.y);
+        board.ctx.strokeStyle = color;
+        board.ctx.lineWidth = 3;
+        if ( typeof poscp == "string"){
+            board.ctx.lineTo(posv.x, posv.y);
+        }else {
+            board.ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
+            //board.ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
+        }
+        board.ctx.stroke();
+
+        
+    if (typeof poscp != "string"){
+            if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
+                drawCircle(poscp, "grey", 4, 1, board.ctx);
+            }
+        }
+        if (this.orientation == ORIENTATION.DIRECTED) {
+            let cp = posu.middle(posv);
+            if (typeof poscp != "string"){
+                cp = poscp
+            }
+            drawHead(board.ctx, cp, posv, (this.board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS  );
+        }
+    }
 
 }

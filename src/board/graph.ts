@@ -84,63 +84,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
      */
     drawLinks(ctx: CanvasRenderingContext2D) {
         for (const link of this.links.values()) {
-            const u = link.startVertex;
-            const v = link.endVertex;
-
-            const posu = u.data.canvas_pos; 
-            const posv = v.data.canvas_pos; 
-            const poscp = link.data.cp_canvas_pos;
-            const color = getCanvasColor(link.data.color, this.board.isDarkMode());
-
-            const isMouseOver = (this.board.elementOver instanceof ClientLink && this.board.elementOver.index == link.index);
-
-            if (link.data.is_selected || isMouseOver) {
-                ctx.strokeStyle = color;
-                if (isMouseOver){
-                    ctx.globalAlpha = 0.5;
-                }
-                ctx.beginPath();
-                ctx.moveTo(posu.x, posu.y);
-                ctx.lineWidth = 8;
-                if (isMouseOver){
-                    ctx.lineWidth = 12;
-                }
-
-                if ( typeof poscp == "string"){
-                    ctx.lineTo(posv.x, posv.y);
-                }else {
-                    ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
-                    //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
-                }
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(posu.x, posu.y);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            if ( typeof poscp == "string"){
-                ctx.lineTo(posv.x, posv.y);
-            }else {
-                ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
-                //ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
-            }
-            ctx.stroke();
-
-            
-        if (typeof poscp != "string"){
-                if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
-                    drawCircle(poscp, "grey", 4, 1, ctx);
-                }
-            }
-            if (link.orientation == ORIENTATION.DIRECTED) {
-                let cp = posu.middle(posv);
-                if (typeof poscp != "string"){
-                    cp = poscp
-                }
-                drawHead(ctx, cp, posv, (this.board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS  );
-            }
+            link.draw(this.board);
         }
     }
 

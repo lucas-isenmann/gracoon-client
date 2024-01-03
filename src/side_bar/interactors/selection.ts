@@ -126,7 +126,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                     indices.push([BoardElementType.Vertex, index]);
                 }
                 for (const [stroke_index, stroke] of board.strokes.entries()){
-                    if (stroke.is_selected){
+                    if (stroke.isSelected){
                         indices.push([BoardElementType.Stroke, stroke_index]);
                     }
                 }
@@ -161,14 +161,14 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
             const mini_shift = shift.sub(previous_canvas_shift);
 
-            if (stroke.is_selected){
+            if (stroke.isSelected){
                 for (const vertex of board.graph.vertices.values()){
                     if (vertex.data.is_selected){
                         vertex.translate_by_canvas_vect(mini_shift, board.camera);
                     }
                 }
                 for (const other_stroke of board.strokes.values()){
-                    if (other_stroke.is_selected){
+                    if (other_stroke.isSelected){
                         other_stroke.translate_by_canvas_vect(mini_shift, board.camera);
                     }
                 }
@@ -276,25 +276,12 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }
         else if ( pointed.data instanceof ELEMENT_DATA_STROKE ) {
             if (hasMoved === false) {
-                if (pointed.data.element.is_selected) {
-                    if (board.keyPressed.has("Control")) { 
-                        pointed.data.element.is_selected = false;
-                    }
-                }
-                else {
-                    if (board.keyPressed.has("Control")) { 
-                        pointed.data.element.is_selected = true;
-                    }
-                    else {
-                        board.clear_all_selections();
-                        pointed.data.element.is_selected = true;
-                    }
-                }
+                board.selectElement(pointed.data.element);
             } else {
                 let indices = new Array<[BoardElementType,number]>();
                 let elements_to_translate = new Array();
                 
-                if (pointed.data.element.is_selected) {
+                if (pointed.data.element.isSelected) {
                     for (const [vertex_index, vertex] of board.graph.vertices.entries()){
                         if (vertex.data.is_selected){
                             indices.push([BoardElementType.Vertex, vertex_index]);
@@ -302,7 +289,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                         }
                     }
                     for (const [stroke_index, stroke] of board.strokes.entries()){
-                        if (stroke.is_selected){
+                        if (stroke.isSelected){
                             indices.push([BoardElementType.Stroke, stroke_index]);
                             elements_to_translate.push(stroke);
                         }
@@ -326,6 +313,12 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             pointed.data.element.onmouseup(board.camera);
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
+            if (hasMoved === false) {
+                if (pointed.data.element instanceof ClientRectangle){
+                    board.selectElement(pointed.data.element);
+                }
+            }
+            
             if (typeof pointed.data.resizeType != "undefined"){
                 const esc  = board.camera.create_server_coord(e);
                 board.emit_resize_element(pointed.data.element.getType(), pointed.data.index, esc, pointed.data.resizeType);

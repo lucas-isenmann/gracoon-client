@@ -105,6 +105,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     graphClipboard: Option<ClientGraph>;
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
+    clipboard: Array<ClientVertex | ClientLink | ClientStroke | ClientRectangle>;
 
     otherUsers: Map<string, User>;
 
@@ -133,6 +134,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.interactorLoadedId = undefined;
         this.isGraphClipboardGenerated = false;  
         this.agregId = makeid(5);    
+        this.clipboard = new Array();
         
         // Display parameters
         this.indexType = INDEX_TYPE.NONE;
@@ -179,6 +181,157 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         })
 
 
+    }
+
+    copySelectedElements(mousePos: CanvasCoord){
+        this.clearClipboard();
+        this.clipboardInitPos = mousePos;
+        this.canvas.style.cursor = "grab";
+
+        // TODO generalize to elements of board
+
+        // Vertices
+        const newVertices = new Map();
+        for (const [index, v] of this.graph.vertices.entries()) {
+            if (v.data.is_selected){
+                const data = new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, this.camera, v.data.color);
+                const newVertex = new ClientVertex(index, data, this);
+                this.clipboard.push(newVertex);
+                newVertices.set(newVertex.index, newVertex);
+            }
+        }
+
+        // Links
+        for (const [index, link] of this.graph.links.entries()){
+            if (link.data.is_selected){
+                const cp = (typeof link.data.cp == "undefined") ? undefined : link.data.cp.copy();
+                const data = new ClientLinkData(cp, link.data.color, link.data.weight, this.camera);
+                const startVertex = newVertices.get(link.startVertex.index);
+                const endVertex = newVertices.get(link.endVertex.index);
+                if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
+                const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
+                this.clipboard.push(newLink);
+            }
+        }
+
+        // Strokes
+        for (const [index, stroke] of this.strokes.entries()){
+            if (stroke.isSelected){
+                const positionsCopied = new Array();
+                for (const pos of stroke.positions){
+                    positionsCopied.push(pos.copy());
+                }
+                const newStroke = new ClientStroke(positionsCopied, stroke.color, stroke.width, this.camera, index);
+                this.clipboard.push(newStroke);
+            }
+        }
+
+        // Rectangles
+        for (const [index, rectangle] of this.rectangles.entries()){
+            if (rectangle.isSelected){
+                console.log("rectnagle", index);
+                const newRectangle = new ClientRectangle(rectangle.c1.copy(), rectangle.c2.copy(), rectangle.color, this, rectangle.index);
+                this.clipboard.push(newRectangle);
+            }
+        }
+    }
+
+    clearClipboard(){
+        this.clipboard.splice(0,this.clipboard.length);
+        this.clipboardInitPos = undefined;
+        this.canvas.style.cursor = "default";
+    }
+
+    translateClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
+        if (this.clipboard.length == 0) return;
+        if (typeof this.clipboardInitPos == "undefined") return;
+        const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
+        const cShift = shift.sub(previousCanvasShift);
+        for (const element of this.clipboard){
+            if (element instanceof ClientStroke || element instanceof ClientVertex){
+                element.translate_by_canvas_vect( cShift , this.camera);
+            } else if (element instanceof ClientLink){
+                element.translate_cp_by_canvas_vect(cShift, this.camera);
+            } if (element instanceof ClientRectangle){
+                translate_by_canvas_vect(element, cShift, this.camera);
+            }
+        }
+
+        previousCanvasShift.set_from(shift);
+        this.draw()
+    }
+
+
+    drawClipboard(){
+        for (const element of this.clipboard){
+            element.draw(this);
+        }
+    }
+
+    sendRequestPasteClipboard(){
+        const data = new Array();
+
+        for (const element of this.clipboard){
+            if (element instanceof ClientVertex){
+                data.push( {
+                    type: "Vertex",
+                    index: element.index, 
+                    x: element.data.pos.x, 
+                    y: element.data.pos.y, 
+                    color: element.data.color, 
+                    weight: element.data.weight
+                })
+            } else if (element instanceof ClientLink){
+                data.push( {
+                    type: "Link",
+                    index: element.index, 
+                    startIndex: element.startVertex.index, 
+                    endIndex: element.endVertex.index,
+                    orientation: element.orientation,
+                    color: element.data.color,
+                    weight: element.data.weight,
+                    cp: element.data.cp
+                })
+            } else if (element instanceof ClientStroke){
+                data.push({
+                    type: "Stroke",
+                    index: element.index,
+                    color: element.color,
+                    width: element.width,
+                    positions: element.positions
+                })
+            } else if (element instanceof ClientRectangle){
+                data.push({
+                    type: "Rectangle",
+                    index: element.index,
+                    color: element.color,
+                    x1: element.c1.x,
+                    x2: element.c2.x,
+                    y1: element.c1.y,
+                    y2: element.c2.y
+                })
+            }
+        }
+        
+        socket.emit(SocketMsgType.PASTE_GRAPH, data);
+    }
+
+
+    selectElement(element: ClientRectangle | ClientStroke){
+        if (element.isSelected) {
+            if (this.keyPressed.has("Control")) { 
+                element.isSelected = false;
+            }
+        }
+        else {
+            if (this.keyPressed.has("Control")) { 
+                element.isSelected = true;
+            }
+            else {
+                this.clear_all_selections();
+                element.isSelected = true;
+            }
+        }
     }
 
     setIndexType(newIndexType: INDEX_TYPE){
@@ -340,6 +493,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         if (typeof this.graphClipboard != "undefined"){
             this.graphClipboard.draw();
         }
+        this.drawClipboard();
         // console.timeEnd("draw");
     }
 
@@ -470,7 +624,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         for (const stroke of this.strokes.values()){
             if (stroke.is_in_rect(corner1,corner2)){
-                stroke.is_selected = true;   
+                stroke.isSelected = true;   
+            }
+        }
+        for (const rectangle of this.rectangles.values()){
+            if (rectangle.isInRect(corner1, corner2)){
+                rectangle.isSelected = true;
             }
         }
     }
@@ -616,7 +775,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     deselect_all_strokes() {
         this.strokes.forEach(s => {
-            s.is_selected = false;
+            s.isSelected = false;
         });
     }
 
@@ -625,6 +784,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.graph.deselect_all_vertices();
         this.graph.deselect_all_links();
         this.deselect_all_strokes();
+        for (const rectangle of this.rectangles.values()){
+            rectangle.isSelected = false;
+        }
     }
 
    
@@ -703,9 +865,38 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emit_paste_graph(graph: ClientGraph){
-        console.log([...graph.links.entries()]);
-        socket.emit(SocketMsgType.PASTE_GRAPH, [...graph.vertices.entries()], [...graph.links.entries()]);
+        
+        const data = new Array();
+        for (const vertex of graph.vertices.values()){
+            data.push( {
+                type: "Vertex",
+                index: vertex.index, 
+                x: vertex.data.pos.x, 
+                y: vertex.data.pos.y, 
+                color: vertex.data.color, 
+                weight: vertex.data.weight
+            })
+        }
+        
+        for (const link of graph.links.values()){
+            data.push( {
+                type: "Link",
+                index: link.index, 
+                startIndex: link.startVertex.index, 
+                endIndex: link.endVertex.index,
+                orientation: link.orientation,
+                color: link.data.color,
+                weight: link.data.weight,
+                cp: link.data.cp
+            })
+        }
+        
+        
+        socket.emit(SocketMsgType.PASTE_GRAPH, data);
     }
+
+
+
 
     emit_resize_element(type: BoardElementType, index: number, pos: Coord, resize_type: RESIZE_TYPE){
         socket.emit(SocketMsgType.RESIZE_ELEMENT, type, index, pos.x, pos.y, resize_type);

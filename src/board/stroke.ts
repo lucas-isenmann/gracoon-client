@@ -8,14 +8,14 @@ import { ClientBoard, SELECTION_COLOR } from "./board";
 export class ClientStroke extends Stroke{
     color: Color;
     canvas_positions: Array<CanvasCoord>;
-    is_selected:boolean;
+    isSelected: boolean;
     canvas_corner_top_left: CanvasCoord;
     canvas_corner_bottom_right: CanvasCoord;
     
     constructor(pos: Array<Coord>, color: Color, width:number, camera: Camera, index: number){
         super(pos, color, width, index);
         this.color = color;
-        this.is_selected = false;
+        this.isSelected = false;
         this.canvas_positions = new Array();
         this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left);
         this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right);
@@ -87,7 +87,7 @@ export class ClientStroke extends Stroke{
 
     draw(board: ClientBoard){
         if(this.positions.length > 0){ 
-            if(this.is_selected){
+            if(this.isSelected){
                 const tlcanvas = this.canvas_corner_top_left;
                 const brcanvas = this.canvas_corner_bottom_right;
                 board.ctx.beginPath();
