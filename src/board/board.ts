@@ -779,6 +779,28 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         });
     }
 
+    selectConnectedComponent(vIndex: number){
+        const c = this.graph.get_connected_component_of(vIndex);
+        const vertexIndices = new Set();
+        const linkIndices = new Set();
+        for (const index of c.vertices.keys()){
+            vertexIndices.add(index);
+        }
+        for (const index of c.links.keys()){
+            linkIndices.add(index);
+        }
+        for (const vertex of this.graph.vertices.values()){
+            if (vertexIndices.has(vertex.index)){
+                vertex.data.is_selected = true;
+            }
+        }
+        for (const link of this.graph.links.values()){
+            if (linkIndices.has(link.index)){
+                link.data.is_selected = true;
+            }
+        }
+    }
+
 
     clear_all_selections() {
         this.graph.deselect_all_vertices();

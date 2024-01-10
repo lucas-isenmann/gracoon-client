@@ -229,20 +229,28 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }
         else if ( pointed.data instanceof ELEMENT_DATA_VERTEX){
             if (hasMoved === false) {
-                if ( pointed.data.element.data.is_selected) {
-                    if (board.keyPressed.has("Control")) { 
-                        pointed.data.element.data.is_selected = false;
+                if (board.keyPressed.has("Shift")){
+                    if (board.keyPressed.has("Control") == false) { 
+                        board.clear_all_selections();
                     }
-                }
-                else {
-                    if (board.keyPressed.has("Control")) {
-                        pointed.data.element.data.is_selected = true;
+                    board.selectConnectedComponent(pointed.data.element.index);
+                } else {
+                    if ( pointed.data.element.data.is_selected) {
+                        if (board.keyPressed.has("Control")) { 
+                            pointed.data.element.data.is_selected = false;
+                        }
                     }
                     else {
-                        board.clear_all_selections();
-                        pointed.data.element.data.is_selected = true;
+                        if (board.keyPressed.has("Control")) {
+                            pointed.data.element.data.is_selected = true;
+                        }
+                        else {
+                            board.clear_all_selections();
+                            pointed.data.element.data.is_selected = true;
+                        }
                     }
                 }
+                
             }
             else {
                 const vertex_moved = pointed.data.element;
