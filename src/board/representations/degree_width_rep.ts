@@ -14,17 +14,24 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
     board: ClientBoard;
+    overVertex: number | undefined;
 
-    constructor(board: ClientBoard, c1: Coord, c2: Coord, camera: Camera){
+    constructor(board: ClientBoard, c1: Coord, c2: Coord){
         super(board.graph,c1,c2);
         this.board = board;
-        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = board.camera.create_canvas_coord(this.top_left_corner());
+        this.canvas_corner_bottom_left = board.camera.create_canvas_coord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = board.camera.create_canvas_coord(this.bot_right_corner());
+        this.canvas_corner_top_right = board.camera.create_canvas_coord(this.top_right_corner());
+        this.overVertex = undefined;
     }
 
-    static from_embedding(board: ClientBoard, camera: Camera): ClientDegreeWidthRep{
+    getYLine(): number {
+        return (this.c1.y +2*this.c2.y)/3;
+    }
+
+
+    static fromEmbedding(board: ClientBoard): ClientDegreeWidthRep{
         if ( board.graph.vertices.size > 0){
             let minX = NaN;
             let maxX = NaN;
@@ -46,9 +53,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const w = 20 + maxX - minX;
             minX += w;
             maxX += w;
-            return new ClientDegreeWidthRep(board, new Coord(minX, minY), new Coord(maxX, maxY), camera);
+            return new ClientDegreeWidthRep(board, new Coord(minX, minY), new Coord(maxX, maxY));
         } else {
-            return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100), camera);
+            return new ClientDegreeWidthRep(board, new Coord(0, 0), new Coord(100, 100));
         }
     }
 
@@ -57,7 +64,11 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     draw(){
-        const y = (this.c1.y + this.c2.y)/2;
+        // const y = (this.c1.y + 2*this.c2.y)/3;
+        const y = this.getYLine();
+
+        const height = Math.abs(this.c1.y - this.c2.y);
+        const canvasHeight = this.board.camera.zoom * height;
 
         // draw border
         this.board.ctx.beginPath();
@@ -79,13 +90,19 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const canvas_coord1 = this.board.camera.create_canvas_coord(new Coord(x1,y));
             for (const [index2, x2] of this.x.entries()){
                 if (x1 < x2){
-                    const canvas_coord2 = this.board.camera.create_canvas_coord(new Coord(x2,y));
-                    const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
                     if (this.board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
+                        if ( index1 == this.overVertex || index2 == this.overVertex){
+                            console.log()
+                            this.board.ctx.strokeStyle = "white";
+                        } else {
+                            this.board.ctx.strokeStyle = "blue";
+                        }
+                        const canvas_coord2 = this.board.camera.create_canvas_coord(new Coord(x2,y));
+                        const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
                         this.board.ctx.beginPath();
                         this.board.ctx.moveTo(canvas_coord1.x, canvas_coord1.y);
                         this.board.ctx.lineWidth = 3;
-                        this.board.ctx.quadraticCurveTo(xmiddle, canvas_coord1.y - 50, canvas_coord2.x, canvas_coord2.y);
+                        this.board.ctx.quadraticCurveTo(xmiddle, canvas_coord1.y - canvasHeight*2/3, canvas_coord2.x, canvas_coord2.y);
                         this.board.ctx.stroke();
                     } 
                 }
@@ -147,6 +164,23 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             }
             this.board.ctx.fillText(String(dwc), pos.x - measure.width / 2, pos.y + 30);
         }
+
+        // Draw indegrees
+        for (const [index1, x1] of this.x.entries()){
+            const indegree = this.board.graph.inDegree(index1);
+           
+            this.board.ctx.font = "17px Arial";
+            const measure = this.board.ctx.measureText(String(indegree));
+            const pos = this.board.camera.create_canvas_coord(new Coord(x1,y));
+            if ( this.board.isDarkMode()){
+                this.board.ctx.fillStyle = "white";
+            } else {
+                this.board.ctx.fillStyle = "black";
+            }
+            this.board.ctx.fillText(String(indegree), pos.x - measure.width / 2, pos.y + 60);
+        }
+
+
     }
 
     update_after_camera_change(camera: Camera){
@@ -157,13 +191,15 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     click_over(pos: CanvasCoord, camera: Camera): number | string {
-        const y = (this.c1.y + this.c2.y)/2;
+        const y = this.getYLine();
         for ( const [index, x] of this.x.entries()){
             const canvas_coord = camera.create_canvas_coord(new Coord(x,y));
             if (canvas_coord.is_nearby(pos, 200)){
+                this.overVertex = index;
                 return index;
             }
         }
+        this.overVertex = undefined;
         return "";
     }
 
@@ -185,6 +221,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     onmouseup(camera: Camera){
+        this.overVertex = undefined;
         this.distribute();
     }
 }

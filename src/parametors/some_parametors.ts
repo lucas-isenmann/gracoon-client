@@ -1,11 +1,12 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { AbstractGraph, ORIENTATION } from 'gramoloss';
+import { AbstractGraph, DegreeWidthRep, ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
 import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
 import { Color, getColor } from '../board/display/colors_v2';
+import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 
 export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
@@ -891,5 +892,28 @@ paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
 })
 
 
+export const paramDegreeWidth = new Parametor("Degreewidth of tournaments", "paramDW", "dw", "Degreewidth", false, false, [SENSIBILITY.ELEMENT], false);
+
+paramDegreeWidth.compute = ((g: ClientGraph) => {
+
+    if (g.vertices.size <= 0){
+        return "0";
+    }
+
+    const [dw, ordering] = g.degreewidth();
+    console.log("DW optimal ordering: ", ordering);
+
+    for (const repre of g.board.representations.values()){
+        if (repre instanceof ClientDegreeWidthRep){
+            const length = Math.abs(repre.c1.x - repre.c2.x);
+            for (let i = 0; i < ordering.length; i ++){
+                repre.x.set(ordering[i], i);
+            }
+            repre.distribute();
+        }
+    }
+
+    return dw.toString();
+});
 
 

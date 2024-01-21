@@ -8,7 +8,7 @@ import { PreInteractor } from "../pre_interactor";
 
 
 export function createTextInteractor(board: ClientBoard): PreInteractor{
-    const text_interactorV2 = new PreInteractor(INTERACTOR_TYPE.TEXT, "Create and edit text zones", "t", "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+    const text_interactorV2 = new PreInteractor(INTERACTOR_TYPE.TEXT, "Text zones, vertices labels, links labels", "t", "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
 
     text_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
 

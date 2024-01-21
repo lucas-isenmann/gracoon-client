@@ -6,8 +6,8 @@ import { GraphModifyer } from "./modifyer";
 
 const intoTournament = new GraphModifyer(
     "into_tournament",
-    "Into tournament",
-    `For every pair of non adjacent vertices, add an arc with random orientation.
+    "Complete into tournament",
+    `For every pair of non adjacent vertices, add an arc from the leftmost vertex to the rightmost vertex.
     Thus the graph becomes a tournament.`,
      [new AreaIndex("area")]);
 

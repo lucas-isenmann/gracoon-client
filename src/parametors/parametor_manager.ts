@@ -1,4 +1,4 @@
-import { param_average_degree, param_diameter, param_has_cycle, param_has_directed_cycle, param_has_proper_coloring, param_is_connected, param_is_good_weight, param_max_degree, param_min_degree, param_min_indegree, param_nb_edges, param_nb_vertices, param_number_colors, param_number_connected_comp, param_is_drawing_planar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover } from './some_parametors';
+import { param_average_degree, param_diameter, param_has_cycle, param_has_directed_cycle, param_has_proper_coloring, param_is_connected, param_is_good_weight, param_max_degree, param_min_degree, param_min_indegree, param_nb_edges, param_nb_vertices, param_number_colors, param_number_connected_comp, param_is_drawing_planar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
@@ -6,6 +6,7 @@ import { ClientBoard } from '../board/board';
 import { ParametorLoaded } from './param_loaded';
 import { Zone } from './zone';
 import { ClientArea } from '../board/area';
+import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 
 
 
@@ -40,7 +41,8 @@ export function setup_parametors_available() {
         paramVertexCover,
         paramChromaticNumber,
         paramChromaticIndex,
-        paramGeomChromaticIndex
+        paramGeomChromaticIndex,
+        paramDegreeWidth
         );
     
         const [div, content] = createPopup("params_available", "Parameters");
@@ -65,7 +67,14 @@ export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
         board.requestDraw();
     }
         
-    toggle_list_separator(zone, true);
+    toggleListSeparator(zone, true);
+
+    // If ask to load degreewidth parameter, then add DW-representation
+    if (param.id == "paramDW"){
+        const dwRep = ClientDegreeWidthRep.fromEmbedding(board);
+        board.representations.set(0, dwRep);
+        board.requestDraw();
+    }
 }
 
 
@@ -79,7 +88,7 @@ export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILIT
 
     for (const param of params_loaded) {
         if(!param.parametor.is_live && param.parametor.is_sensible(sensibilities)){
-            invalid_parametor(param);
+            invalidParametor(param);
         }
         if((force_compute || param.parametor.is_live) && param.parametor.is_sensible(sensibilities)){
             update_parametor(g, param);
@@ -88,63 +97,62 @@ export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILIT
     }
 }
 
-function invalid_parametor(param: ParametorLoaded){
-    update_result_span("", param.parametor, param.resultSpan, true);
+function invalidParametor(param: ParametorLoaded){
+    updateResultSpan("", param.parametor, param.resultSpan, true);
 }
 
 
 export function update_parametor(g:ClientGraph, param: ParametorLoaded){
-    const result_span = document.getElementById("span_result_" + param.id);
     if ( param.zone instanceof ClientArea ){
         const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
-        update_result_span(result, param.parametor, param.resultSpan);
+        updateResultSpan(result, param.parametor, param.resultSpan);
     }
     else{
         const result = param.parametor.compute(g, true);
-        update_result_span(result, param.parametor, param.resultSpan);
+        updateResultSpan(result, param.parametor, param.resultSpan);
     }
 }
 
 
-function update_result_span(result:string, param: Parametor, result_span:HTMLElement, invalid?:boolean){
+function updateResultSpan(result:string, param: Parametor, resultSpan:HTMLElement, invalid?:boolean){
     if(invalid == undefined){
         invalid = false;
     }
     if(param.is_boolean){
         if(result == "true"){
-            result_span.classList.remove("inactive_boolean_result", "false_boolean_result");
-            result_span.classList.add("true_boolean_result");
-            result_span.title="";
+            resultSpan.classList.remove("inactive_boolean_result", "false_boolean_result");
+            resultSpan.classList.add("true_boolean_result");
+            resultSpan.title="";
         }
         else if(result == "false") {
-            result_span.classList.remove("inactive_boolean_result", "true_boolean_result");
-            result_span.classList.add("false_boolean_result");
-            result_span.title="";
+            resultSpan.classList.remove("inactive_boolean_result", "true_boolean_result");
+            resultSpan.classList.add("false_boolean_result");
+            resultSpan.title="";
         }
         else{
-            result_span.classList.remove("false_boolean_result", "true_boolean_result");
-            result_span.classList.add("inactive_boolean_result");
-            result_span.title="Be careful, the result may have changed! Reload the computation.";
+            resultSpan.classList.remove("false_boolean_result", "true_boolean_result");
+            resultSpan.classList.add("inactive_boolean_result");
+            resultSpan.title="Be careful, the result may have changed! Reload the computation.";
         }
     }
     else{
         if(invalid){
-            result_span.classList.add("invalid_result");
-            result_span.title="Be careful, the result may have changed! Reload the computation.";
+            resultSpan.classList.add("invalid_result");
+            resultSpan.title="Be careful, the result may have changed! Reload the computation.";
         }
         else{
-            result_span.textContent = result;
-            result_span.title="";
-            result_span.classList.remove("invalid_result");
+            resultSpan.textContent = result;
+            resultSpan.title="";
+            resultSpan.classList.remove("invalid_result");
         }
     }
 }
 
 
 
-function toggle_list_separator(zone: Zone, toggle:boolean){
-    const area_id = (zone instanceof ClientArea) ? zone.index : "";
-    const listContainerDiv = document.getElementById("param_list_container_area_"+area_id);
+function toggleListSeparator(zone: Zone, toggle:boolean){
+    const areaId = (zone instanceof ClientArea) ? zone.index : "";
+    const listContainerDiv = document.getElementById(`param_list_container_area_${areaId}`);
     if (listContainerDiv){
         if (toggle){
             listContainerDiv.style.display = "flex";
@@ -171,7 +179,7 @@ export function remove_loaded_param(loadedParam: ParametorLoaded) {
         }
     }
     // If there are no more params for the zone of loadedParam 
-    toggle_list_separator(loadedParam.zone, false);
+    toggleListSeparator(loadedParam.zone, false);
 }
 
 
