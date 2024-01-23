@@ -246,6 +246,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
             if (typeof poscp != "string"){
                 cp = poscp
             }
+            board.ctx.strokeStyle = color;
             drawHead(board.ctx, cp, posv, (this.board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS  );
         }
     }

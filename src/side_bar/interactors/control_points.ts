@@ -19,16 +19,16 @@ import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, PointedElementData } from "../../interactors/pointed_element_data";
 
 
-export function createControlPointInteractor(board: ClientBoard){
+export function createControlPointInteractor(board: ClientBoard): PreInteractor{
 
-    const control_point_interactorV2 = new PreInteractor(INTERACTOR_TYPE.CONTROL_POINT, "Edit control points", "h",  "control_point", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.CONTROL_POINT]));
+    const controlPointInteractorV2 = new PreInteractor(INTERACTOR_TYPE.CONTROL_POINT, "Edit control points", "h",  "control_point", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.CONTROL_POINT]));
 
-    let previous_shift: Vect = new Vect(0,0);
-    let previous_canvas_shift = new CanvasVect(0,0);
+    let previousShift: Vect = new Vect(0,0);
+    let previousCanvasShift = new CanvasVect(0,0);
     
-    control_point_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
-        previous_shift = new Vect(0,0);
-        previous_canvas_shift = new CanvasVect(0,0);
+    controlPointInteractorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+        previousShift = new Vect(0,0);
+        previousCanvasShift = new CanvasVect(0,0);
 
         if ( pointed.data instanceof ELEMENT_DATA_LINK){
             const link = pointed.data.element;
@@ -41,15 +41,9 @@ export function createControlPointInteractor(board: ClientBoard){
                 board.emit_update_element( BoardElementType.Link, pointed.data.element.index, "cp", "");
             }
         }
-        // else if ( pointed.data instanceof ELEMENT_DATA_CONTROL_POINT ){
-        //     if ( pointed.buttonType == 2){
-        //         board.emit_update_element( BoardElementType.Link, pointed.data.element.index, "cp", "");
-        //     }
-        // }
-            
     })
     
-    control_point_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+    controlPointInteractorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof pointed == "undefined") return false;
 
         if ( pointed.data instanceof ELEMENT_DATA_CONTROL_POINT ){
@@ -61,17 +55,17 @@ export function createControlPointInteractor(board: ClientBoard){
                 const middle = v1.data.pos.middle(v2.data.pos);
                 const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
                 const orthogonal = new Vect(-vect.y, vect.x);
-                const e_coord = board.camera.create_server_coord(e);
-                const projection = e_coord.orthogonal_projection(middle, orthogonal);
-                const down_coord_server = board.camera.create_server_coord(pointed.pointedPos);
+                const eCoord = board.camera.create_server_coord(e);
+                const projection = eCoord.orthogonal_projection(middle, orthogonal);
+                const downCoordServer = board.camera.create_server_coord(pointed.pointedPos);
 
-                const shift = Vect.from_coords(down_coord_server, projection);
-                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previous_shift));
-                previous_shift.set_from(shift);
+                const shift = Vect.from_coords(downCoordServer, projection);
+                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
+                previousShift.set_from(shift);
             } else {
                 const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos,e));
-                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previous_shift));
-                previous_shift.set_from(shift);
+                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
+                previousShift.set_from(shift);
             }
             return true;
         }
@@ -80,5 +74,5 @@ export function createControlPointInteractor(board: ClientBoard){
     
     
     
-    return control_point_interactorV2;    
+    return controlPointInteractorV2;    
 }
