@@ -393,7 +393,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         drawBezierCurve(this.ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
     }
 
-    drawLine(ctx: CanvasRenderingContext2D, p1: Coord, p2: Coord, color: string, width: number){
+    drawLine(p1: Coord, p2: Coord, color: string, width: number){
         const canvasP1 = this.camera.create_canvas_coord(p1);
         const canvasP2 = this.camera.create_canvas_coord(p2);
         const scaledWidth = width*this.camera.zoom;

@@ -37,13 +37,15 @@ export function createControlPointInteractor(board: ClientBoard){
                 const v2 = link.endVertex;
                 const new_cp = v1.data.pos.middle(v2.data.pos);
                 board.emit_update_element( BoardElementType.Link, link.index, "cp", new_cp);
-            }
-        }
-        else if ( pointed.data instanceof ELEMENT_DATA_CONTROL_POINT ){
-            if ( pointed.buttonType == 2){
+            } else {
                 board.emit_update_element( BoardElementType.Link, pointed.data.element.index, "cp", "");
             }
         }
+        // else if ( pointed.data instanceof ELEMENT_DATA_CONTROL_POINT ){
+        //     if ( pointed.buttonType == 2){
+        //         board.emit_update_element( BoardElementType.Link, pointed.data.element.index, "cp", "");
+        //     }
+        // }
             
     })
     

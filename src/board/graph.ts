@@ -767,7 +767,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                     //     const hh2 = h2FromEdgeLength(edgeDir);
                     //     d += curvedStanchionUnder2(currentQp, nextQp, hh, hh2, crossRatio);
                     // } else {
-                        this.board.drawLine(ctx, currentQp.pos, currentQp.quarterEdgePoint, colors[currentColor], width);
+                        this.board.drawLine(currentQp.pos, currentQp.quarterEdgePoint, colors[currentColor], width);
                         pathsByZ[3].push(pathStrToSVGPathClass(`M ${currentQp.pos.x} ${currentQp.pos.y} L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`, `cycle${currentColor}` ));
                         paths[currentColor][3] += `M ${currentQp.pos.x} ${currentQp.pos.y} L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
                         d += `L ${currentQp.quarterEdgePoint.x} ${currentQp.quarterEdgePoint.y}`;
@@ -800,7 +800,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                             d += `C ${currentQp.quarterEdgeCP.x} ${currentQp.quarterEdgeCP.y}, ${nextQp.quarterEdgeCP.x} ${nextQp.quarterEdgeCP.y}, ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y}`;
                         }
 
-                        this.board.drawLine(ctx, nextQp.quarterEdgePoint, nextQp.pos, colors[currentColor], width);
+                        this.board.drawLine(nextQp.quarterEdgePoint, nextQp.pos, colors[currentColor], width);
                         pathsByZ[3].push(pathStrToSVGPathClass(`M ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y} L ${nextQp.pos.x} ${nextQp.pos.y}`, `cycle${currentColor}` ));
                         paths[currentColor][3] += `M ${nextQp.quarterEdgePoint.x} ${nextQp.quarterEdgePoint.y} L ${nextQp.pos.x} ${nextQp.pos.y}`;
                         d += `L ${nextQp.pos.x} ${nextQp.pos.y}`;

@@ -10,6 +10,7 @@ import { ClientLinkData } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
 import { ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
+import { handleErrorLog } from "./handlers/errorLog";
 
 import ENV from './.env.json';
 
@@ -30,6 +31,9 @@ export const socket = io(adress);
 
 export function setupHandlers(board: ClientBoard) {
     const g = board.graph;
+
+    // GENERIC
+    socket.on("error", handleErrorLog);
     
     // USERS
     socket.on('server-version', handleServerVersion);

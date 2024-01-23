@@ -1,4 +1,4 @@
-import { BasicLink, BasicLinkData, Coord, Option, ORIENTATION, Vect } from "gramoloss";
+import { BasicLink, BasicLinkData, bezier_curve_point, Coord, Option, ORIENTATION, Vect } from "gramoloss";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
@@ -232,10 +232,13 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         }
         board.ctx.stroke();
 
-        
-    if (typeof poscp != "string"){
+    // Draw Control Point (CP)
+    if (typeof this.data.cp != "undefined" && typeof poscp != "string"){
             if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
                 drawCircle(poscp, "grey", 4, 1, board.ctx);
+                const pointLol = bezier_curve_point(0.5, [this.startVertex.getPos(), this.data.cp, this.endVertex.getPos()]);
+                board.drawLine(this.data.cp, pointLol, "gray", 2);
+
             }
         }
         if (this.orientation == ORIENTATION.DIRECTED) {

@@ -43,7 +43,9 @@ By creating a vertex over an edge or an arc, it will subdivide the link in two.
 
 Edges and arcs are by default rectilinear. 
 To bend them, use the "control point" mode <img src="${svgIcons["control_point"]}" class="help" /> by clicking on an edge.
-To revert the edge/arc rectilinear, right click on the control point associated to this link to delete it.
+Use CTRL key to force the control point to be on the metdiator of the extremities of the link.
+To revert the edge/arc rectilinear, click on the link to delete the control point.
+
 
 <img src="${svgIcons["area"]}" class="help" />
 An area is a rectangular zone on the board that is used for computing parameters only for the subgraph contained within it.
