@@ -1,8 +1,13 @@
 import { ClientBoard } from "../board/board";
-import { AreaIndex, Percentage } from "../generators/attribute";
+import { AreaIndex, Percentage, Integer } from "../generators/attribute";
 import { createPopup } from "../popup";
 import { GraphModifyer } from "./modifyer";
 
+const subdivideLinks = new GraphModifyer(
+    "subdivideLinks",
+    "Subdivide links",
+    `For every link (edge or arc), insert k vertices.`,
+        [new AreaIndex("area"), new Integer("k", 1)]);
 
 const intoTournament = new GraphModifyer(
     "into_tournament",
@@ -21,6 +26,7 @@ const removeRandomLinks = new GraphModifyer(
 
 // --- Modifyers available ---
 const modifyers_available = new Array<GraphModifyer>(
+    subdivideLinks,
     intoTournament,
     removeRandomLinks
     );
@@ -58,13 +64,13 @@ export function setup_modifyers_div(board: ClientBoard) {
         text.classList.add("modifyer_item");
         text.innerHTML = mod.humanName;
         text.onclick = () => {
-            activate_modifyer_div(board, mod);
+            activateModifyerDiv(board, mod);
         }
         modifyers_list.appendChild(text)
     }
 }
 
-function turn_off_modifyers_div() {
+function turnOffModifyersDiv() {
     const div = document.getElementById("modifyers_div");
     if (div == null) return;
     div.style.display = "none";
@@ -76,7 +82,7 @@ export function turn_on_modifyers_div() {
     div.style.display = "block";
 }
 
-function activate_modifyer_div(board: ClientBoard, mod: GraphModifyer) {
+function activateModifyerDiv(board: ClientBoard, mod: GraphModifyer) {
     const div = document.getElementById("modifyer_configuration");
     if (div == null) return;
     div.innerHTML = ""; // TODO clear better ??
@@ -103,18 +109,18 @@ function activate_modifyer_div(board: ClientBoard, mod: GraphModifyer) {
     }
 
     // Button
-    const modify_button = document.createElement("button");
-    modify_button.textContent = "Apply";
-    modify_button.onclick = (e) => {
+    const modifyButton = document.createElement("button");
+    modifyButton.textContent = "Apply";
+    modifyButton.onclick = (e) => {
         for( const attribute of mod.attributes.values() ){
             if( attribute.div.classList.contains("invalid")){
                 return;
             }
         }
         board.emit_apply_modifyer(mod);
-        turn_off_modifyers_div();
+        turnOffModifyersDiv();
     }
-    div.appendChild(modify_button);
+    div.appendChild(modifyButton);
 }
 
 
