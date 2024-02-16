@@ -9,6 +9,7 @@ import { Color, getCanvasColor } from "./display/colors_v2";
 import { rgbTikzFromHexaColor } from "../tikz";
 import { drawCircle, drawHead } from "./display/draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
+import { highlightColors } from "./display/highlight_colors";
 
 
 export class LinkPreData extends BasicLinkData {
@@ -28,6 +29,7 @@ export class ClientLinkData extends BasicLinkData {
     color: Color;
     cp_canvas_pos: CanvasCoord | string;
     is_selected: boolean;
+    highlight: undefined | number;
     weightDiv: HTMLDivElement | undefined; // set to null until a non empty weight is used
 
     constructor(cp: Option<Coord>,  color: Color, weight: string, camera: Camera) {
@@ -39,6 +41,7 @@ export class ClientLinkData extends BasicLinkData {
             this.cp_canvas_pos = camera.create_canvas_coord(cp);
         }
         this.is_selected = false;
+        this.highlight = undefined;
         this.weightDiv = undefined;
     }
 }
@@ -232,8 +235,24 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         }
         board.ctx.stroke();
 
-    // Draw Control Point (CP)
-    if (typeof this.data.cp != "undefined" && typeof poscp != "string"){
+        // Draw Hightlight
+        if (typeof this.data.highlight != "undefined"){
+            board.ctx.beginPath();
+            board.ctx.moveTo(posu.x, posu.y);
+            const color = highlightColors[this.data.highlight % highlightColors.length];
+            board.ctx.strokeStyle = color;
+            board.ctx.lineWidth = 4;
+            if ( typeof poscp == "string"){
+                board.ctx.lineTo(posv.x, posv.y);
+            }else {
+                board.ctx.quadraticCurveTo(poscp.x, poscp.y, posv.x, posv.y);
+                //board.ctx.bezierCurveTo(poscp.x, poscp.y, poscp.x, poscp.y, posv.x, posv.y);
+            }
+            board.ctx.stroke();
+        }
+
+        // Draw Control Point (CP)
+        if (typeof this.data.cp != "undefined" && typeof poscp != "string"){
             if ( typeof this.board.interactorLoaded != "undefined" && this.board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.CONTROL_POINT)){
                 drawCircle(poscp, "grey", 4, 1, board.ctx);
                 const pointLol = bezier_curve_point(0.5, [this.startVertex.getPos(), this.data.cp, this.endVertex.getPos()]);

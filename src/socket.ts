@@ -3,7 +3,7 @@ import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
-import { get_sensibilities, SENSIBILITY } from "./parametors/parametor";
+import { SENSIBILITY } from "./parametors/parametor";
 import { ClientVertexData } from "./board/vertex";
 import { Coord, ORIENTATION, Rectangle, Vect } from "gramoloss";
 import { ClientLinkData } from "./board/link";
@@ -332,6 +332,7 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleUpdateElement(data: {kind: string, param: string, index: number, value: any}){
         // console.log("handleUpdateElement", data);
+        let weightUpdate = false;
         if (data.kind == "TextZone"){
             const textZone = board.text_zones.get(data.index);
             if (typeof textZone == "undefined") return;
@@ -357,6 +358,7 @@ export function setupHandlers(board: ClientBoard) {
                 if ( (document.activeElement && typeof vertex.data.weightDiv != "undefined" && document.activeElement.id == vertex.data.weightDiv.id) == false ){
                     const text = data.value as string;
                     vertex.setWeight(text);
+                    weightUpdate = true;
                 }
             }
         }else if (data.kind == "Link"){
@@ -370,6 +372,7 @@ export function setupHandlers(board: ClientBoard) {
                 if ( (document.activeElement && typeof link.data.weightDiv != "undefined" && document.activeElement.id == link.data.weightDiv.id) == false ){
                     console.log("update link");
                     link.setWeight(weight);
+                    weightUpdate = true;
                 }
             } else if (data.param == "cp"){
                 if (typeof data.value == "undefined"){
@@ -416,6 +419,9 @@ export function setupHandlers(board: ClientBoard) {
             }
         } else {
             console.log("Kind not supported :", data.kind);
+        }
+        if (weightUpdate){
+            update_params_loaded(g, new Set([SENSIBILITY.WEIGHT]), false);
         }
         board.requestDraw();
     }
@@ -524,7 +530,7 @@ export function setupHandlers(board: ClientBoard) {
         g.compute_vertices_index_string();
 
 
-        const sensi = get_sensibilities(sensibilities);
+        // TODO sensibilities is unsued
         const sensi2 = new Set<SENSIBILITY>();
         sensi2.add(SENSIBILITY.ELEMENT)
         update_params_loaded(g, sensi2, true);

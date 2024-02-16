@@ -21,14 +21,12 @@ function getSensibility(s: string){
     }
 }
 
-export function get_sensibilities(s:Array<string>) : Set<SENSIBILITY>{
-    return new Set(s.map(e => getSensibility(e)));
-}
 
 export class Parametor {
     name: string;
     id:string;
-    compute: (g: ClientGraph, verbose: boolean) => string;
+    compute: (g: ClientGraph, verbose: boolean) => [string, any];
+    showCertificate: (g: ClientGraph, certificate: any) => void;
     is_live:boolean;
     is_boolean:boolean;
     sensibility:Set<SENSIBILITY>;
@@ -36,8 +34,7 @@ export class Parametor {
     title:string;
     has_info:boolean;
 
-    // Instance
-    is_verbose: boolean;
+
 
     constructor(name: string, id:string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean) {
         this.name = name;
@@ -48,11 +45,11 @@ export class Parametor {
         this.is_boolean = is_boolean;
         this.sensibility = new Set(sensibility);
         this.has_info = has_info;
-        this.is_verbose = false;
-        this.compute = () => "";
+        this.compute = () => ["", undefined];
+        this.showCertificate = () => {};
     }
 
-    static from_function(f: (g: ClientGraph, verbose: boolean) => string, name: string, id: string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean): Parametor {
+    static from_function(f: (g: ClientGraph, verbose: boolean) => [string, any], name: string, id: string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean): Parametor {
         let param = new Parametor(name, id, short_name, title, is_live, is_boolean, sensibility, has_info);
         param.compute = f;
         return param;
@@ -83,7 +80,7 @@ in the compute functions
 
 compute: (g: Graph, verbose: boolean) => Promise<string>;
 
-param_diameter.compute = ( async (g: Graph) =>{
+paramDiameter.compute = ( async (g: Graph) =>{
     const FW = Floyd_Warhall(g, false);
     let diameter = 0;
 

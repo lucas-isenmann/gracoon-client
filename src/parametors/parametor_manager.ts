@@ -1,4 +1,4 @@
-import { param_average_degree, param_diameter, param_has_cycle, param_has_directed_cycle, param_has_proper_coloring, param_is_connected, param_is_good_weight, param_max_degree, param_min_degree, param_min_indegree, param_nb_edges, param_nb_vertices, param_number_colors, param_number_connected_comp, param_is_drawing_planar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth } from './some_parametors';
+import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
@@ -15,21 +15,24 @@ export let params_available = new Array<Parametor>();
 
 
 export function setup_parametors_available() {
-    params_available.push(param_nb_edges,
-        param_nb_vertices,
-        param_has_cycle,
-        param_has_directed_cycle,
-        param_is_connected,
-        param_number_connected_comp,
-        param_number_colors,
-        param_is_drawing_planar,
-        param_min_degree,
-        param_max_degree,
-        param_min_indegree,
-        Parametor.from_function((g: ClientGraph, verbose: boolean) => String(g.min_outdegree()), "Minimum out-degree", "min_out_degree", "min_out_degree", "Minimum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false  ),
-        param_average_degree,
-        param_has_proper_coloring,
-        param_diameter,
+    params_available.push(paramNbEdges,
+        paramNbVertices,
+        paramHasCycle,
+        paramHasDirectedCycle,
+        paramIsConnected,
+        paramNbConnectedComp,
+        paramNumberColors,
+        paramIsDrawingPlanar,
+        paramMinDegree,
+        paramMaxDegree,
+        paramMinIndegree,
+        paramMaxIndegree,
+        paramMinOutdegree,
+        paramMaxOutdegree,
+        paramAverageDegree,
+        paramIsProperColoring,
+        paramMinimalSpanningTree,
+        paramDiameter,
         // param_is_good_weight,
         // param_weighted_distance_identification,
         // param_wdin2,
@@ -55,8 +58,18 @@ export function setup_parametors_available() {
 
 export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
     console.log("load_param", param, zone.paramsDivContainer);
+
+    board.unhighlightAll();
+
+
     // const html_id =  param.id + "_area_" + areaId;
-    const paramLoaded = new ParametorLoaded(param, zone, board)
+    const paramLoaded = new ParametorLoaded(param, zone, board);
+
+    // Unverbose all other parameters
+    for (const p of params_loaded){
+        p.isVerbose = false;
+        p.nameSpan.classList.remove("parametor-verbose")
+    }
 
     params_loaded.push(paramLoaded);
 
@@ -103,13 +116,24 @@ function invalidParametor(param: ParametorLoaded){
 
 
 export function update_parametor(g:ClientGraph, param: ParametorLoaded){
+    console.log("update_param")
     if ( param.zone instanceof ClientArea ){
         const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
-        updateResultSpan(result, param.parametor, param.resultSpan);
+        param.certificate = result[1];
+        updateResultSpan(result[0], param.parametor, param.resultSpan);
+        if (param.isVerbose){
+            g.board.unhighlightAll();
+            param.parametor.showCertificate(g, param.certificate);
+        }
     }
     else{
         const result = param.parametor.compute(g, true);
-        updateResultSpan(result, param.parametor, param.resultSpan);
+        param.certificate = result[1];
+        updateResultSpan(result[0], param.parametor, param.resultSpan);
+        if (param.isVerbose){
+            g.board.unhighlightAll();
+            param.parametor.showCertificate(g, param.certificate);
+        }
     }
 }
 
@@ -163,7 +187,15 @@ function toggleListSeparator(zone: Zone, toggle:boolean){
 }
 
 
-export function remove_loaded_param(loadedParam: ParametorLoaded) {
+export function removeLoadedParam(loadedParam: ParametorLoaded, board: ClientBoard) {
+
+    // Unhighlight all if loadedParam is verbose
+    if (loadedParam.isVerbose){
+        board.unhighlightAll();
+        board.requestDraw();
+    }
+
+    // Search for the loadedParam and delete it
     for (let i = 0; i < params_loaded.length; i++) {
         if (params_loaded[i].id == loadedParam.id ) {
             params_loaded[i].div.classList.add("inactive_parametor");

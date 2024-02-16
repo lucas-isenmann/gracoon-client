@@ -801,6 +801,18 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
+    deselectAll(){
+        this.clear_all_selections();
+    }
+
+    unhighlightAll(){
+        for (const v of this.graph.vertices.values()){
+            v.data.highlight = undefined;
+        }
+        for (const l of this.graph.links.values()){
+            l.data.highlight = undefined;
+        }
+    }
 
     clear_all_selections() {
         this.graph.deselect_all_vertices();

@@ -7,6 +7,7 @@ import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { rgbTikzFromHexaColor } from "../tikz";
+import { highlightColors } from "./display/highlight_colors";
 
 export class ParameterValue {
     value: string;
@@ -158,7 +159,16 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
             drawCircle(vertex.pos.canvas_pos, COLOR_BORDER_VERTEX, vertex_radius, 1, ctx);
             */
         }
-        
+
+        // Draw Highlight
+        if (typeof this.data.highlight != "undefined" ) {
+            board.ctx.beginPath();
+            board.ctx.arc(this.data.canvas_pos.x, this.data.canvas_pos.y, vertex_radius*2.2, 0, 2 * Math.PI);
+            board.ctx.lineWidth = 4;
+            const color = highlightColors[this.data.highlight % highlightColors.length];
+            board.ctx.strokeStyle = color;
+            board.ctx.stroke();
+        }        
         
         drawCircle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
 
@@ -223,6 +233,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 export class ClientVertexData extends BasicVertexData {
     color: Color;
     canvas_pos: CanvasCoord;
+    highlight: undefined | number;
     is_selected: boolean;
     indexString: string;
     parameter_values: Map<string,ParameterValue>;
@@ -233,6 +244,7 @@ export class ClientVertexData extends BasicVertexData {
         this.color = color;
         this.canvas_pos = camera.create_canvas_coord(this.pos );
         this.is_selected = false;
+        this.highlight = undefined;
         this.indexString = "";
         // this.color = COLOR_INNER_VERTEX_DEFAULT;
         this.parameter_values = new Map();

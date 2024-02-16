@@ -1,60 +1,119 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { AbstractGraph, DegreeWidthRep, ORIENTATION } from 'gramoloss';
+import { AbstractGraph, ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
 import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
-import { Color, getColor } from '../board/display/colors_v2';
+import { Color } from '../board/display/colors_v2';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 
-export let param_has_cycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
-param_has_cycle.compute = ((g: ClientGraph) => {
-    return String(g.has_cycle());
+
+export const paramMinimalSpanningTree = new Parametor("Minimal weighted spanning tree", 
+"minimalWeightedSpanningTree", "minWST", "Minimal weighted spanning tree", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
+
+paramMinimalSpanningTree.compute = ((g: ClientGraph, verbose: boolean) => {
+    const r = g.minimum_spanning_tree();
+    return [r[0].toString(), r[1]];
 })
 
-export let param_has_directed_cycle = new Parametor("Has directed cycle?", "has_directed_cycle", "?has_directed_cycle", "Check if the graph has a directed cycle", true, true, [SENSIBILITY.ELEMENT], false);
-
-param_has_directed_cycle.compute = ((g: ClientGraph) => {
-    return String(g.has_directed_cycle());
+paramMinimalSpanningTree.showCertificate = ((g:ClientGraph, certificate: Array<ClientLink>) => {
+    for (const link of certificate){
+        link.data.highlight = 1;
+    }
 })
 
-export let param_nb_vertices = new Parametor("Vertices number", "vertex_number", "#vertices", "Print the number of vertices", true, false, [SENSIBILITY.ELEMENT], true);
+// ------------------
+export const paramHasCycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
-param_nb_vertices.compute = ((g: ClientGraph) => {
-    return String(g.vertices.size)
+paramHasCycle.compute = ((g: ClientGraph, verbose: boolean) => {
+    const r = g.has_cycle2();
+    return [String(r[0]), r[1]];
+});
+
+paramHasCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+    for (let i = 0; i < cycle.length; i ++){
+        const vId = cycle[i];
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 0;
+        }
+
+        const nextId = cycle[(i+1)%cycle.length];
+        for (const link of g.links.values()){
+            if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
+                link.data.highlight = 0;
+                break;
+            }
+        }
+    }
+}
+
+// ------------------
+export const paramHasDirectedCycle = new Parametor("Has directed cycle?", "has_directed_cycle", "?has_directed_cycle", "Check if the graph has a directed cycle", true, true, [SENSIBILITY.ELEMENT], false);
+
+paramHasDirectedCycle.compute = ((g: ClientGraph) => {
+    return [String(g.has_directed_cycle()), new Array()];
+})
+
+paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+    for (let i = 0; i < cycle.length; i ++){
+        const vId = cycle[i];
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 0;
+        }
+
+        const nextId = cycle[(i+1)%cycle.length];
+        for (const link of g.links.values()){
+            if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
+                link.data.highlight = 0;
+                break;
+            }
+        }
+    }
+}
+
+
+// ------------------
+export let paramNbVertices = new Parametor("Vertices number", "vertex_number", "#vertices", "Print the number of vertices", true, false, [SENSIBILITY.ELEMENT], true);
+
+paramNbVertices.compute = ((g: ClientGraph) => {
+    return [String(g.vertices.size), undefined]
 })
 
 
-export let param_nb_edges = new Parametor("Edges number", "edge_number", "#edges", "Print the number of edges", true, false, [SENSIBILITY.ELEMENT], true);
+export let paramNbEdges = new Parametor("Edges number", "edge_number", "#edges", "Print the number of edges", true, false, [SENSIBILITY.ELEMENT], true);
 
-param_nb_edges.compute = ((g: ClientGraph) => {
+paramNbEdges.compute = ((g: ClientGraph) => {
     let counter = 0;
     for (var link of g.links.values()) {
         if (link.orientation == ORIENTATION.UNDIRECTED) {
             counter++;
         }
     }
-    return String(counter);
+    return [String(counter), undefined];
 })
 
 
 
-export let param_is_connected = new Parametor("Is connected?", "is_connected", "is connected?", "Is the graph/area connected?", true, true, [SENSIBILITY.ELEMENT], true);
 
-param_is_connected.compute = ((g: ClientGraph) => {
-    return String(g.is_connected());
+
+export const paramIsConnected = new Parametor("Is connected?", "is_connected", "is connected?", "Is the graph/area connected?", true, true, [SENSIBILITY.ELEMENT], true);
+
+paramIsConnected.compute = ((g: ClientGraph) => {
+    return [String(g.is_connected()), undefined];
 });
 
 
 
-export let param_number_connected_comp = new Parametor("Number connected component", "number_connected_comp", "#connected comp.", "Compute the number of connected component (undirected)", true, false, [SENSIBILITY.ELEMENT], true);
+export const paramNbConnectedComp = new Parametor("Number connected component", "number_connected_comp", "#connected comp.", "Compute the number of connected component (undirected)", true, false, [SENSIBILITY.ELEMENT], true);
 
-param_number_connected_comp.compute = ((g: ClientGraph) => {
+paramNbConnectedComp.compute = ((g: ClientGraph) => {
 
     if (g.vertices.size < 1) {
-        return "0";
+        return ["0", undefined];
     }
     const visited = new Map();
     for (const index of g.vertices.keys()) {
@@ -63,6 +122,10 @@ param_number_connected_comp.compute = ((g: ClientGraph) => {
 
     let cc = 0;
     let all_visited = false;
+    const component = new Map<number, number>()
+    for (const index of g.vertices.keys()){
+        component.set(index, -1);
+    }
 
     while (!all_visited) {
         all_visited = true;
@@ -82,89 +145,196 @@ param_number_connected_comp.compute = ((g: ClientGraph) => {
         }
 
         g.DFS_recursive( first_vertex_index, visited);
+        
+        // Visited vertex which has no component assignation, is in component cc
+        for (const index of g.vertices.keys()){
+            const isVisited = visited.get(index);
+            const comp = component.get(index);
+            if ( typeof isVisited != "undefined" && isVisited && typeof comp != "undefined" && comp == -1  ){
+                component.set(index, cc);
+            }
+        }
 
     }
-    return String(cc);
+    return [String(cc), component ];
 });
 
+paramNbConnectedComp.showCertificate = (g:ClientGraph, component: Map<number, number>) => {
+    for (const v of g.vertices.values()){
+        const c = component.get(v.index);
+        if (typeof c != "undefined"){
+            v.data.highlight = c;
+        }
+    }
+}
 
-export let param_number_colors = new Parametor("Number vertex colors", "nb_vertex_colors", "#colors (vertices)", "Print the number of different colors used on the vertices", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
 
-param_number_colors.compute = ((g: ClientGraph) => {
+
+
+export let paramNumberColors = new Parametor("Number vertex colors", "nb_vertex_colors", "#colors (vertices)", "Print the number of different colors used on the vertices", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
+
+paramNumberColors.compute = ((g: ClientGraph) => {
     let colors_set = new Set<string>();
     for (const v of g.vertices.values()) {
         colors_set.add(v.data.color);
     }
-    return String(colors_set.size);
-
+    return [String(colors_set.size), undefined];
 });
 
 
-export let param_is_drawing_planar = new Parametor("Is drawing planar?", "is_drawing_planar", "is_drawing_planar", "Return true iff drawing is planar", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], true);
+export const paramIsDrawingPlanar = new Parametor("Is drawing planar?", "is_drawing_planar", "is_drawing_planar", "Return true iff drawing is planar", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], true);
 
-param_is_drawing_planar.compute = ((g: ClientGraph) => {
+paramIsDrawingPlanar.compute = ((g: ClientGraph) => {
     console.log("is drawing planar update");
-    if (g.is_drawing_planar()){
-        return "true";
-    } else {
-        return "false";
-    }
+    const crossings = g.crossings();
+    console.log(crossings);
+    const result = crossings.length == 0 ? "true" : "false";
+    return [result, crossings];
 });
 
-
-
-export let param_min_degree = new Parametor("Minimum degree", "min_degree", "min degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
-
-param_min_degree.compute = ((g: ClientGraph, verbose: boolean) => {
-    const data = g.get_degrees_data();
-    if (verbose) {
-        for (const vertex_index of data.min_vertices) {
-            const vertex = g.vertices.get(vertex_index);
-            if (typeof vertex != "undefined"){
-                vertex.data.color = Color.Red;
-            }
+paramIsDrawingPlanar.showCertificate = (g: ClientGraph, crossings: Array<[number, number]>) => {
+    for (const [lId1, lId2] of crossings){
+        const link1 = g.links.get(lId1);
+        const link2 = g.links.get(lId2);
+        if (typeof link1 != "undefined" && typeof link2 != "undefined"){
+            link1.data.highlight = 0;
+            link2.data.highlight = 0;
         }
-        g.vertices.forEach((vertex, vertex_index) => {
-            vertex.data.update_param(param_min_degree.id, String(g.get_neighbors_list(vertex_index).length));
-        })
     }
-    return String(data.min_value);
-});
-
-export let param_min_indegree = new Parametor("Mininum indegree", "min_indegree", "min_indegree", "Minimum indegree", true, false, new Array(SENSIBILITY.ELEMENT), false);
-
-param_min_indegree.compute = ((g: ClientGraph, verbose) => {
-    const md = g.min_indegree();
-    return String(md);
-});
+}
 
 
+export const paramMinDegree = new Parametor("Minimum degree", "min_degree", "min degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
-
-export let param_max_degree = new Parametor("Maximum degree", "max_degree", "max degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
-
-param_max_degree.compute = ((g: ClientGraph) => {
+paramMinDegree.compute = ((g: ClientGraph, verbose: boolean) => {
     const data = g.get_degrees_data();
-    return String(data.max_value);
+    const minVertices = new Array();
+    for (const v of g.vertices.values()){
+        if (data.min_value == g.degree(v.index)){
+            minVertices.push(v);
+        }
+    }
+    return [String(data.min_value), minVertices];
 });
 
-export let param_average_degree = new Parametor("Average degree", "avg_degree", "avg. degree", "Print the average degree", true, false, [SENSIBILITY.ELEMENT], true);
+paramMinDegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVertex>) => {
+    for (const v of minVertices){
+        v.data.highlight = 0;
+    }
+}
 
-param_average_degree.compute = ((g: ClientGraph) => {
+export let paramMinIndegree = new Parametor("Mininum in-degree", "min_indegree", "min_indegree", "Minimum indegree", true, false, new Array(SENSIBILITY.ELEMENT), false);
+
+paramMinIndegree.compute = ((g: ClientGraph, verbose) => {
+    const md = g.min_indegree();
+    const minVertices = new Array();
+    for (const v of g.vertices.values()){
+        if (md == g.inDegree(v.index)){
+            minVertices.push(v);
+        }
+    }
+    return [String(md), minVertices];
+});
+
+paramMinIndegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVertex>) => {
+    for (const v of minVertices){
+        v.data.highlight = 0;
+    }
+}
+
+export let paramMaxIndegree = new Parametor("Maximum in-degree", "max_indegree", "max_indegree", "Maximum in-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
+
+paramMaxIndegree.compute = ((g: ClientGraph, verbose) => {
+    const md = g.maxIndegree();
+    const vertices = new Array();
+    for (const v of g.vertices.values()){
+        if (md == g.inDegree(v.index)){
+            vertices.push(v);
+        }
+    }
+    return [String(md), vertices];
+});
+
+paramMaxIndegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+    for (const v of vertices){
+        v.data.highlight = 0;
+    }
+}
+
+export let paramMinOutdegree = new Parametor("Minimum out-degree", "min_out_degree", "min_out_degree", "Minimum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
+
+paramMinOutdegree.compute = ((g: ClientGraph, verbose) => {
+    const md = g.min_outdegree();
+    const vertices = new Array();
+    for (const v of g.vertices.values()){
+        if (md == g.outDegree(v.index)){
+            vertices.push(v);
+        }
+    }
+    return [String(md), vertices];
+});
+
+paramMinOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+    for (const v of vertices){
+        v.data.highlight = 0;
+    }
+}
+
+export let paramMaxOutdegree = new Parametor("Maximum out-degree", "max_out_degree", "max_out_degree", "Maximum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
+
+paramMaxOutdegree.compute = ((g: ClientGraph, verbose) => {
+    const md = g.maxOutdegree();
+    const vertices = new Array();
+    for (const v of g.vertices.values()){
+        if (md == g.outDegree(v.index)){
+            vertices.push(v);
+        }
+    }
+    return [String(md), vertices];
+});
+
+paramMaxOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+    for (const v of vertices){
+        v.data.highlight = 0;
+    }
+}
+
+
+
+
+export let paramMaxDegree = new Parametor("Maximum degree", "max_degree", "max degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
+
+paramMaxDegree.compute = ((g: ClientGraph, verbose: boolean) => {
+    const data = g.get_degrees_data();
+    return [String(data.max_value), data.max_vertices];
+});
+
+paramMaxDegree.showCertificate = (g: ClientGraph, certificate: Set<number>) =>  {
+    for (const vId of certificate){
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 0;
+        }
+    }
+}
+
+export let paramAverageDegree = new Parametor("Average degree", "avg_degree", "avg. degree", "Print the average degree", true, false, [SENSIBILITY.ELEMENT], true);
+
+paramAverageDegree.compute = ((g: ClientGraph) => {
     // Remark : If no loop, we can simply use that sum(degree) = 2|E| so avg(degree) = 2|E|/|V|
     const data = g.get_degrees_data();
     const avg = Math.round((data.avg + Number.EPSILON) * 100) / 100
 
-    return String(avg);
+    return [String(avg), undefined];
 });
 
 
-export let param_has_proper_coloring = new Parametor("Proper vertex-coloring?", "has_proper_coloring", "proper vertex-coloring?", "Print if the current coloring of the vertices is proper or not", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
+export let paramIsProperColoring = new Parametor("Proper vertex-coloring?", "has_proper_coloring", "proper vertex-coloring?", "Print if the current coloring of the vertices is proper or not", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
 
-param_has_proper_coloring.compute = ((g: ClientGraph) => {
+paramIsProperColoring.compute = ((g: ClientGraph) => {
 
     if (g.vertices.size == 0) {
-        return "true";
+        return ["true", undefined];
     }
 
     const visited = new Set<number>();
@@ -178,23 +348,32 @@ param_has_proper_coloring.compute = ((g: ClientGraph) => {
             const neighbors = g.getNeighbors(v);
             for (const u of neighbors) {
                 if (u.data.color === v.data.color) {
-                    return "false";
+                    return ["false", [u,v]];
                 }
                 S.push(u);
             }
         }
     }
 
-    return "true";
+    return ["true", undefined];
 });
 
+paramIsProperColoring.showCertificate = (g: ClientGraph, certificate: Array<ClientVertex>) => {
+    for (const v of certificate){
+        v.data.highlight = 0;
+    }
+}
 
 
-export let param_diameter = new Parametor("Diameter", "diameter", "diameter", "Print the diameter of the graph", true, false, [SENSIBILITY.ELEMENT], true);
 
-param_diameter.compute = ((g: ClientGraph) => {
-    const FW = g.Floyd_Warhall(false);
+
+export let paramDiameter = new Parametor("Diameter", "diameter", "diameter", "Print the diameter of the graph", true, false, [SENSIBILITY.ELEMENT], true);
+
+paramDiameter.compute = ((g: ClientGraph) => {
+    const FW = g.Floyd_Warhall(undefined);
     let diameter = 0;
+    const certificate = new Array();
+    const shortestPath = new Array();
 
     for (const v_index of g.vertices.keys()) {
         for (const u_index of g.vertices.keys()) {
@@ -203,16 +382,56 @@ param_diameter.compute = ((g: ClientGraph) => {
                 const dist = vDist.get(u_index);
                 if (typeof dist != "undefined" && diameter < dist ) {
                     diameter = dist;
+                    certificate.splice(0, certificate.length);
+                    certificate.push(u_index, v_index);
+                    shortestPath.splice(0, shortestPath.length);
+                    let currentId = u_index;
+                    if (diameter == Infinity) continue;
+                    while (currentId != v_index){
+                        shortestPath.push(currentId);
+                        const r = FW.next.get(currentId)?.get(v_index);
+                        if (typeof r != "undefined"){
+                            currentId = r;
+                        } else {
+                            break;
+                        }
+                    }
+                    shortestPath.push(v_index);
+                    
                 }
             }
         }
     }
 
     if (diameter === Infinity) {
-        return String("+∞")
+        return [String("+∞"), certificate]
     }
-    return String(diameter);
+    return [String(diameter), shortestPath];
 });
+
+paramDiameter.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
+    const v0 = g.vertices.get(certificate[0]);
+    if (typeof v0 != "undefined"){
+        v0.data.highlight = 1;
+    }
+    if (certificate.length == 1) return;
+    const v1 = g.vertices.get(certificate[certificate.length-1]);
+    if (typeof v1 != "undefined"){
+        v1.data.highlight = 1;
+    }
+
+    for (let i = 0; i+1 < certificate.length; i ++){
+        const v = g.vertices.get(certificate[i]);
+        const w = g.vertices.get(certificate[i+1]);
+        if (typeof v != "undefined" && typeof w != "undefined"){
+            for (const link of g.links.values()){
+                if (link.signatureEquals(v.index, w.index, ORIENTATION.UNDIRECTED)){
+                    link.data.highlight = 1;
+                }
+            }
+        }
+    }
+}
 
 // -----------------
 export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "delaunay", "delaunay", "Resets the edges of the graph", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
@@ -221,7 +440,7 @@ paramDelaunayConstructor.compute = ((g: ClientGraph) => {
     g.resetDelaunayGraph((i,j) => {
         return new ClientLinkData(undefined, Color.Neutral, "", g.board.camera);
     });
-    return String("/");
+    return [String("/"), undefined];
 });
 
 
@@ -229,14 +448,38 @@ paramDelaunayConstructor.compute = ((g: ClientGraph) => {
 export const paramStretch = new Parametor("Stretch", "stretch", "stretch", "Computes the stretch", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
 paramStretch.compute = ((g: ClientGraph) => {
-    const stretch = g.stretch();
+    const [stretch, path] = g.stretch();
     if (typeof stretch != "undefined"){
-        return String(stretch.toFixed(3));
+        return [String(stretch.toFixed(3)), path];
     } else {
-        return ("NAN")
+        return ["NAN", new Array()]
     }
 });
 
+paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
+    if (certificate.length <= 0) return;
+    const v0 = g.vertices.get(certificate[0]);
+    if (typeof v0 != "undefined"){
+        v0.data.highlight = 1;
+    }
+    if (certificate.length == 1) return;
+    const v1 = g.vertices.get(certificate[certificate.length-1]);
+    if (typeof v1 != "undefined"){
+        v1.data.highlight = 1;
+    }
+
+    for (let i = 0; i+1 < certificate.length; i ++){
+        const v = g.vertices.get(certificate[i]);
+        const w = g.vertices.get(certificate[i+1]);
+        if (typeof v != "undefined" && typeof w != "undefined"){
+            for (const link of g.links.values()){
+                if (link.signatureEquals(v.index, w.index, ORIENTATION.UNDIRECTED)){
+                    link.data.highlight = 1;
+                }
+            }
+        }
+    }
+}
 
 
 // // -----------------
@@ -374,7 +617,7 @@ paramStretch.compute = ((g: ClientGraph) => {
 export let param_is_good_weight = new Parametor("Is good weight for our problem ?", "isgood", "isgood", "Paramètre trop stylé", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
 param_is_good_weight.compute = ((g: ClientGraph) => {
-    const FW = g.Floyd_Warhall( true);
+    const FW = g.Floyd_Warhall( undefined);
 
     for (const v of g.vertices.values()) {
         for (const u of g.vertices.values()) {
@@ -385,17 +628,17 @@ param_is_good_weight.compute = ((g: ClientGraph) => {
                         const vDist = FW.distances.get(v.index);
                         if (typeof uDist == "undefined" || typeof vDist == "undefined") continue;
                         if (uDist.get(v.index) == vDist.get(w.index)) {
-                            v.data.color = Color.Red;
-                            u.data.color = Color.Purple;
-                            w.data.color = Color.Purple;
-                            return "false";
+                            v.data.highlight = 0;
+                            u.data.highlight = 1;
+                            w.data.highlight = 1;
+                            return ["false", undefined];
                         }
                     }
                 }
             }
         }
     }
-    return "true";
+    return ["true", undefined];
 })
 
 // -----------------
@@ -408,7 +651,7 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
     let k = 1;
 
     if (g.is_connected() == false) {
-        return "NC";
+        return ["NC", undefined];
     }
 
     while (true) {
@@ -428,7 +671,7 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
                 }
                 console.log("try ", debug);
                 console.timeEnd('wdi')
-                return String(k);
+                return [String(k), undefined];
             }
 
             // k k 1 2 3
@@ -456,7 +699,7 @@ param_wdin2.compute = ((g: ClientGraph) => {
     console.time("wdin2")
 
     if (g.is_connected() == false) {
-        return "NC";
+        return ["NC", undefined];
     }
 
     let k = g.max_degree();
@@ -470,7 +713,7 @@ param_wdin2.compute = ((g: ClientGraph) => {
             }
             console.log("solution: ", debug);
             console.timeEnd("wdin2");
-            return String(k);
+            return [String(k), undefined];
         }
         k ++;
     }
@@ -656,7 +899,8 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
 
 
 function test(g: ClientGraph): boolean {
-    const FW = g.Floyd_Warhall(true);
+
+    const FW = g.Floyd_Warhall(undefined);
     for (const v_index of g.vertices.keys()) {
         for (const u_index of g.vertices.keys()) {
             if (u_index != v_index) {
@@ -685,7 +929,7 @@ function test(g: ClientGraph): boolean {
 export const paramFVSN = new Parametor("Feedback Vertex Set Number", "fvsn", "fvsn", "Feedback Vertex Set Number", false, false, [SENSIBILITY.ELEMENT], false);
 
 paramFVSN.compute = ((g: ClientGraph) => {
-    return g.fvsn().toString();
+    return [g.fvsn().toString(), undefined];
 })
 
 
@@ -701,7 +945,7 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
         if (v.data.color != Color.Neutral){
             for ( const neighbor of g.getOutNeighbors(v)){
                 if (neighbor.data.color != Color.Neutral){
-                    return "false";
+                    return ["false", undefined];
                 }
             }
             continue;
@@ -723,11 +967,11 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
             }
         }
         if (covered == false){
-            return "false";
+            return ["false", undefined];
         }
     }
 
-    return "true";
+    return ["true", undefined];
 
 })
 
@@ -816,7 +1060,7 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
             colored.push(v.index);
         }
     }
-    return 2*counter <= g.vertices.size ? "true": "false";
+    return [2*counter <= g.vertices.size ? "true": "false", undefined];
 
 })
 
@@ -824,22 +1068,57 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
 export const paramVertexCover = new Parametor("Vertex cover number", "vertexCoverNumber", "VC", "Vertex cover number", false, false, [SENSIBILITY.ELEMENT], false);
 
 paramVertexCover.compute = ((g: ClientGraph) => {
-    return g.vertex_cover_number().toString();
+    const minVC = g.minVertexCover();
+    return [minVC.size.toString(), minVC];
+})
+
+paramVertexCover.showCertificate = ((g: ClientGraph, vertexCover: Set<number>) => {
+    for (const vIndex of vertexCover){
+        const v = g.vertices.get(vIndex);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
 })
 
 
 export const paramCliqueNumber = new Parametor("Clique number", "cliqueNumber", "w", "Clique number", false, false, [SENSIBILITY.ELEMENT], false);
 
 paramCliqueNumber.compute = ((g: ClientGraph) => {
-    return g.clique_number().toString();
-})
+    const maxClique = g.maximumClique();
+    return [maxClique.size.toString(), maxClique];
+});
+
+paramCliqueNumber.showCertificate = (g: ClientGraph, clique: Set<number>) =>{
+    for (const vId of clique){
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+}
 
 
 export const paramChromaticNumber = new Parametor("Chromatic number", "chromaticNumber", "χ", "Chromatic number", false, false, [SENSIBILITY.ELEMENT], false);
 
 paramChromaticNumber.compute = ((g: ClientGraph) => {
-    return g.chromatic_number().toString();
+    const minColoring = g.minimalProperColoring();
+    const colors = new Set<number>();
+    for (const color of minColoring.values()){
+        colors.add(color);
+    }
+
+    return [colors.size.toString(), minColoring];
 })
+
+paramChromaticNumber.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+    for (const [vId, colorId] of coloring){
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = colorId;
+        }
+    }
+}
 
 
 export const paramChromaticIndex = new Parametor("Chromatic index", "chromaticIndex", "χ'", "Chromatic index", false, false, [SENSIBILITY.ELEMENT], false);
@@ -856,9 +1135,23 @@ paramChromaticIndex.compute = ((g: ClientGraph) => {
         cliques.add(clique);
     }
 
-    const glg = AbstractGraph.lineGraph(g);
-    return glg.chromatic_number(cliques).toString();
+    const lineGraph = AbstractGraph.lineGraph(g);
+    const minColoring = lineGraph.minimalProperColoring(cliques);
+    const colors = new Set<number>();
+    for (const color of minColoring.values()){
+        colors.add(color);
+    }
+    return [colors.size.toString(), minColoring];
 })
+
+paramChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+    for (const [vId, colorId] of coloring){
+        const l = g.links.get(vId);
+        if (typeof l != "undefined"){
+            l.data.highlight = colorId;
+        }
+    }
+}
 
 
 export const paramGeomChromaticIndex = new Parametor("Geometric chromatic index", "paramGCI", "gci", "Geometric chromatic index", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
@@ -879,17 +1172,22 @@ paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
     const glg = AbstractGraph.geometricLineGraph(g);
     const coloring = glg.minimalProperColoring(cliques);
 
-    for (const [linkId, color] of coloring.entries()){
-        const link = g.links.get(linkId);
-        if (typeof link != "undefined"){
-            link.data.color = getColor(color);
-        }
+    const colors = new Set<number>();
+    for (const color of coloring.values()){
+        colors.add(color);
     }
 
-    const gci = glg.chromatic_number(cliques);
-
-    return gci.toString();
+    return [colors.size.toString(), coloring];
 })
+
+paramGeomChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+    for (const [vId, colorId] of coloring){
+        const l = g.links.get(vId);
+        if (typeof l != "undefined"){
+            l.data.highlight = colorId;
+        }
+    }
+}
 
 
 export const paramDegreeWidth = new Parametor("Degreewidth of tournaments", "paramDW", "dw", "Degreewidth", false, false, [SENSIBILITY.ELEMENT], false);
@@ -897,7 +1195,7 @@ export const paramDegreeWidth = new Parametor("Degreewidth of tournaments", "par
 paramDegreeWidth.compute = ((g: ClientGraph) => {
 
     if (g.vertices.size <= 0){
-        return "0";
+        return ["0", undefined];
     }
 
     const [dw, ordering] = g.degreewidth();
@@ -913,7 +1211,7 @@ paramDegreeWidth.compute = ((g: ClientGraph) => {
         }
     }
 
-    return dw.toString();
+    return [dw.toString(), undefined];
 });
 
 

@@ -1,7 +1,7 @@
 import { Parametor } from "./parametor";
 
 import svgParamIcons from '../img/parametor/*.svg';
-import { remove_loaded_param, update_parametor } from "./parametor_manager";
+import { params_loaded, removeLoadedParam, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
 import { Zone } from "./zone";
 import { ClientArea } from "../board/area";
@@ -14,14 +14,20 @@ export class ParametorLoaded {
     id: string;
     div: HTMLDivElement;
     resultSpan: HTMLSpanElement;
+    nameSpan: HTMLSpanElement;
     zone: Zone;
+    isVerbose: boolean;
+    certificate: any;
 
     constructor(parametor: Parametor, zone: Zone, board: ClientBoard){
+        this.isVerbose = true;
+        this.certificate = undefined;
         this.parametor = parametor;
         this.zone = zone;
         const areaId = (zone instanceof ClientArea) ? zone.index : "";
         this.id = parametor.id + "_area_" + areaId;
         this.div = document.createElement("div");
+        this.nameSpan = document.createElement("span");
         zone.paramsDivContainer.appendChild(this.div);
         this.resultSpan = document.createElement("span");
         this.setupDOM(board);
@@ -30,12 +36,12 @@ export class ParametorLoaded {
     setupDOM(board: ClientBoard){
         const paramLoaded = this;
 
-        let nb_hidden_buttons = 1;
-        if(!this.parametor.is_live){
-            nb_hidden_buttons++;
+        let nbHiddenButtons = 2; // 1 for verbose 1 for remove
+        if (!this.parametor.is_live){
+            nbHiddenButtons++;
         }
-        if(this.parametor.has_info){
-            nb_hidden_buttons++;
+        if (this.parametor.has_info){
+            nbHiddenButtons++;
         }
 
         // Div for the parametor
@@ -44,20 +50,20 @@ export class ParametorLoaded {
 
         //Div for label and result
         let div_label_and_result = document.createElement("div");
-        div_label_and_result.classList.add("param_name_result_container", `hiding_buttons-${nb_hidden_buttons}`);
+        div_label_and_result.classList.add("param_name_result_container", `hiding_buttons-${nbHiddenButtons}`);
         this.div.appendChild(div_label_and_result);
 
 
         // Span for label
-        let span_name = document.createElement('span');
-        span_name.classList.add("parametor_name");
-        span_name.title = this.parametor.title;
+        this.nameSpan.classList.add("parametor-verbose");
+        this.nameSpan.classList.add("parametor_name");
+        this.nameSpan.title = this.parametor.title;
         // if(a!== null){
         //     let span_area_name = a.get_span_for_area();
         //     div_parametor.appendChild(span_area_name);
         // }
-        span_name.textContent = this.parametor.short_name + (this.parametor.is_boolean?"":":");
-        div_label_and_result.appendChild(span_name);
+        this.nameSpan.textContent = this.parametor.short_name + (this.parametor.is_boolean?"":":");
+        div_label_and_result.appendChild(this.nameSpan);
 
 
 
@@ -78,9 +84,41 @@ export class ParametorLoaded {
         //Div for hidden_buttons
         let div_hidden_buttons = document.createElement("div");
 
-        div_hidden_buttons.classList.add("hidden_buttons_container", `hided_buttons-${nb_hidden_buttons}`);
+        div_hidden_buttons.classList.add("hidden_buttons_container", `hided_buttons-${nbHiddenButtons}`);
         this.div.appendChild(div_hidden_buttons);
 
+        // Verbose button
+        const verboseButton = document.createElement("div");
+        verboseButton.classList.add("param-button-verbose");
+        verboseButton.classList.add("hidden_button_div");
+
+        const verboseImg = document.createElement("img");
+        verboseButton.appendChild(verboseImg);
+        verboseImg.classList.add("param-button-verbose-img");
+        verboseImg.classList.add("white_svg", "hidden_button");
+        verboseImg.id = "img_verbose_" + this.id;
+        verboseImg.title = "Toggle verbose";
+        verboseImg.src = svgParamIcons["verbose"];
+        verboseImg.addEventListener('click', ()=>{
+            this.isVerbose = !this.isVerbose;
+            if (this.isVerbose){
+                board.unhighlightAll();
+                for (const p of params_loaded){
+                    if (p.id != this.id){
+                        p.isVerbose = false;
+                        p.nameSpan.classList.remove("parametor-verbose");
+                    }
+                }
+                this.nameSpan.classList.add("parametor-verbose")
+                this.parametor.showCertificate(board.graph, this.certificate);
+                board.requestDraw();
+            } else {
+                this.nameSpan.classList.remove("parametor-verbose");
+                board.unhighlightAll();
+                board.requestDraw();
+            }
+        });
+        div_hidden_buttons.appendChild(verboseButton);
 
 
         // Reload button
@@ -119,7 +157,7 @@ export class ParametorLoaded {
         button.classList.add("remove_param_button", "white_svg", "hidden_button");
         button.title = "Remove parameter";
 
-        button.addEventListener('click', () => { remove_loaded_param(paramLoaded); });
+        button.addEventListener('click', () => { removeLoadedParam(paramLoaded, board); });
         div_hidden_buttons.appendChild(div_button);
 
 
