@@ -139,7 +139,7 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         let labelCode = "";
         // if (showLabels)
         if ( typeof this.data.weightDiv != "undefined" ){
-            // labelCode = "node[midway, shift={(" + this.data.weightDiv.offsetLeft / 100 + "," + - this.data.weightDiv.offsetTop / 100 + ")}, scale = \\scaleE] {" + this.data.weight + "}";
+            // labelCode = "node[midway, shift={(" + this.data.weightDiv.offsetLeft / 100 + "," + - this.data.weightDiv.offsetTop / 100 + ")}, scale = \\edgeWidth] {" + this.data.weight + "}";
         }
 
         const arrowTikz =  (this.orientation == ORIENTATION.DIRECTED) ? "[->,>=latex]" : "";
@@ -147,10 +147,10 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
         const start = this.startVertex;
         const end = this.endVertex;
 
-        const weightTikz = (this.data.weight == "") ? "" :  `node[scale=\\scaleL, fill=${this.data.color}, text=white] {${this.data.weight}}`;
+        const weightTikz = (this.data.weight == "") ? "" :  `node[scale=\\weightSize, fill=${this.data.color}, text=white] {${this.data.weight}}`;
 
         const cpTikz = (typeof this.data.cp != "undefined" ) ? `.. controls (${Math.round(this.data.cp.x)/100}, ${Math.round(this.data.cp.y)/100}) ..`: "--";
-        return `\\draw${arrowTikz}[line width = \\scaleE, color = ${this.data.color}] (${start.getTikzCoordVar()}) ${cpTikz} ${weightTikz} (${end.getTikzCoordVar()}) ${labelCode};`;
+        return `\\draw${arrowTikz}[line width = \\edgeWidth, color = ${this.data.color}] (${start.getTikzCoordVar()}) ${cpTikz} ${weightTikz} (${end.getTikzCoordVar()}) ${labelCode};`;
     }
 
     /**

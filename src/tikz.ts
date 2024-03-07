@@ -1,7 +1,12 @@
 import { colorsData } from "./board/display/colors_v2";
 import { ClientGraph } from "./board/graph";
 
-function TikZ_header() {
+function TikZcredits() {
+    return "% LaTeX code generated using http://graccoon.com \n\n";
+}
+
+
+function TikZheader() {
     return `\\documentclass[border=1mm, tikz,dvipsnames]{standalone} 
 \\usepackage{tikz} 
 \\usetikzlibrary{decorations.pathreplacing, decorations.markings} 
@@ -68,32 +73,31 @@ function TikZ_header() {
 `
 }
 
-function Tikz_create_defines() {
+function TikzCreateDefines() {
     return  `
-        %Defining some constants
-        \\def\\scaleL{0.3}; %Scale of the indices of vertices
-        \\def\\scaleE{0.8}; %Scale of the edges
-        \\def\\scaleV{0.45}; %Scale of the vertices
+        % Constants
+        \\def\\vertexIdSize{0.3}; % Scale of the indices of vertices (inside the disk)
+        \\def\\weightSize{0.3}; % Scale of the weights or labels of vertices and links
+        \\def\\edgeWidth{0.8}; % Scale of the edges
+        \\def\\vertexSize{0.45}; % Scale of the disk of the vertices
     `;
 }
 
 
-function TikZ_credits() {
-    return "%LaTeX code generated using http://graccoon.com/ \n\n";
-}
+
 
 function TikZ_create_coordinates(g: ClientGraph) {
-    let coordinates = "\t\t%Defining the coordinates for the vertices\n";
+    let coordinates = "\t\t% Coordinates for the vertices\n";
     for (const v of g.vertices.values()) {
         coordinates += ("\t\t" + v.tikzify_coordinate() + "\n");
     }
     return coordinates;
 }
 
-function TikZ_create_nodes(g: ClientGraph) {
-    let coordinates = `\t\t%Drawing the vertices
+function TikZcreateNodes(g: ClientGraph) {
+    let coordinates = `\t\t% Draw vertices
     \t\t % HOW TO USE IT: \\node[scale = SCALE_VALUE, nodes={COLOR_OF_THE_NODE}{TEXT_LABEL}{POSITION_LABEL}{SIZE_NODE}] at  (COORDINATE)  {};
-    \t\t%e.g. : \\node[scale = 0.5, nodes={red}{$v$}{above left}{}] at  (0,0)  {};\n`;
+    \t\t % e.g. : \\node[scale = 0.5, nodes={red}{$v$}{above left}{}] at  (0,0)  {};\n`;
     for (const v of g.vertices.values()) {
         coordinates += ("\t\t" + v.tikzify_node() + "\n");
         // coordinates += ("\t\t" + v.tikzify_label() + "\n");
@@ -101,8 +105,8 @@ function TikZ_create_nodes(g: ClientGraph) {
     return coordinates;
 }
 
-function TikZ_create_links(g: ClientGraph) {
-    let edgesString = "\t\t%Drawing the edges/arcs\n";
+function TikZcreateLinks(g: ClientGraph) {
+    let edgesString = "\t\t% Draw edges and arcs\n";
     for (const link of g.links.values()) {
         edgesString += ("\t\t" + link.getTikz() + "\n");
     }
@@ -120,14 +124,14 @@ function defineColors(): string{
 }
 
 export function TikZ_create_file_data(g: ClientGraph) {
-    let latex = TikZ_credits();
-    latex += TikZ_header();
+    let latex = TikZcredits();
+    latex += TikZheader();
     latex += defineColors();
     latex += "\\begin{document}\n	\\begin{tikzpicture}[yscale=-1]\n";
-    latex += Tikz_create_defines() + "\n";
+    latex += TikzCreateDefines() + "\n";
     latex += TikZ_create_coordinates(g) + "\n";
-    latex += TikZ_create_links(g) + "\n";
-    latex += TikZ_create_nodes(g) + "\n";
+    latex += TikZcreateLinks(g) + "\n";
+    latex += TikZcreateNodes(g) + "\n";
     latex += "\n\t\\end{tikzpicture}\n\\end{document}\n";
     return latex;
 }

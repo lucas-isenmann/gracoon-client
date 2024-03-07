@@ -11,7 +11,7 @@ const cliqueGenerator = new GraphGenerator(GeneratorId.CliqueCircle, "clique Kn"
 const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "random tournament", [new Integer("n", 3)])
 const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "GNP", [new Integer("n", 3), new Percentage("p")]);
 const randomStar = new GraphGenerator(GeneratorId.Star, "star", [new Integer("n", 3)])
-const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartie Knm", [new Integer("n",1),new Integer("m",1)]);
+const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartite Knm", [new Integer("n",1),new Integer("m",1)]);
 const gridGenerator = new GraphGenerator(GeneratorId.Grid, "grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
 const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "Aztec Diamond", [new Integer("n",1)]);
 

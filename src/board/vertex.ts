@@ -114,9 +114,9 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
     }
 
     tikzify_node(): string {
-        const weightTikz = (this.data.weight == "") ? "" : `\n\\node[label={[scale=\\scaleL]below: ${this.data.weight}}] at (${this.getTikzCoordVar()}) {};`;
+        const weightTikz = (this.data.weight == "") ? "" : `\n\t\t\\node[label={[scale=\\weightSize]below: ${this.data.weight}}] at (${this.getTikzCoordVar()}) {};`;
 
-        return `\\node[scale = \\scaleV, label={[text=white, scale=\\scaleL]center: ${this.index}}, nodes={${this.data.color}}{}{}{}] at  (${this.getTikzCoordVar()})  {};${weightTikz}`;
+        return `\\node[scale = \\vertexSize, label={[text=white, scale=\\vertexIdSize]center: ${this.data.indexString}}, nodes={${this.data.color}}{}{}{}] at  (${this.getTikzCoordVar()})  {};${weightTikz}`;
     }
 
     tikzify_label() {
@@ -125,7 +125,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         // https://tex.stackexchange.com/questions/58878/tikz-set-node-label-position-more-precisely
         // shift={(1,0.3)} COMMENT 2
 
-        // labelCode = "\\node[shift={(" + round(this.label.getExactLabelOffsetX() * 10) / 1000 + "," + -round(this.label.getExactLabelOffsetY() * 10) / 1000 + ")}, scale=\\scaleV] at  (v" + Vertices.indexOf(this) + ") {" + this.label.text + "};";
+        // labelCode = "\\node[shift={(" + round(this.label.getExactLabelOffsetX() * 10) / 1000 + "," + -round(this.label.getExactLabelOffsetY() * 10) / 1000 + ")}, scale=\\vertexSize] at  (v" + Vertices.indexOf(this) + ") {" + this.label.text + "};";
 
         return labelCode;
     }
