@@ -54,7 +54,7 @@ paramHasCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
 export const paramHasDirectedCycle = new Parametor("Has directed cycle?", "has_directed_cycle", "?has_directed_cycle", "Check if the graph has a directed cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
 paramHasDirectedCycle.compute = ((g: ClientGraph) => {
-    return [String(g.has_directed_cycle()), new Array()];
+    return [String(g.hasDirectedCycleRecursive()), new Array()];
 })
 
 paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
@@ -933,11 +933,30 @@ paramFVSN.compute = ((g: ClientGraph) => {
 })
 
 
+// -------------
+
+export const paramMinQuasiKernel = new Parametor("Minimum Quasi Kernel", "minQuasiKernel", "minQK", "Minimum Quasi Kernel", true, false, [SENSIBILITY.ELEMENT], false);
+
+paramMinQuasiKernel.compute = (g: ClientGraph) => {
+    const minQK = g.minQuasiKernel();
+    return [minQK.size.toString(), minQK];
+}
+
+paramMinQuasiKernel.showCertificate = (g: ClientGraph, quasiKernel: Set<number>) => {
+    for (const vId of quasiKernel){
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+}
+
+
+
+
+
 // --------------------
-
-
-
-export const paramIsQuasiKernel = new Parametor("Is Quasi Kernel", "is_quasi_kernel", "isQK", "Is Quasi Kernel", false, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
+export const paramIsQuasiKernel = new Parametor("Is Quasi Kernel", "is_quasi_kernel", "isQK", "Is Quasi Kernel", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
 
 paramIsQuasiKernel.compute = ((g: ClientGraph) => {
 
