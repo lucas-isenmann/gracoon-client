@@ -201,7 +201,7 @@ export function setupHandlers(board: ClientBoard) {
             } else if ( kind == "Area"){
                 const area = board.areas.get(index);
                 if (typeof area != "undefined"){
-                    const vertices_contained = g.vertices_contained_by_area(area);
+                    const vertices_contained = g.verticesContaintedByArea(area);
                     board.translate_area(cshift, area, vertices_contained);
                     for (const link of g.links.values()){
                         if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
@@ -311,7 +311,7 @@ export function setupHandlers(board: ClientBoard) {
             } else if (kind == "Area"){
                 board.delete_area(index);
             } else if (kind == "Vertex"){
-                board.graph.delete_vertex(index);
+                board.graph.deleteVertex(index);
                 update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
                 g.compute_vertices_index_string()
             } else if (kind == "Link"){

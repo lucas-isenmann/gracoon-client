@@ -46,7 +46,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    override delete_vertex(index: number){
+    override deleteVertex(index: number){
         const vertex = this.vertices.get(index);
         if ( typeof vertex == "undefined") return;
         if (typeof vertex.data.weightDiv != "undefined"){
@@ -59,7 +59,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
                 }
             }
         }
-        super.delete_vertex(index);
+        super.deleteVertex(index);
     }
 
     /**

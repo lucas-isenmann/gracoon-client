@@ -780,7 +780,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     selectConnectedComponent(vIndex: number){
-        const c = this.graph.get_connected_component_of(vIndex);
+        const c = this.graph.getConnectedComponentOf(vIndex);
         const vertexIndices = new Set();
         const linkIndices = new Set();
         for (const index of c.vertices.keys()){

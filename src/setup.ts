@@ -1,5 +1,5 @@
 import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
-import { load_param, params_available, setup_parametors_available } from "./parametors/parametor_manager";
+import { setup_parametors_available } from "./parametors/parametor_manager";
 import { setupHandlers, socket } from "./socket";
 import { setup_generators_div, turn_on_generators_div } from "./generators/dom";
 import { ClientBoard, INDEX_TYPE, SocketMsgType } from "./board/board";

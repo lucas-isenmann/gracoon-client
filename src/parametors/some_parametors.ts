@@ -14,7 +14,7 @@ export const paramMinimalSpanningTree = new Parametor("Minimal weighted spanning
 "minimalWeightedSpanningTree", "minWST", "Minimal weighted spanning tree", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
 paramMinimalSpanningTree.compute = ((g: ClientGraph, verbose: boolean) => {
-    const r = g.minimum_spanning_tree();
+    const r = g.minimumSpanningTree();
     return [r[0].toString(), r[1]];
 })
 
@@ -28,7 +28,7 @@ paramMinimalSpanningTree.showCertificate = ((g:ClientGraph, certificate: Array<C
 export const paramHasCycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
 paramHasCycle.compute = ((g: ClientGraph, verbose: boolean) => {
-    const r = g.has_cycle2();
+    const r = g.hasCycle2();
     return [String(r[0]), r[1]];
 });
 
@@ -103,7 +103,7 @@ paramNbEdges.compute = ((g: ClientGraph) => {
 export const paramIsConnected = new Parametor("Is connected?", "is_connected", "is connected?", "Is the graph/area connected?", true, true, [SENSIBILITY.ELEMENT], true);
 
 paramIsConnected.compute = ((g: ClientGraph) => {
-    return [String(g.is_connected()), undefined];
+    return [String(g.isConnected()), undefined];
 });
 
 
@@ -144,7 +144,7 @@ paramNbConnectedComp.compute = ((g: ClientGraph) => {
             break;
         }
 
-        g.DFS_recursive( first_vertex_index, visited);
+        g.DFSrecursive( first_vertex_index, visited);
         
         // Visited vertex which has no component assignation, is in component cc
         for (const index of g.vertices.keys()){
@@ -207,7 +207,7 @@ paramIsDrawingPlanar.showCertificate = (g: ClientGraph, crossings: Array<[number
 export const paramMinDegree = new Parametor("Minimum degree", "min_degree", "min degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
 paramMinDegree.compute = ((g: ClientGraph, verbose: boolean) => {
-    const data = g.get_degrees_data();
+    const data = g.getDegreesData();
     const minVertices = new Array();
     for (const v of g.vertices.values()){
         if (data.min_value == g.degree(v.index)){
@@ -226,7 +226,7 @@ paramMinDegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVerte
 export let paramMinIndegree = new Parametor("Mininum in-degree", "min_indegree", "min_indegree", "Minimum indegree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
 paramMinIndegree.compute = ((g: ClientGraph, verbose) => {
-    const md = g.min_indegree();
+    const md = g.minIndegree();
     const minVertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.inDegree(v.index)){
@@ -264,7 +264,7 @@ paramMaxIndegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex
 export let paramMinOutdegree = new Parametor("Minimum out-degree", "min_out_degree", "min_out_degree", "Minimum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
 paramMinOutdegree.compute = ((g: ClientGraph, verbose) => {
-    const md = g.min_outdegree();
+    const md = g.minOutdegree();
     const vertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.outDegree(v.index)){
@@ -305,7 +305,7 @@ paramMaxOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVerte
 export let paramMaxDegree = new Parametor("Maximum degree", "max_degree", "max degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
 paramMaxDegree.compute = ((g: ClientGraph, verbose: boolean) => {
-    const data = g.get_degrees_data();
+    const data = g.getDegreesData();
     return [String(data.max_value), data.max_vertices];
 });
 
@@ -322,7 +322,7 @@ export let paramAverageDegree = new Parametor("Average degree", "avg_degree", "a
 
 paramAverageDegree.compute = ((g: ClientGraph) => {
     // Remark : If no loop, we can simply use that sum(degree) = 2|E| so avg(degree) = 2|E|/|V|
-    const data = g.get_degrees_data();
+    const data = g.getDegreesData();
     const avg = Math.round((data.avg + Number.EPSILON) * 100) / 100
 
     return [String(avg), undefined];
@@ -370,7 +370,7 @@ paramIsProperColoring.showCertificate = (g: ClientGraph, certificate: Array<Clie
 export let paramDiameter = new Parametor("Diameter", "diameter", "diameter", "Print the diameter of the graph", true, false, [SENSIBILITY.ELEMENT], true);
 
 paramDiameter.compute = ((g: ClientGraph) => {
-    const FW = g.Floyd_Warhall(undefined);
+    const FW = g.FloydWarshall(undefined);
     let diameter = 0;
     const certificate = new Array();
     const shortestPath = new Array();
@@ -617,7 +617,7 @@ paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
 export let param_is_good_weight = new Parametor("Is good weight for our problem ?", "isgood", "isgood", "Paramètre trop stylé", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
 param_is_good_weight.compute = ((g: ClientGraph) => {
-    const FW = g.Floyd_Warhall( undefined);
+    const FW = g.FloydWarshall( undefined);
 
     for (const v of g.vertices.values()) {
         for (const u of g.vertices.values()) {
@@ -650,7 +650,7 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
     console.time('wdi')
     let k = 1;
 
-    if (g.is_connected() == false) {
+    if (g.isConnected() == false) {
         return ["NC", undefined];
     }
 
@@ -698,11 +698,11 @@ export const param_wdin2 = new Parametor("Weighted distance identification numbe
 param_wdin2.compute = ((g: ClientGraph) => {
     console.time("wdin2")
 
-    if (g.is_connected() == false) {
+    if (g.isConnected() == false) {
         return ["NC", undefined];
     }
 
-    let k = g.max_degree();
+    let k = g.maxDegree();
     while (true) {
         console.log("try k = ", k);
         if ( wdin2_search(g, k)){
@@ -732,12 +732,12 @@ function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: 
         }
         return;
     }
-    const bridge_index = g.max_cut_edge();
+    const bridge_index = g.maxCutEdge();
     const bridge = g.links.get(bridge_index);
     if (typeof bridge == "undefined") return;
     g.links.delete(bridge_index);
-    const g1 = g.get_connected_component_of(bridge.startVertex.index) as ClientGraph;
-    const g2 = g.get_connected_component_of(bridge.endVertex.index) as ClientGraph;
+    const g1 = g.getConnectedComponentOf(bridge.startVertex.index) as ClientGraph;
+    const g2 = g.getConnectedComponentOf(bridge.endVertex.index) as ClientGraph;
     wdin2_order(g1, ordered_links, association);
     wdin2_order(g2, ordered_links, association);
     g.links.set(bridge_index, bridge);
@@ -900,7 +900,7 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
 
 function test(g: ClientGraph): boolean {
 
-    const FW = g.Floyd_Warhall(undefined);
+    const FW = g.FloydWarshall(undefined);
     for (const v_index of g.vertices.keys()) {
         for (const u_index of g.vertices.keys()) {
             if (u_index != v_index) {
