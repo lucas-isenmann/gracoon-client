@@ -1,10 +1,10 @@
 {
   "name": "gracoon-client",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "parcel src/index.html",
+    "dev": "parcel src/index.html --https --port 1244",
     "build": "parcel build src/index.html"
   },
   "repository": {
@@ -15,14 +15,13 @@
   "license": "MIT",
   "dependencies": {
     "@types/marked": "^5.0.0",
-    "@types/socket.io-client": "^3.0.0",
     "gramoloss": "^1.10.0",
     "katex": "^0.16.7",
     "marked": "^5.0.4",
-    "parcel": "^2.9.1",
+    "parcel": "^2.12.0",
     "parcel-transformer-markdown": "^3.0.0",
-    "socket.io-client": "^4.6.2",
-    "typescript": "^5.0.4"
+    "socket.io-client": "^4.7.5",
+    "typescript": "^5.4.3"
   },
   "devDependencies": {
     "@parcel/resolver-glob": "^2.9.1",

@@ -20,7 +20,7 @@ import { ClientRectangle } from "./board/rectangle";
 import { translate_by_canvas_vect } from "./board/resizable";
 
 const port = ENV.port;
-const adress = "http://" + ENV.serverAdress + ":" + port;
+const adress = "https://" + ENV.serverAdress + ":" + port;
 console.log("connecting to: ", adress);
 export const socket = io(adress);
 
