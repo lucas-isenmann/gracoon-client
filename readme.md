@@ -15,4 +15,4 @@ Change the `.env.json` with the ip/domain of the server and the port used.
 
 ## Test it
 
-A server is running on [gracoon.com](https://gracoon.com) :rocket:
+A server is running on [gracoon.com](https://www.gracoon.com) :rocket:
