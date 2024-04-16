@@ -1,4 +1,4 @@
-import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel } from './some_parametors';
+import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
@@ -17,6 +17,7 @@ export let params_available = new Array<Parametor>();
 export function setup_parametors_available() {
     params_available.push(paramNbEdges,
         paramNbVertices,
+        paramGirth,
         paramHasCycle,
         paramHasDirectedCycle,
         paramIsConnected,
@@ -37,6 +38,9 @@ export function setup_parametors_available() {
         // param_weighted_distance_identification,
         // param_wdin2,
         // paramDelaunayConstructor,
+        paramDS,
+        paramIDS,
+        paramCDS,
         paramFVSN,
         paramCliqueNumber,
         paramVertexCover,

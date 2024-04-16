@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/marked": "^5.0.0",
-    "gramoloss": "^1.10.0",
+    "gramoloss": "^1.10.2",
     "katex": "^0.16.7",
     "marked": "^5.0.4",
     "parcel": "^2.12.0",

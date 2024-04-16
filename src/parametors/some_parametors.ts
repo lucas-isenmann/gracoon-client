@@ -1,7 +1,7 @@
 
 import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { AbstractGraph, ORIENTATION } from 'gramoloss';
+import { AbstractGraph, DominationVariant, ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
 import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
@@ -33,6 +33,37 @@ paramHasCycle.compute = ((g: ClientGraph, verbose: boolean) => {
 });
 
 paramHasCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+    for (let i = 0; i < cycle.length; i ++){
+        const vId = cycle[i];
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = 0;
+        }
+
+        const nextId = cycle[(i+1)%cycle.length];
+        for (const link of g.links.values()){
+            if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
+                link.data.highlight = 0;
+                break;
+            }
+        }
+    }
+}
+
+// -------------------------
+export const paramGirth = new Parametor("Girth", "girth", "girth", "Shortest cycle", true, false, [SENSIBILITY.ELEMENT], false);
+
+paramGirth.compute = ((g: ClientGraph, verbose: boolean) => {
+    const cycle = g.shortestCycle();
+    if (cycle.length == 0){
+        return ["+∞", []];
+    } else {
+        return [cycle.length.toString(), cycle];
+    }
+    
+});
+
+paramGirth.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
         const v = g.vertices.get(vId);
@@ -1084,7 +1115,83 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
 })
 
 
-export const paramVertexCover = new Parametor("Vertex cover number", "vertexCoverNumber", "VC", "Vertex cover number", false, false, [SENSIBILITY.ELEMENT], false);
+// --------------------
+// Domination parameters
+
+export const paramDS = new Parametor(
+    "Domination number", 
+    "dominationNumber", 
+    "DN", 
+    "Domination number", 
+    true, false, [SENSIBILITY.ELEMENT], false);
+
+paramDS.compute = ((g: ClientGraph) => {
+    const minDS = g.minDominatingSet(undefined);
+    return [minDS.size.toString(), minDS];
+})
+
+paramDS.showCertificate = ((g: ClientGraph, minDS: Set<number>) => {
+    for (const vIndex of minDS){
+        const v = g.vertices.get(vIndex);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+})
+
+// ----------------------------------
+export const paramIDS = new Parametor(
+    "Independent Domination number", 
+    "independentDominationNumber", 
+    "IDN", 
+    "Independent domination number", 
+    true, false, [SENSIBILITY.ELEMENT], false);
+
+paramIDS.compute = ((g: ClientGraph) => {
+    const minIDS = g.minDominatingSet(DominationVariant.Independent);
+    return [minIDS.size.toString(), minIDS];
+})
+
+paramIDS.showCertificate = ((g: ClientGraph, minIDS: Set<number>) => {
+    for (const vIndex of minIDS){
+        const v = g.vertices.get(vIndex);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+})
+
+// ----------------------------------
+export const paramCDS = new Parametor(
+    "Connected Domination number", 
+    "connectedDominationNumber", 
+    "CDN", 
+    "Connected domination number", 
+    true, false, [SENSIBILITY.ELEMENT], false);
+
+paramCDS.compute = ((g: ClientGraph) => {
+    const minCDS = g.minConnectedDominatingSet();
+    if (typeof minCDS == "undefined"){
+        return ["/", new Set()];
+    } else {
+        return [minCDS.size.toString(), minCDS];
+    }
+})
+
+paramCDS.showCertificate = ((g: ClientGraph, minCDS: Set<number>) => {
+    for (const vIndex of minCDS){
+        const v = g.vertices.get(vIndex);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+})
+
+
+// -------------------------
+export const paramVertexCover = new Parametor(
+    "Vertex cover number", "vertexCoverNumber", "VC", "Vertex cover number", 
+    false, false, [SENSIBILITY.ELEMENT], false);
 
 paramVertexCover.compute = ((g: ClientGraph) => {
     const minVC = g.minVertexCover();
