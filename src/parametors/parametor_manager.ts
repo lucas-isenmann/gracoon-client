@@ -1,4 +1,4 @@
-import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS } from './some_parametors';
+import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS, paramDFVS } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
@@ -38,6 +38,7 @@ export function setup_parametors_available() {
         // param_weighted_distance_identification,
         // param_wdin2,
         // paramDelaunayConstructor,
+        paramDFVS,
         paramDS,
         paramIDS,
         paramCDS,
@@ -50,7 +51,7 @@ export function setup_parametors_available() {
         paramStretch,
         paramIsQuasiKernel,
         paramMinQuasiKernel,
-        paramDegreeWidth
+        paramDegreeWidth,
         );
     
         const [div, content] = createPopup("params_available", "Parameters");

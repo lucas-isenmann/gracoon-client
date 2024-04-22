@@ -526,6 +526,9 @@ export function setupHandlers(board: ClientBoard) {
         }
         console.log("[" + s + "]");
         */
+        // for (const link of g.links.values()){
+        //     console.log(link.startVertex.index, link.endVertex.index, link.orientation);
+        // }
 
         g.compute_vertices_index_string();
 

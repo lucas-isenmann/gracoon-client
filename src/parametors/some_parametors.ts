@@ -85,7 +85,14 @@ paramGirth.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
 export const paramHasDirectedCycle = new Parametor("Has directed cycle?", "has_directed_cycle", "?has_directed_cycle", "Check if the graph has a directed cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
 paramHasDirectedCycle.compute = ((g: ClientGraph) => {
-    return [String(g.hasDirectedCycleRecursive()), new Array()];
+    const cycle = g.getDirectedCycle();
+    if (typeof cycle == "undefined"){
+        return [String(false), cycle];
+    } else {
+        return [String(true), cycle];
+    }
+
+    
 })
 
 paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
@@ -93,13 +100,13 @@ paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) =
         const vId = cycle[i];
         const v = g.vertices.get(vId);
         if (typeof v != "undefined"){
-            v.data.highlight = 0;
+            v.data.highlight = 1;
         }
 
         const nextId = cycle[(i+1)%cycle.length];
         for (const link of g.links.values()){
-            if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
-                link.data.highlight = 0;
+            if (link.signatureEquals(nextId, vId, ORIENTATION.DIRECTED)){
+                link.data.highlight = 1;
                 break;
             }
         }
@@ -1114,6 +1121,29 @@ paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
 
 })
 
+
+// ----------------------------------
+// Directed Feedback Vertex Set Number
+export const paramDFVS = new Parametor(
+    "Min directed feedback vertex set", 
+    "dfvsn", 
+    "dfvsn", 
+    "Min directed feedback vertex set", 
+    true, false, [SENSIBILITY.ELEMENT], false);
+
+paramDFVS.compute = ((g: ClientGraph) => {
+    const set = g.minDirectedFeedbackVertexSet();
+    return [set.size.toString(), set];
+})
+
+paramDFVS.showCertificate = ((g: ClientGraph, set: Set<number>) => {
+    for (const vIndex of set){
+        const v = g.vertices.get(vIndex);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+})
 
 // --------------------
 // Domination parameters
