@@ -57,8 +57,84 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
      */
     setAutoWeightDivPos(){
         if ( typeof this.data.weightDiv !== "undefined" ){
-            this.data.weightDiv.style.top = String(this.data.canvas_pos.y + 20 - this.data.weightDiv.clientHeight/2) + "px";
-            this.data.weightDiv.style.left = String(this.data.canvas_pos.x- this.data.weightDiv.clientWidth/2) + "px";
+
+            const angles = new Array<[number,number]>();
+            const neighbors = new Array<[number, Coord]>();
+            for (const neighbor of this.board.graph.getNeighbors(this)){
+                neighbors.push([neighbor.index, neighbor.data.pos])
+            }
+            for (const neighbor of this.board.graph.getOutNeighbors(this)){
+                neighbors.push([neighbor.index, neighbor.data.pos])
+            }
+            for (const neighbor of this.board.graph.getInNeighbors(this)){
+                neighbors.push([neighbor.index, neighbor.data.pos])
+            }
+
+
+            for (const neighbor of neighbors){
+                if (this.index == neighbor[0]) continue;
+                const deltaX = neighbor[1].x - this.data.pos.x;
+                const deltaY = neighbor[1].y - this.data.pos.y;
+                let angle = Math.atan2(deltaY, deltaX);
+                if (angle < 0){
+                    angle += 2*Math.PI;
+                }
+                angles.push([neighbor[0], angle]);
+            }
+
+
+
+            const distance = 20;
+
+
+            if (angles.length == 0){
+                this.data.weightDiv.style.top = String(this.data.canvas_pos.y + distance - this.data.weightDiv.clientHeight/2) + "px";
+                this.data.weightDiv.style.left = String(this.data.canvas_pos.x- this.data.weightDiv.clientWidth/2) + "px";
+                return;
+            }
+            if (angles.length == 1){
+                const angleRadians = angles[0][1] + Math.PI;
+                const newX = this.data.canvas_pos.x + distance * Math.cos(angleRadians);
+                const newY = this.data.canvas_pos.y + distance * Math.sin(angleRadians);
+
+                this.data.weightDiv.style.top = String(newY - this.data.weightDiv.clientHeight / 2) + "px";
+                this.data.weightDiv.style.left = String(newX - this.data.weightDiv.clientWidth / 2) + "px";
+                return;
+            }
+
+            angles.sort((a, b) => a[1] - b[1]);
+
+            // console.log("---")
+            // Find the index i maximizing the angle difference
+            let maxAngleDiff = -10;
+            let maxIndex = -1;
+            for (let i = 0; i < angles.length; i++) {
+                // console.log(angles[i][1]*360/(2*Math.PI));
+                const j = (i+1) % angles.length;
+                let angleDiff = angles[j][1] - angles[i][1];
+                if (angleDiff < 0) { angleDiff += 2*Math.PI}
+                if (angleDiff > maxAngleDiff) {
+                    maxAngleDiff = angleDiff;
+                    maxIndex = i;
+                }
+            }
+
+            // Calculate the angle between angles[maxIndex+1] and angles[maxIndex]
+            const angleRadians = angles[maxIndex][1] + maxAngleDiff/2;
+
+            // Calculate the new position of weightDiv
+            const newX = this.data.canvas_pos.x + distance * Math.cos(angleRadians);
+            const newY = this.data.canvas_pos.y + distance * Math.sin(angleRadians);
+
+            // Position the weightDiv
+            this.data.weightDiv.style.top = String(newY - this.data.weightDiv.clientHeight / 2) + "px";
+            this.data.weightDiv.style.left = String(newX - this.data.weightDiv.clientWidth / 2) + "px";
+
+
+
+
+            // this.data.weightDiv.style.top = String(this.data.canvas_pos.y + 20 - this.data.weightDiv.clientHeight/2) + "px";
+            // this.data.weightDiv.style.left = String(this.data.canvas_pos.x- this.data.weightDiv.clientWidth/2) + "px";
         }
     }
 
@@ -71,14 +147,39 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         this.data.pos.y = ny;
         this.data.canvas_pos = board.camera.create_canvas_coord(this.data.pos );
         this.setAutoWeightDivPos();
+        this.setAutoWeightDivPosNeighbors();
     }
 
 
+    setAutoWeightDivPosNeighbors(){
+        for (const neighbor of this.board.graph.getNeighbors(this)){
+            if (neighbor.index != this.index) {
+                neighbor.setAutoWeightDivPos();
+            }
+        }
+        for (const neighbor of this.board.graph.getOutNeighbors(this)){
+            if (neighbor.index != this.index) {
+                const neighbor2 = this.board.graph.vertices.get(neighbor.index);
+                if (typeof neighbor2 != "undefined"){
+                    neighbor2.setAutoWeightDivPos();
+                }
+            }
+        }
+        for (const neighbor of this.board.graph.getInNeighbors(this)){
+            if (neighbor.index != this.index) {
+                const neighbor2 = this.board.graph.vertices.get(neighbor.index);
+                if (typeof neighbor2 != "undefined"){
+                    neighbor2.setAutoWeightDivPos();
+                }
+            }
+        }
+    }
 
 
     update_after_view_modification(camera: Camera){
         this.data.canvas_pos = camera.create_canvas_coord(this.data.pos);
         this.setAutoWeightDivPos();
+        this.setAutoWeightDivPosNeighbors();
     }
 
 
@@ -91,6 +192,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         this.data.pos.x += shift.x/camera.zoom;
         this.data.pos.y += shift.y/camera.zoom;
         this.setAutoWeightDivPos();
+        this.setAutoWeightDivPosNeighbors();
     }
 
     translate_by_server_vect(shift: Vect, camera: Camera){
@@ -99,6 +201,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         this.data.pos.x += shift.x;
         this.data.pos.y += shift.y;
         this.setAutoWeightDivPos();
+        this.setAutoWeightDivPosNeighbors();
     }
 
     is_in_rect(c1: CanvasCoord, c2: CanvasCoord) {

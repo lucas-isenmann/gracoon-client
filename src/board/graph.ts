@@ -42,6 +42,8 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
         const newLink = new ClientLink(index, startVertex, endVertex, orientation, linkData, this.board);
         this.links.set(index, newLink);
+        startVertex.setAutoWeightDivPos();
+        endVertex.setAutoWeightDivPos();
         return newLink;
     }
 
