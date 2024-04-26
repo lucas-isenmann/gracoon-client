@@ -76,7 +76,8 @@ export enum SocketMsgType {
     GET_JSON = "get_json",
     SUBDIVIDE_LINK = "subdivide_link",
     GENERATE_GRAPH = "generate-graph",
-    GetParameterInfo = "get-parameter-info"
+    GetParameterInfo = "get-parameter-info",
+    PARSE_DOT = "import_file"
 }
 
 export enum INDEX_TYPE {
