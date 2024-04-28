@@ -14,8 +14,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@types/katex": "^0.16.7",
-    "@types/marked": "^5.0.0",
     "gramoloss": "^1.10.6",
     "katex": "^0.16.7",
     "marked": "^5.0.4",
@@ -23,7 +21,8 @@
     "typescript": "^5.4.3"
   },
   "devDependencies": {
-    "buffer": "^6.0.3",
+    "@types/katex": "^0.16.7",
+    "@types/marked": "^5.0.0",
     "vite": "^5.2.10"
   },
   "targets": {
