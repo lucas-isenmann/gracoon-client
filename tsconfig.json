@@ -2,7 +2,7 @@
     "compilerOptions": {
      "resolveJsonModule": true,
       "target": "es6",
-      "module": "commonjs",
+      "module": "es2020",
       "esModuleInterop": true,
       "outDir": "./dist",
       "strict": true,

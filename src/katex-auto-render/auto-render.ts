@@ -1,10 +1,14 @@
-import katex, { KatexOptions, ParseError } from "katex";
+import katex, { KatexOptions } from "katex";
 import splitAtDelimiters, { Delimiter } from "./splitAtDelimiter";
 
 export class RenderOptions implements KatexOptions {
-    delimiters: Array<Delimiter>;
-    ignoredTags: Array<string>;
+    delimiters: Array<Delimiter> = [];
+    ignoredTags: Array<string> = [];
     displayMode: boolean | undefined;
+
+    constructor(){
+
+    }
 }
 
 
@@ -31,20 +35,7 @@ const renderMathInText = function(text: string, optionsCopy: RenderOptions) {
             // Override any display mode defined in the settings with that
             // defined by the text itself
             optionsCopy.displayMode = data[i].display;
-            try {
-                katex.render(math, span, optionsCopy);
-            } catch (e) {
-                if (!(e instanceof ParseError)) {
-                    throw e;
-                }
-                console.error(
-                    "KaTeX auto-render: Failed to parse `" + data[i].data +
-                        "` with ",
-                    e
-                );
-                fragment.appendChild(document.createTextNode(data[i].rawData));
-                continue;
-            }
+            katex.render(math, span, optionsCopy);
             fragment.appendChild(span);
         }
     }
@@ -67,23 +58,27 @@ const renderElem = function(elem: ChildNode, optionsCopy: RenderOptions) {
             let sibling = childNode.nextSibling;
             let nSiblings = 0;
             while (sibling && (sibling.nodeType === Node.TEXT_NODE)) {
-                textContentConcat += sibling.textContent;
+                if (textContentConcat)
+                    textContentConcat += sibling.textContent;
                 sibling = sibling.nextSibling;
                 nSiblings++;
             }
-            const frag = renderMathInText(textContentConcat, optionsCopy);
-            if (frag) {
-                // Remove extra text nodes
-                for (let j = 0; j < nSiblings; j++) {
-                    childNode.nextSibling.remove();
+            if (textContentConcat){
+                const frag = renderMathInText(textContentConcat, optionsCopy);
+                if (frag) {
+                    // Remove extra text nodes
+                    for (let j = 0; j < nSiblings; j++) {
+                        childNode.nextSibling?.remove();
+                    }
+                    i += frag.childNodes.length - 1;
+                    elem.replaceChild(frag, childNode);
+                } else {
+                    // If the concatenated text does not contain math
+                    // the siblings will not either
+                    i += nSiblings;
                 }
-                i += frag.childNodes.length - 1;
-                elem.replaceChild(frag, childNode);
-            } else {
-                // If the concatenated text does not contain math
-                // the siblings will not either
-                i += nSiblings;
             }
+            
         } else if (childNode.nodeType === 1) {
             // Element node
             renderElem(childNode, optionsCopy);

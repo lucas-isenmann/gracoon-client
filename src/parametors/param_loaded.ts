@@ -1,6 +1,5 @@
 import { Parametor } from "./parametor";
 
-import svgParamIcons from '../img/parametor/*.svg';
 import { params_loaded, removeLoadedParam, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
 import { Zone } from "./zone";
@@ -98,7 +97,7 @@ export class ParametorLoaded {
         verboseImg.classList.add("white_svg", "hidden_button");
         verboseImg.id = "img_verbose_" + this.id;
         verboseImg.title = "Toggle verbose";
-        verboseImg.src = svgParamIcons["verbose"];
+        verboseImg.src = "public/img/parametor/verbose.svg";
         verboseImg.addEventListener('click', ()=>{
             this.isVerbose = !this.isVerbose;
             if (this.isVerbose){
@@ -132,7 +131,7 @@ export class ParametorLoaded {
             svg_reload_parametor.classList.add("white_svg", "hidden_button");
             svg_reload_parametor.id = "img_reload_" + this.id;
             svg_reload_parametor.title = "Recompute parameter";
-            svg_reload_parametor.src = svgParamIcons["reload"];
+            svg_reload_parametor.src = "public/img/parametor/reload.svg";
             svg_reload_parametor.addEventListener('click', ()=>{
                 update_parametor(board.graph, paramLoaded );
                 board.requestDraw();
@@ -153,7 +152,7 @@ export class ParametorLoaded {
 
         let button = document.createElement('img');
         div_button.appendChild(button);
-        button.src = svgParamIcons["trash"];
+        button.src = "public/img/parametor/trash.svg";
         button.classList.add("remove_param_button", "white_svg", "hidden_button");
         button.title = "Remove parameter";
 
@@ -172,7 +171,7 @@ export class ParametorLoaded {
             svg_info_parametor.classList.add("white_svg", "hidden_button");
             svg_info_parametor.id = "img_info_" + this.id;
             svg_info_parametor.title = "Information on this parameter";
-            svg_info_parametor.src = svgParamIcons["info"];
+            svg_info_parametor.src = "public/img/parametor/info.svg";
             svg_info_parametor.addEventListener('click', ()=>{
                 const div = document.getElementById("parameter-info-" + this.id);
                 if (div){

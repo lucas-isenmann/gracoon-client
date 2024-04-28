@@ -12,15 +12,14 @@ import { ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
 import { handleErrorLog } from "./handlers/errorLog";
 
-import ENV from './.env.json';
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
 import { ClientRectangle } from "./board/rectangle";
 import { translate_by_canvas_vect } from "./board/resizable";
 
-const port = ENV.port;
-const adress = "https://" + ENV.serverAdress + ":" + port;
+
+const adress = import.meta.env.VITE_SERVER_ADDRESS;
 console.log("connecting to: ", adress);
 export const socket = io(adress);
 

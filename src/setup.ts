@@ -7,7 +7,6 @@ import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
 import { ORIENTATION_SIDE_BAR, PreFolder, PreLauncher, PreSwitch, SideBar } from "./side_bar/side_bar";
 import { createStrokeInteractor } from "./side_bar/interactors/stroke";
 import { createAreaInteractor } from "./side_bar/interactors/area";
-import ENV from './.env.json';
 import { TikZ_create_file_data } from "./tikz";
 import { createPopup } from "./popup";
 import PACKAGE from "../package.json";

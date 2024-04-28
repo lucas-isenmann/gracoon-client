@@ -1,5 +1,4 @@
 import { ClientBoard } from "../board/board";
-import svgIcons from '../img/icons/*.svg';
 import { Option } from "gramoloss";
 import { PreInteractor } from "./pre_interactor";
 import { INTERACTOR_TYPE } from "../interactors/interactor";
@@ -33,7 +32,7 @@ export class Element {
         this.div.classList.add("side_bar_element");
 
         this.img = document.createElement("img");
-        this.img.src = svgIcons[imgSrc];
+        this.img.src = "public/img/icons/" + imgSrc + ".svg";
         this.img.classList.add("side_bar_element_img");
         this.div.appendChild(this.img);
 

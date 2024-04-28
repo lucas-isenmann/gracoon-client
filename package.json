@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "parcel src/index.html --https --port 1244",
-    "build": "parcel build src/index.html"
+    "dev": "vite dev --port 1244",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
@@ -14,23 +14,17 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@types/katex": "^0.16.7",
     "@types/marked": "^5.0.0",
     "gramoloss": "^1.10.6",
     "katex": "^0.16.7",
     "marked": "^5.0.4",
-    "parcel": "^2.12.0",
-    "parcel-transformer-markdown": "^3.0.0",
     "socket.io-client": "^4.7.5",
     "typescript": "^5.4.3"
   },
   "devDependencies": {
-    "@parcel/resolver-glob": "^2.9.1",
     "buffer": "^6.0.3",
-    "parcel-plugin-static-files-copy": "^2.6.0"
-  },
-  "staticFiles": {
-    "staticPath": "public",
-    "watcherGlob": "**"
+    "vite": "^5.2.10"
   },
   "targets": {
     "main": false
