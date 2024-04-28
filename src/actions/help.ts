@@ -1,7 +1,7 @@
 import { marked } from "marked";
 import { createPopup } from "../popup";
 
-export function launchHelpPopUp(){
+export async function launchHelpPopUp(){
     const div1 = document.getElementById("help");
     if (div1){
         div1.style.display = "block";
@@ -87,6 +87,6 @@ Click on <img src="public/img/parametor/verbose.svg" style="filter: invert(1); b
 Lucas Isenmann, Jocelyn Thiebaut
 
     `;
-    content.innerHTML = marked.parse(text);
+    content.innerHTML = await marked.parse(text);
     
 }

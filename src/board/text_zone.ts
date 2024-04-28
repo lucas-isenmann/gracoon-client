@@ -6,6 +6,7 @@ import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { marked } from "marked";
 import { INTERACTOR_TYPE } from "../interactors/interactor";
+import DOMPurify from "dompurify";
 
 export class ClientTextZone extends TextZone {
     canvas_pos: CanvasCoord;
@@ -30,12 +31,13 @@ export class ClientTextZone extends TextZone {
             const content = document.createElement("div");
             content.id = "text_zone_content_" + index;
             content.classList.add("text_zone_content", "content_editable");
-            content.innerHTML = text;
+            // content.innerHTML = text;
             content.contentEditable = "true";
             content.spellcheck = false;
             this.div.appendChild(content);
             this.content_div = content;
             
+            // this.update_text(text);
 
             const sidebar = document.createElement("div");
             sidebar.classList.add("text_zone_sidebar");
@@ -150,15 +152,16 @@ export class ClientTextZone extends TextZone {
     }
 
 
-    update_text(new_text: string){
+    async update_text(new_text: string){
         this.text = new_text;
         // new_text = new_text.replace(/(\r\n)/g, "<br>");
         // new_text = new_text.replace(/\n/g, "<br>");
         // new_text = new_text.replace(/\r/g, "");
         //  for (const content of this.div.getElementsByClassName("text_zone_content")){
         // this.content_div.innerText = new_text;// katex.renderToString(text);
-        const test = marked.parse(new_text);
-        this.content_div.innerHTML = test;
+        let parsed = await marked.parse(new_text);
+        parsed = DOMPurify.sanitize(parsed);
+        this.content_div.innerHTML = parsed;
         renderMathInElement(this.content_div);
 
         //  }

@@ -182,9 +182,12 @@ export class ParametorLoaded {
                         const [div, content] = createPopup("parameter-info-" + this.id, this.parametor.name);
                         div.style.display = "block";
                         const popup_content = document.getElementById(div.id + "_content");
+                        
                         if (popup_content){
-                            popup_content.innerHTML = marked.parse(response);
-                            renderMathInElement(popup_content);
+                            (async () => {
+                                popup_content.innerHTML = await marked.parse(response);
+                                renderMathInElement(popup_content);
+                            })();
                         }
                     });
                 }
