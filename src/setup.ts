@@ -157,7 +157,8 @@ function setup() {
                             a.click();
                         })
                     }),
-                new PreLauncher("import", "Import .dot file",  "", () => parseDot(localBoard, socket)),
+                new PreLauncher("import", "Load .gco file",  "", loadFile),
+                new PreLauncher("import", "Parse and import .dot file",  "", () => parseDot(localBoard, socket)),
             ]),
             new PreFolder("index_none", [
                 new PreSwitch(false, "index_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
@@ -178,7 +179,6 @@ function setup() {
                         */
                 });
             }),
-            new PreLauncher("import", "Load .gco file",  "", loadFile),
             new PreLauncher("help", "Help", "", launchHelpPopUp)
 
     ]);
