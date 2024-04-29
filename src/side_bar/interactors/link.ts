@@ -40,7 +40,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
         board.regenAgregId();
         if ( typeof pointed.data == "undefined" ) {
-            const pos = board.graph.align_position(pointed.pointedPos, new Set(), board.canvas, board.camera);
+            const pos = pointed.magnetPos;
             const server_pos = board.camera.create_server_coord(pos);
 
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){

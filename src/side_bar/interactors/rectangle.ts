@@ -17,7 +17,7 @@ export function createRectangleInteractor(board: ClientBoard){
     
     rectangle_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if (typeof pointed.data == "undefined" ) {
-            firstCorner = board.camera.create_server_coord(pointed.pointedPos);
+            firstCorner = board.camera.create_server_coord(pointed.magnetPos);
             const newIndex = board.get_next_available_index_rectangle();
             currentRectangle = new ClientRectangle(firstCorner, firstCorner, board.colorSelected, board, newIndex);
             board.rectangles.set(newIndex, currentRectangle);
@@ -26,7 +26,8 @@ export function createRectangleInteractor(board: ClientBoard){
     
     rectangle_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
-            currentRectangle.resize_corner_area(board.camera.create_canvas_coord(firstCorner), e, board.camera);
+            const magnetE = board.graph.align_position(e, new Set(), board.canvas, board.camera);
+            currentRectangle.resize_corner_area(board.camera.create_canvas_coord(firstCorner), magnetE, board.camera);
             return true;   
         }
         return false;
@@ -34,7 +35,6 @@ export function createRectangleInteractor(board: ClientBoard){
     
     rectangle_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined") {
-            
             currentRectangle.c1 = board.camera.create_server_coord(currentRectangle.canvas_corner_top_left); 
             currentRectangle.c2 = board.camera.create_server_coord(currentRectangle.canvas_corner_bottom_right); 
             board.emit_add_element(new Rectangle(currentRectangle.c1, currentRectangle.c2, currentRectangle.color, board.get_next_available_index_rectangle()), () =>{});
@@ -44,5 +44,4 @@ export function createRectangleInteractor(board: ClientBoard){
     })
     
     return rectangle_interactorV2;
-    
 }

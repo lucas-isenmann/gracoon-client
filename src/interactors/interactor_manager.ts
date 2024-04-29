@@ -222,13 +222,14 @@ export function setupInteractions(board: ClientBoard) {
         //     board.draw()
         // } 
         else if (e.buttons == 2){
-            console.log("clic droit");
             const pointedPos = mousePos.copy();
-            lastPointedElement = new PointedElementData(pointedPos, e.buttons, undefined );
+            const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+            lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, undefined );
         } else if (typeof board.interactorLoaded != "undefined"){
-            const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
-            const data = board.get_element_nearby(pointedPos, board.interactorLoaded.interactable_element_type);
-            lastPointedElement = new PointedElementData(pointedPos, e.buttons, data );
+            const pointedPos = mousePos.copy();
+            const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+            const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+            lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, data );
             board.interactorLoaded.mousedown(board, lastPointedElement);
             board.requestDraw();
         }
@@ -245,8 +246,9 @@ export function setupInteractions(board: ClientBoard) {
 
         if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
-        const pointedPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
-        lastPointedElement = new PointedElementData(pointedPos, 0, data );
+        const pointedPos = mousePos.copy();
+        const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+        lastPointedElement = new PointedElementData(pointedPos, magnetPos, 0, data );
         board.interactorLoaded.mousedown(board, lastPointedElement);
         board.requestDraw();
     });

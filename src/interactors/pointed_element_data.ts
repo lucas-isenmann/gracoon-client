@@ -104,10 +104,12 @@ export class ELEMENT_DATA_RECTANGLE {
 
 export class PointedElementData {
     pointedPos: CanvasCoord;
+    magnetPos: CanvasCoord;
     buttonType: number;
     data: Option<ELEMENT_DATA>;
-    constructor(pointedPos: CanvasCoord, buttonType: number, data: Option<ELEMENT_DATA>){
+    constructor(pointedPos: CanvasCoord, magnetPos: CanvasCoord, buttonType: number, data: Option<ELEMENT_DATA>){
         this.pointedPos = pointedPos;
+        this.magnetPos = magnetPos;
         this.buttonType = buttonType;
         this.data = data; 
     }
