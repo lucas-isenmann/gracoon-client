@@ -8,7 +8,7 @@ import { ORIENTATION_SIDE_BAR, PreFolder, PreLauncher, PreSwitch, SideBar } from
 import { createStrokeInteractor } from "./side_bar/interactors/stroke";
 import { createAreaInteractor } from "./side_bar/interactors/area";
 import { TikZ_create_file_data } from "./tikz";
-import { createPopup } from "./popup";
+import { createPopup, initEscapeEvent } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
 import { ORIENTATION } from "gramoloss";
@@ -54,10 +54,10 @@ import { parseDot } from "./actions/importFile";
 
 
 function setupClientVersionDiv(){
-    const clientVersionDiv = document.createElement("div");
-    clientVersionDiv.id = "clientVersion";
-    clientVersionDiv.innerHTML = "client-version: " + PACKAGE.version;
-    document.body.appendChild(clientVersionDiv);
+    const clientVersionDiv = document.getElementById("client-version");
+    if (clientVersionDiv){
+        clientVersionDiv.innerHTML = PACKAGE.version;
+    }
 }
 
 function setup() {
@@ -214,6 +214,8 @@ function setup() {
     //     left_side_bar.add_elements(localBoard, createDetectorInteractor(localBoard));
     // }
 
+
+    initEscapeEvent(); // Close all popups with Escape key
 
     // load_param(params_available[14], localBoard, localBoard.entireZone);
 

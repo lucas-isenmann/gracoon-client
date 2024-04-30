@@ -24,7 +24,7 @@ generators_available.push(completeBipartite);
 generators_available.push(gridGenerator);
 generators_available.push(randomTournament);
 generators_available.push(new GraphGenerator(GeneratorId.Paley, "Paley", [new Integer("q", 3)]));
-generators_available.push(new GraphGenerator(GeneratorId.UnitDisk, "Unit Disk Graph", [new Integer("n", 2), new Integer("d", 0)]))
+generators_available.push(new GraphGenerator(GeneratorId.UnitDisk, "Random Unit Disk Graph", [new Integer("n", 2), new Integer("d", 0)]))
 generators_available.push(aztecDiamondGenerator);
 generators_available.push(new GraphGenerator(GeneratorId.UTournament, "U tournament", [new Integer("n", 3)]));
 
