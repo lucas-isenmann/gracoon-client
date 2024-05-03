@@ -32,7 +32,7 @@ export class Element {
         this.div.classList.add("side_bar_element");
 
         this.img = document.createElement("img");
-        this.img.src = "public/img/icons/" + imgSrc + ".svg";
+        this.img.src = "/img/icons/" + imgSrc + ".svg";
         this.img.classList.add("side_bar_element_img");
         this.div.appendChild(this.img);
 

@@ -26,7 +26,7 @@ export function createPopup(id: string, title: string): [HTMLDivElement, HTMLDiv
     // Close button 
     const closeButton = document.createElement("img");
     closeButton.classList.add("close_button");
-    closeButton.src = "public/img/parametor/plus.svg";
+    closeButton.src = "/img/parametor/plus.svg";
     closeButton.onclick = () => {
         div.style.display = "none";
     }

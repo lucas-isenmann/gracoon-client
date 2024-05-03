@@ -42,7 +42,7 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
 
     const load_new_parametors_button = document.createElement("img");
     load_new_parametors_button.classList.add("load_new_parametor_button");
-    load_new_parametors_button.src = "public/img/parametor/plus.svg";
+    load_new_parametors_button.src = "/img/parametor/plus.svg";
     load_new_parametors_button.title = "Load a new parameter";
     load_new_parametors_button.id = "load_parametor_area_"+area_id;
     load_new_parametors_button.onclick = ((e) => {
@@ -74,7 +74,7 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
 
     const expand_list_button = document.createElement("img");
     expand_list_button.classList.add("expand_button", "expanded", "hidden");
-    expand_list_button.src = "public/img/parametor/list.svg";
+    expand_list_button.src = "/img/parametor/list.svg";
     expand_list_button.title = "Expand/collapse the parameter list";
     expand_list_button.id = "expand_list_area_"+area_id;
     expand_list_button.addEventListener("click", ()=>{
