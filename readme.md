@@ -9,9 +9,9 @@ The server project can be found there: [https://github.com/lucas-test/gracoon-se
 
 Copy the example environment configuration file example:
 
-    cp src/.env.json.example src/.env.json 
+    cp .env.example .env 
 
-Change the `.env.json` with the ip/domain of the server and the port used.
+Change the `.env` with the ip/domain of the server and the port used.
 
 To launch it in a developpement environment:
 

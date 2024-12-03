@@ -10,6 +10,81 @@ import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep'
 
 
 
+
+// -----------------------------------------
+
+export const paramDichromaticNumber = new Parametor(
+    "Dichromatic number",
+    "dichromatic_nb",
+    "dchr",
+    "Dichromatic number",
+    true,
+    false,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+
+paramDichromaticNumber.compute = ((g: ClientGraph, verbose: boolean) => {
+    const minColoring = g.minimumProperDicoloring();
+
+    const coloring = new Map();
+    for (let i = 0; i < minColoring.length; i ++){
+        coloring.set(i,  minColoring[i]);
+    }
+    const colors = new Set<number>();
+    for (const color of minColoring.values()){
+        colors.add(color);
+    }
+    return [colors.size.toString(), coloring];
+})
+
+paramDichromaticNumber.showCertificate = ((g:ClientGraph, coloring: Map<number, number>) => {
+    for (const [vId, colorId] of coloring){
+        const v = g.vertices.get(vId);
+        if (typeof v != "undefined"){
+            v.data.highlight = colorId;
+        }
+    }
+})
+
+
+
+// -----------------------------------------
+
+export const paramIsLight = new Parametor(
+    "Is light?",
+    "is_light",
+    "is_light",
+    "Is light",
+    true,
+    true,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+
+paramIsLight.compute = ((g: ClientGraph, verbose: boolean) => {
+    const conflict = g.isTournamentLight();
+
+    const isLight = conflict;
+
+    return [isLight.toString(), conflict];
+})
+
+paramIsLight.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
+    for (let i = 0 ; i < conflict.length; i ++){
+        const v = g.vertices.get(conflict[i]);
+        if (typeof v != "undefined"){
+            v.data.highlight = 1;
+        }
+    }
+})
+
+
+
+
+
 export const paramMinimalSpanningTree = new Parametor("Minimal weighted spanning tree", 
 "minimalWeightedSpanningTree", "minWST", "Minimal weighted spanning tree", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
