@@ -65,18 +65,27 @@ export const paramIsLight = new Parametor(
 
 
 paramIsLight.compute = ((g: ClientGraph, verbose: boolean) => {
-    const conflict = g.isTournamentLight();
-
-    const isLight = conflict;
-
-    return [isLight.toString(), conflict];
+    const conflict = g.lightnessConflict();
+    if (typeof conflict == "undefined"){
+        return ["true", []];
+    } else {
+        return ["false", conflict]
+    }
 })
 
 paramIsLight.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
     for (let i = 0 ; i < conflict.length; i ++){
         const v = g.vertices.get(conflict[i]);
         if (typeof v != "undefined"){
-            v.data.highlight = 1;
+            if (i == 0){
+                v.data.highlight = 0;
+            }
+            if (i == 1){
+                v.data.highlight = 1;
+            }
+            if (i > 1){
+                v.data.highlight = 2;
+            }
         }
     }
 })
