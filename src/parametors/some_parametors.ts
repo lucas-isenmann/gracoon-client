@@ -66,6 +66,7 @@ export const paramIsLight = new Parametor(
 
 paramIsLight.compute = ((g: ClientGraph, verbose: boolean) => {
     const conflict = g.lightnessConflict();
+    console.log(conflict)
     if (typeof conflict == "undefined"){
         return ["true", []];
     } else {
