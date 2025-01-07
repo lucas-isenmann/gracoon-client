@@ -1,4 +1,4 @@
-import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS, paramDFVS, paramDichromaticNumber, paramIsLight } from './some_parametors';
+import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS, paramDFVS, paramDichromaticNumber, paramIsLight, paramNumberArcs, paramNumberLinks } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
 import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
@@ -15,8 +15,11 @@ export let params_available = new Array<Parametor>();
 
 
 export function setup_parametors_available() {
-    params_available.push(paramNbEdges,
+    params_available.push(
         paramNbVertices,
+        paramNbEdges,
+        paramNumberArcs,
+        paramNumberLinks,
         paramGirth,
         paramHasCycle,
         paramHasDirectedCycle,

@@ -11,6 +11,43 @@ import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep'
 
 
 
+export const paramNumberArcs = new Parametor(
+    "Number of arcs",
+    "nb_arcs",
+    "nb_arcs",
+    "Number of arcs",
+    true,
+    false,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+paramNumberArcs.compute = ((g: ClientGraph, verbose: boolean) => {
+    let nbArcs = 0;
+    for (const link of g.links.values()){
+        if (link.orientation == ORIENTATION.DIRECTED){
+            nbArcs ++;
+        }
+    }
+    return [nbArcs.toString(), []];
+})
+
+export const paramNumberLinks = new Parametor(
+    "Number of links (edges or arcs)",
+    "nb_links",
+    "nb_links",
+    "Number of inks (edges or arcs)",
+    true,
+    false,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+paramNumberLinks.compute = ((g: ClientGraph, verbose: boolean) => {
+    return [g.links.size.toString(), []];
+})
+
+
 // -----------------------------------------
 
 export const paramDichromaticNumber = new Parametor(

@@ -73,11 +73,11 @@ export function setupInteractions(board: ClientBoard) {
             }
             if (board.keyPressed.has("Control") && e.key.toLowerCase() == "z") {
                 console.log("Emit: undo");
-                board.emit_undo();
+                board.emitUndo();
             }
             if (board.keyPressed.has("Control") && e.key.toLowerCase() == "y") {
                 console.log("Emit: redo");
-                board.emit_redo();
+                board.emitRedo();
             }
             if (board.keyPressed.has("Control") && e.key.toLowerCase() == "a") {
                 board.selectEverything();

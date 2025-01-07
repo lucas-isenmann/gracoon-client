@@ -874,11 +874,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         socket.emit(SocketMsgType.GENERATE_GRAPH, this.camera.create_server_coord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
     }
 
-    emit_redo() {
+    emitRedo() {
         socket.emit(SocketMsgType.REDO);
     }
 
-    emit_undo() {
+    emitUndo() {
         socket.emit(SocketMsgType.UNDO);
     }
 

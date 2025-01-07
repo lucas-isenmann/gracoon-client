@@ -102,6 +102,8 @@ function setup() {
     // Top SideBar
     const sb = new SideBar(localBoard, ORIENTATION_SIDE_BAR.HORIZONTAL, 150, 10, undefined, 
         [   
+            new PreLauncher("undo", "Undo", "", localBoard.emitUndo),
+            new PreLauncher("redo", "Redo", "", localBoard.emitRedo),
             new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
             new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
             new PreFolder( "grid", [
