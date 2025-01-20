@@ -7,7 +7,6 @@ import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
 import { ORIENTATION_SIDE_BAR, PreFolder, PreLauncher, PreSwitch, SideBar } from "./side_bar/side_bar";
 import { createStrokeInteractor } from "./side_bar/interactors/stroke";
 import { createAreaInteractor } from "./side_bar/interactors/area";
-import { TikZ_create_file_data } from "./tikz";
 import { createPopup, initEscapeEvent } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
@@ -26,6 +25,7 @@ import { INTERACTOR_TYPE } from "./interactors/interactor";
 import { launchHelpPopUp } from "./actions/help";
 import { CrossMode, TwistMode } from "./board/stanchion";
 import { parseDot } from "./actions/importFile";
+import { generateTikz2 } from "./board/tikz2";
 
 
 
@@ -145,21 +145,23 @@ function setup() {
             }),
             new PreFolder("export", [
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
-                        const tikz_data = TikZ_create_file_data(localBoard.graph);
+                        // const tikzStr = TikZ_create_file_data(localBoard.graph);
+                        const tikzStr = generateTikz2(localBoard.graph, 2);
+                        // console.log(btoa(localBoard.graph.compressToString()))
                         const a = document.createElement("a");
-                        a.href = window.URL.createObjectURL(new Blob([tikz_data], { type: "text/plain" }));
+                        a.href = window.URL.createObjectURL(new Blob([tikzStr], { type: "text/plain" }));
                         a.download = "file.tex";
                         a.click();
                     }),
-                new PreLauncher("export_gco", "Export board in .gco", "",  () => {
-                        socket.emit(SocketMsgType.GET_JSON, (response: string) => {
-                            const a = document.createElement("a");
-                            a.href = window.URL.createObjectURL(new Blob([response], { type: "text/plain" }));
-                            a.download = "file.gco";
-                            a.click();
-                        })
-                    }),
-                new PreLauncher("import", "Load .gco file",  "", loadFile),
+                // new PreLauncher("export_gco", "Export board in .gco", "",  () => {
+                //         socket.emit(SocketMsgType.GET_JSON, (response: string) => {
+                //             const a = document.createElement("a");
+                //             a.href = window.URL.createObjectURL(new Blob([response], { type: "text/plain" }));
+                //             a.download = "file.gco";
+                //             a.click();
+                //         })
+                //     }),
+                // new PreLauncher("import", "Load .gco file",  "", loadFile),
                 new PreLauncher("import", "Parse and import .dot file",  "", () => parseDot(localBoard, socket)),
             ]),
             new PreFolder("index_none", [

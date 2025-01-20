@@ -64,6 +64,16 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         super.deleteVertex(index);
     }
 
+    compressToString(): string{
+        let str = "";
+        
+
+        for (const link of this.links.values()){
+            str += `${link.startVertex.index} ${link.endVertex.index}\n`
+        }
+        return str;
+    }
+
     /**
      * Draw the graph on the context.
      */

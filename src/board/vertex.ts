@@ -303,7 +303,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         if (this.board.getIndexType() == INDEX_TYPE.NONE) {
             this.data.indexString = "";
         } else if (this.board.getIndexType() == INDEX_TYPE.NUMBER_STABLE) {
-            this.data.indexString = "v" + String(this.index)
+            this.data.indexString = String(this.index)
         } else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_STABLE) {
             this.data.indexString = letters.charAt(this.index % letters.length);
         }
@@ -314,7 +314,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
                     counter++;
                 }
             }
-            this.data.indexString = "v" + String(counter)
+            this.data.indexString = String(counter)
         }
         else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_UNSTABLE) {
             let counter = 0;
