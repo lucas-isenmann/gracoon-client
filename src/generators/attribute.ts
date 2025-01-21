@@ -6,9 +6,11 @@ export class Integer {
     div: HTMLDivElement;
     min: number = Number.NaN;
     max: number = Number.NaN;
+    input: HTMLInputElement;
 
-    constructor(name: string, min?: number, max?: number) {
+    constructor(name: string, initValue: number, min?: number, max?: number) {
         this.name = name;
+        this.value = initValue;
         if (typeof min !== 'undefined') { 
             this.min = min; 
         }
@@ -25,30 +27,33 @@ export class Integer {
         this.div.appendChild(label);
 
 
-        let new_input = document.createElement("input");
-        new_input.classList.add("attr_integer");
-        new_input.name = this.name;
-        new_input.type = "number";
+        let newInput = document.createElement("input");
+        newInput.classList.add("attr_integer");
+        newInput.name = this.name;
+        newInput.type = "number";
         if (typeof min !== 'undefined') { 
-            new_input.min = String(min); 
-            this.value = min;
+            newInput.min = min.toString(); 
         }
         if (typeof max !== 'undefined') { 
-            new_input.max = String(max); 
+            newInput.max = max.toString(); 
         }
-        new_input.value = String(this.value);
-        new_input.onchange = (e) => {
-            const value_parsed = parseInt(new_input.value);
-            if ( isNaN(value_parsed) || ( !isNaN(this.min) && value_parsed < this.min) || ( !isNaN(this.max) && value_parsed > this.max)){
-                this.div.classList.add("invalid");
-                this.value = 0;
-            }else {
-                this.div.classList.remove("invalid");
-                this.value = value_parsed;
-            }
+        newInput.value = String(this.value);
+        newInput.onchange = (e) => { 
+            this.updateValue();
         }
+        this.input = newInput;
+        this.div.appendChild(newInput);
+    }
 
-        this.div.appendChild(new_input);
+    updateValue() {
+        const parsedValue = parseInt(this.input.value);
+        if ( isNaN(parsedValue) || ( !isNaN(this.min) && parsedValue < this.min) || ( !isNaN(this.max) && parsedValue > this.max)){
+            this.div.classList.add("invalid");
+            this.value = 0;
+        }else {
+            this.div.classList.remove("invalid");
+            this.value = parsedValue;
+        }
     }
 
     reset_inputs(board: ClientBoard){
@@ -60,6 +65,8 @@ export class Percentage {
     name: string;
     value: number = 0.5;
     div: HTMLDivElement;
+    input: HTMLInputElement;
+    currentValueSpan: HTMLSpanElement;
 
     constructor(name: string, value?: number) {
         this.name = name;
@@ -74,33 +81,36 @@ export class Percentage {
         this.div.appendChild(label);
 
 
-        const new_input = document.createElement("input");
-        new_input.classList.add("attr_percentage");
-        new_input.name = this.name;
-        new_input.type = "range";
-        new_input.min = "0.";
-        new_input.max = "100";
-        new_input.step = "0.1";
-        new_input.value = String(this.value*100);
-        this.div.appendChild(new_input);
+        const newInput = document.createElement("input");
+        newInput.classList.add("attr_percentage");
+        newInput.name = this.name;
+        newInput.type = "range";
+        newInput.min = "0.";
+        newInput.max = "100";
+        newInput.step = "0.1";
+        newInput.value = String(this.value*100);
+        this.div.appendChild(newInput);
+        this.input = newInput;
 
-        const current_value = document.createElement("span");
-        current_value.id = name+"_current_value";
-        current_value.classList.add("attribute_range_current_value");
-        current_value.innerText=String(this.value);
-        this.div.appendChild(current_value);
+        const currentValue = document.createElement("span");
+        currentValue.id = name+"_current_value";
+        currentValue.classList.add("attribute_range_current_value");
+        currentValue.innerText=String(this.value);
+        this.currentValueSpan = currentValue;
+        this.div.appendChild(currentValue);
 
-        new_input.oninput = (e) => {
-            this.value = parseFloat((parseFloat(new_input.value)/100).toFixed(4));
+        newInput.oninput = (e) => {
+            this.value = parseFloat((parseFloat(newInput.value)/100).toFixed(4));
             // const current_value_span = document.getElementById(this.name+"_current_value");
             // if(current_value_span){
-                current_value.innerText = String(this.value);
+                currentValue.innerText = String(this.value);
             // }
         }
+    }
 
-        
-        
-        
+    updateValue() {
+        this.value = parseFloat((parseFloat(this.input.value)/100).toFixed(4));
+        this.currentValueSpan.innerText = String(this.value);
     }
 
     reset_inputs(board: ClientBoard){
@@ -155,25 +165,25 @@ export class AreaIndex {
 
         // for every area add a radio input
         for( const [index, area] of board.areas.entries()){
-            const new_input = document.createElement("input");
-            new_input.name = this.name;
-            new_input.type = "radio";
-            new_input.value = area.label;
-            new_input.onchange = (e) => {
+            const newInput = document.createElement("input");
+            newInput.name = this.name;
+            newInput.type = "radio";
+            newInput.value = area.label;
+            newInput.onchange = (e) => {
                 this.value = index;
             }
-            const new_input_label = document.createElement("label");
-            new_input_label.innerText = area.label;
-            new_input_label.htmlFor = area.label;
-            new_input_label.onclick = (e) => {
-                new_input.checked = true;
+            const newInput_label = document.createElement("label");
+            newInput_label.innerText = area.label;
+            newInput_label.htmlFor = area.label;
+            newInput_label.onclick = (e) => {
+                newInput.checked = true;
                 this.value = index;
             }
 
-            const new_input_div = document.createElement("div");
-            new_input_div.appendChild(new_input);
-            new_input_div.appendChild(new_input_label);
-            this.div.appendChild(new_input_div);
+            const newInput_div = document.createElement("div");
+            newInput_div.appendChild(newInput);
+            newInput_div.appendChild(newInput_label);
+            this.div.appendChild(newInput_div);
         }
     }
 
@@ -181,4 +191,46 @@ export class AreaIndex {
 
 // TODO realnumber
 
-export interface AttributesArray extends Array<Integer | Percentage | AreaIndex> { };
+
+export class ListAttribute {
+    name: string;
+    value: string;
+    div: HTMLDivElement;
+    input: HTMLInputElement;
+
+    constructor(name: string, initValue: string) {
+        this.name = name;
+        this.value = initValue;
+
+        this.div = document.createElement("div");
+
+        // Label
+        const label = document.createElement("label");
+        label.innerText = name + ": ";
+        label.classList.add("attribute_label");
+        this.div.appendChild(label);
+
+        // Input
+        this.input = document.createElement("input");
+        this.input.classList.add("attr_list");
+        this.input.name = this.name;
+        this.input.type = "text";
+        this.input.value = this.value;
+        this.input.oninput = (e) => { 
+            this.updateValue();
+        }
+        this.div.appendChild(this.input);
+    }
+
+    updateValue() {
+        this.value = this.input.value;
+    }
+
+    reset_inputs(board: ClientBoard){
+        this.div.classList.add("attribute_input");
+    }
+}
+
+
+
+export interface AttributesArray extends Array<Integer | Percentage | AreaIndex | ListAttribute> { };

@@ -2,31 +2,32 @@ import { Option } from "gramoloss";
 import { ClientBoard } from "../board/board";
 import { createPopup } from "../popup";
 import { GeneratorId } from "gramoloss";
-import { Integer, Percentage } from "./attribute";
+import { Integer, ListAttribute, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";
+import { CanvasCoord } from "../board/display/canvas_coord";
 
 
-const independentGenerator = new GraphGenerator(GeneratorId.IndependentCircle, "independent", [new Integer("n", 3)])
-const cliqueGenerator = new GraphGenerator(GeneratorId.CliqueCircle, "clique Kn", [new Integer("n", 3)])
-const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "random tournament", [new Integer("n", 3)])
-const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "GNP", [new Integer("n", 3), new Percentage("p")]);
-const randomStar = new GraphGenerator(GeneratorId.Star, "star", [new Integer("n", 3)])
-const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartite Knm", [new Integer("n",1),new Integer("m",1)]);
-const gridGenerator = new GraphGenerator(GeneratorId.Grid, "grid", [new Integer("n (column)",1),new Integer("m (row)",1)]);
-const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "Aztec Diamond", [new Integer("n",1)]);
+const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "Random tournament", [new Integer("n", 5, 3)])
+const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "GNP", [new Integer("n", 20, 3), new Percentage("p")]);
+const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartite Knm", [new Integer("n",3, 1),new Integer("m",2, 1)]);
+const gridGenerator = new GraphGenerator(GeneratorId.Grid, "grid", [new Integer("n (column)",3, 1),new Integer("m (row)",2, 1)]);
+const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "Aztec Diamond", [new Integer("n",3,1)]);
 
 const generators_available = new Array<GraphGenerator>();
-generators_available.push(independentGenerator);
-generators_available.push(cliqueGenerator);
-generators_available.push(randomGNP);
-generators_available.push(randomStar);
-generators_available.push(completeBipartite);
-generators_available.push(gridGenerator);
-generators_available.push(randomTournament);
-generators_available.push(new GraphGenerator(GeneratorId.Paley, "Paley", [new Integer("q", 3)]));
-generators_available.push(new GraphGenerator(GeneratorId.UnitDisk, "Random Unit Disk Graph", [new Integer("n", 2), new Integer("d", 0)]))
-generators_available.push(aztecDiamondGenerator);
-generators_available.push(new GraphGenerator(GeneratorId.UTournament, "U tournament", [new Integer("n", 3)]));
+generators_available.push(
+    new GraphGenerator(GeneratorId.UnitDisk, "Random Unit Disk Graph", [new Integer("n", 30,1), new Integer("d", 20, 0)]),
+    new GraphGenerator("CirculantTournament", "Circulant Tournament", [new ListAttribute("0/1 list", "1 0")]),
+    new GraphGenerator(GeneratorId.IndependentCircle, "Independent", [new Integer("n", 5, 3)]), 
+    new GraphGenerator(GeneratorId.CliqueCircle, "Clique Kn", [new Integer("n", 5, 3)]), 
+    randomGNP,
+    new GraphGenerator(GeneratorId.Star, "star", [new Integer("n", 5, 3)]),
+    completeBipartite,
+    new GraphGenerator(GeneratorId.CompleteMultipartite, "Complete Multipartite", [new Integer("n", 4,1), new Integer("k", 3, 1)]),
+    gridGenerator,
+    randomTournament,
+    new GraphGenerator(GeneratorId.Paley, "Paley", [new Integer("q", 3, 3)]),
+    aztecDiamondGenerator,
+    new GraphGenerator(GeneratorId.UGTournament, "UG tournament", [new Integer("n", 3, 1), new Integer("k", 1, 0)]));
 
 
 
@@ -40,27 +41,27 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
     content.style.display = "flex";
     content.classList.add("scrolling_y","non_scrolling_bar");
 
-    const generators_list_container = document.createElement("div");
-    generators_list_container.id = "generators_list_container";
-    generators_list_container.classList.add("scrolling_y","non_scrolling_bar");
+    const generatorsListContainer = document.createElement("div");
+    generatorsListContainer.id = "generators_list_container";
+    generatorsListContainer.classList.add("scrolling_y","non_scrolling_bar");
 
     const search_input_container = document.createElement("div");
     search_input_container.classList.add("search_filter_container");
-    generators_list_container.appendChild(search_input_container);
+    generatorsListContainer.appendChild(search_input_container);
 
 
-    const search_input = document.createElement("input");
-    search_input.classList.add("search_filter");    
-    search_input.type = "text";
-    search_input.id = "generator_search_input";
-    search_input.onkeyup = handle_search_onkeyup;
-    search_input.placeholder = "Search for names...";
-    search_input_container.appendChild(search_input);
+    const searchInput = document.createElement("input");
+    searchInput.classList.add("search_filter");    
+    searchInput.type = "text";
+    searchInput.id = "generator_search_input";
+    searchInput.onkeyup = handleSearchOnKeyup;
+    searchInput.placeholder = "Search for names...";
+    search_input_container.appendChild(searchInput);
 
-    const generators_list = document.createElement("div");
-    generators_list.id = "generators_list";
-    content.appendChild(generators_list_container);
-    generators_list_container.appendChild(generators_list);
+    const generators = document.createElement("div");
+    generators.id = "generators_list";
+    content.appendChild(generatorsListContainer);
+    generatorsListContainer.appendChild(generators);
     
      
     const generator_activated_div = document.createElement("div");
@@ -70,19 +71,20 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
     const generator_activated_container_div = document.createElement("div");
     generator_activated_div.appendChild(generator_activated_container_div);
 
-    // create list of generators
+    // Create list of generators
     for (const gen of generators_available) {
         const text = document.createElement("div");
         text.classList.add("generator_item");
         text.innerHTML = gen.humanName;
         text.onclick = () => {
-            activate_generator_div(canvas, gen, board);
+            activateGeneratorDiv(canvas, gen, board);
         }
-        generators_list.appendChild(text)
+        generators.appendChild(text)
     }
 }
 
-function turn_off_generators_div() {
+
+function turnOffGeneratorsDiv() {
     const div =  document.getElementById("generators_div");
     if (div == null) return;
     div.style.display = "none";
@@ -94,7 +96,7 @@ export function turn_on_generators_div() {
     div.style.display = "block";
 }
 
-function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, board: ClientBoard) {
+function activateGeneratorDiv(canvas: HTMLCanvasElement, gen: GraphGenerator, board: ClientBoard) {
     const div = document.getElementById("generator_configuration");
     if (div == null) return;
     div.innerHTML = ""; // TODO clear better ??
@@ -106,40 +108,48 @@ function activate_generator_div(canvas: HTMLCanvasElement, gen: GraphGenerator, 
 
     for (const attribute of gen.attributes) {
         attribute.reset_inputs(board);
-        const attribute_div = document.createElement("div");
-        attribute_div.classList.add("attribute_container");
+        const attributeDiv = document.createElement("div");
+        attributeDiv.classList.add("attribute_container");
 
         // const label = document.createElement("label");
         // label.innerText = attribute.name + ": ";
         // label.classList.add("attribute_label");
 
-        // attribute_div.appendChild(label);
-        attribute_div.appendChild(attribute.div);
-        div.appendChild(attribute_div);
+        // attributeDiv.appendChild(label);
+        attributeDiv.appendChild(attribute.div);
+        div.appendChild(attributeDiv);
     }
 
-    const generate_button = document.createElement("button");
-    generate_button.classList.add("generate_button_generators");
-    generate_button.textContent = "Generate";
-    generate_button.onclick = (e) => {
+    // Graph preview
+    const preview = gen.svg;
+    div.appendChild(preview)
+
+
+
+    // Generate Button
+    const generateButton = document.createElement("button");
+    generateButton.classList.add("generate_button_generators");
+    generateButton.textContent = "Generate";
+    generateButton.onclick = (e) => {
 
         const params = new Array();
         for ( const p of gen.attributes){
             params.push(p.value)
         }
-        board.emitGenerateGraph( gen.id, params);
+        // board.emitGenerateGraph( gen.id, params);
 
 
-        // for( const attribute of gen.attributes.values() ){
-        //     if( attribute.div.classList.contains("invalid")){
-        //         return;
-        //     }
-        // }
-        // board.setGraphClipboard(gen.generate(new CanvasCoord(e.pageX, e.pageY), board), new CanvasCoord(e.pageX, e.pageY) , true);
+        for( const attribute of gen.attributes.values() ){
+            if( attribute.div.classList.contains("invalid")){
+                return;
+            }
+        }
+        const mousePos = new CanvasCoord(e.pageX, e.pageY);
+        board.addGraphToClipboard(gen.graph, mousePos)
         // lastGenerator = gen;
-        turn_off_generators_div();
+        turnOffGeneratorsDiv();
     }
-    div.appendChild(generate_button);
+    div.appendChild(generateButton);
 }
 
 
@@ -152,19 +162,19 @@ export function regenerate_graph(e: MouseEvent, board: ClientBoard){
 }
 
 
-function handle_search_onkeyup() {
+function handleSearchOnKeyup() {
     const input = <HTMLInputElement>document.getElementById('generator_search_input');
     const filter = input.value.toUpperCase();
-    const div_content = document.getElementById("generators_div_content");
-    if (div_content == null) return;
-    const param_list = <HTMLCollectionOf<HTMLDivElement>>div_content.getElementsByClassName('generator_item');
+    const divContent = document.getElementById("generators_div_content");
+    if (divContent == null) return;
+    const elements = <HTMLCollectionOf<HTMLDivElement>>divContent.getElementsByClassName('generator_item');
 
-    for (let i = 0; i < param_list.length; i++) {
-        const txtValue = param_list[i].innerHTML;
+    for (let i = 0; i < elements.length; i++) {
+        const txtValue = elements[i].innerHTML;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            param_list[i].style.display = "";
+            elements[i].style.display = "";
         } else {
-            param_list[i].style.display = "none";
+            elements[i].style.display = "none";
         }
     }
 }
