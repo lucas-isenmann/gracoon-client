@@ -42,7 +42,7 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
                 setTimeout(() => {
                     const textZone = board.text_zones.get(response);
                     if ( typeof textZone != "undefined" ){
-                        textZone.content_div.focus();
+                        textZone.contentDiv.focus();
                     }
                 }, 50);
             } );

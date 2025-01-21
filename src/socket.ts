@@ -344,7 +344,7 @@ export function setupHandlers(board: ClientBoard) {
                 if (document.activeElement != null && document.activeElement.id != ("text_zone_content_" + data.index)){
                     console.log("update text zone : ", data.index);
                     const text = data.value as string;
-                    textZone.update_text(text);
+                    textZone.updateText(text);
                 }
             }
         } else if (data.kind == "Vertex"){

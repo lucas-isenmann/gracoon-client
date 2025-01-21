@@ -11,19 +11,19 @@ import DOMPurify from "dompurify";
 export class ClientTextZone extends TextZone {
     canvas_pos: CanvasCoord;
     div: HTMLDivElement;
-    content_div: HTMLDivElement;
-    last_mouse_pos: CanvasCoord;
+    contentDiv: HTMLDivElement;
+    lastMousePos: CanvasCoord;
     board: ClientBoard;
     
     constructor(pos: Coord, width: number, text: string, board: ClientBoard, index: number){
         super(pos, width, text, index);
         this.board = board;
         this.canvas_pos = board.camera.create_canvas_coord(pos);
-        this.last_mouse_pos = new CanvasCoord(0,0);
+        this.lastMousePos = new CanvasCoord(0,0);
 
             this.div = document.createElement("div");
             this.div.id = "text_zone_" + index;
-            this.reset_div_pos();
+            this.resetDivPos();
             document.body.appendChild(this.div);
             this.div.classList.add("text_zone");
             this.div.style.width = String(this.width) + "px";
@@ -35,27 +35,27 @@ export class ClientTextZone extends TextZone {
             content.contentEditable = "true";
             content.spellcheck = false;
             this.div.appendChild(content);
-            this.content_div = content;
+            this.contentDiv = content;
             
-            // this.update_text(text);
+            // this.updateText(text);
 
             const sidebar = document.createElement("div");
             sidebar.classList.add("text_zone_sidebar");
             this.div.appendChild(sidebar);
 
-            const text_zone = this;
+            const textZone = this;
 
             sidebar.onmousedown = (e: MouseEvent) => {
-                this.last_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
+                this.lastMousePos = new CanvasCoord(e.pageX, e.pageY);
                 function move_div(e: MouseEvent){
                     const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
-                    text_zone.width += new_mouse_pos.x - text_zone.last_mouse_pos.x;
-                    text_zone.last_mouse_pos = new_mouse_pos;
-                    text_zone.div.style.width = String(text_zone.width) + "px";
+                    textZone.width += new_mouse_pos.x - textZone.lastMousePos.x;
+                    textZone.lastMousePos = new_mouse_pos;
+                    textZone.div.style.width = String(textZone.width) + "px";
                 }
                 window.addEventListener("mousemove", move_div);
                 function stop_event(){
-                    board.emit_update_element( BoardElementType.TextZone, index, "width", text_zone.width);
+                    board.emit_update_element( BoardElementType.TextZone, index, "width", textZone.width);
                     window.removeEventListener("mouseup", stop_event);
                     window.removeEventListener("mousemove", move_div);
                 }
@@ -73,15 +73,15 @@ export class ClientTextZone extends TextZone {
             }
 
             content.onmousedown = (e: MouseEvent) => {
-                this.last_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
+                this.lastMousePos = new CanvasCoord(e.pageX, e.pageY);
                 if (board.interactorLoadedId == INTERACTOR_TYPE.SELECTION){
                     function move_div(e: MouseEvent){
                         console.log("moveDiv");
                         const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
-                        const cshift = CanvasVect.from_canvas_coords(text_zone.last_mouse_pos, new_mouse_pos);
+                        const cshift = CanvasVect.from_canvas_coords(textZone.lastMousePos, new_mouse_pos);
                         const shift = board.camera.server_vect(cshift);
                         board.emit_translate_elements([[BoardElementType.TextZone, index]], shift);
-                        text_zone.last_mouse_pos = new_mouse_pos;
+                        textZone.lastMousePos = new_mouse_pos;
                     }
                     window.addEventListener("mousemove", move_div);
                     function stop_event(){
@@ -142,35 +142,35 @@ export class ClientTextZone extends TextZone {
                 }
             }
 
-        this.update_text(text);
+        this.updateText(text);
     }
 
     translate(shift: CanvasVect, camera: Camera) {
         this.canvas_pos.translate_by_canvas_vect(shift);
         this.pos = camera.create_server_coord(this.canvas_pos);
-        this.reset_div_pos();
+        this.resetDivPos();
     }
 
 
-    async update_text(new_text: string){
+    async updateText(new_text: string){
         this.text = new_text;
         // new_text = new_text.replace(/(\r\n)/g, "<br>");
         // new_text = new_text.replace(/\n/g, "<br>");
         // new_text = new_text.replace(/\r/g, "");
         //  for (const content of this.div.getElementsByClassName("text_zone_content")){
-        // this.content_div.innerText = new_text;// katex.renderToString(text);
+        // this.contentDiv.innerText = new_text;// katex.renderToString(text);
         let parsed = await marked.parse(new_text);
         parsed = DOMPurify.sanitize(parsed);
-        this.content_div.innerHTML = parsed;
-        renderMathInElement(this.content_div);
+        this.contentDiv.innerHTML = parsed;
+        renderMathInElement(this.contentDiv);
 
         //  }
-        this.reset_div_pos();
+        this.resetDivPos();
     }
 
-    reset_div_pos(){
-            this.div.style.top = String(this.canvas_pos.y) + "px";
-            this.div.style.left = String(this.canvas_pos.x) + "px";
+    resetDivPos(){
+        this.div.style.top = String(this.canvas_pos.y) + "px";
+        this.div.style.left = String(this.canvas_pos.x) + "px";
     }
 
     is_nearby(canvas_pos: CanvasCoord): boolean{
@@ -179,8 +179,16 @@ export class ClientTextZone extends TextZone {
 
     update_after_camera_change(camera: Camera){
         this.canvas_pos = camera.create_canvas_coord(this.pos);
-        this.reset_div_pos();
+        this.resetDivPos();
+        this.applyScaling(camera.zoom)
     }
+
+    applyScaling(scale: number): void {
+        if (this.div) {
+          this.div.style.transform = `scale(${scale})`;
+          this.div.style.transformOrigin = 'left top';
+        }
+      }
 }
 
 
