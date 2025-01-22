@@ -1,4 +1,4 @@
-import { Area, Board, Coord, GeneratorId, Option, Rectangle, TextZone, Vect } from "gramoloss";
+import { Area, Board, Coord, EmbeddedGraph, GeneratorId, Option, Rectangle, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -182,6 +182,36 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         })
 
 
+    }
+
+
+    /**
+     * Add graph to the clipboard
+     * @param graph The graph to paste
+     * @param mousePos The position where the mouse is currently 
+     * @todo when no mouse ???
+     */
+    addGraphToClipboard(graph: EmbeddedGraph, mousePos: CanvasCoord){
+        this.clearClipboard();
+        this.clipboardInitPos = mousePos;
+        
+        const newVertices = new Map();
+        for (const [index, v] of graph.vertices){
+            const data = new ClientVertexData(v.data.pos.x + mousePos.x, v.data.pos.y + mousePos.y, "", this.camera, Color.Neutral);
+            const newVertex = new ClientVertex(index, data, this);
+            this.clipboard.push(newVertex);
+            newVertices.set(newVertex.index, newVertex);
+        }
+
+        for (const [index, link] of graph.links){
+            const cp = undefined;
+            const data = new ClientLinkData(cp, Color.Neutral, "", this.camera);
+            const startVertex = newVertices.get(link.startVertex.index);
+            const endVertex = newVertices.get(link.endVertex.index);
+            if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
+            const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
+            this.clipboard.push(newLink);
+        }
     }
 
     copySelectedElements(mousePos: CanvasCoord){
@@ -1096,32 +1126,35 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
         let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
 
-        if(this.graph.vertices.size > 1){
-            const v : ClientVertex = this.graph.vertices.values().next().value;
-            let xMin = v.data.canvas_pos.x;
-            let yMin = v.data.canvas_pos.y;
-            let xMax = v.data.canvas_pos.x;
-            let yMax = v.data.canvas_pos.y;
+        const v = this.graph.vertices.values().next().value;
 
-            for(const u of this.graph.vertices.values()){
-                xMin = Math.min(xMin, u.data.canvas_pos.x);
-                yMin = Math.min(yMin, u.data.canvas_pos.y);
-                xMax = Math.max(xMax, u.data.canvas_pos.x);
-                yMax = Math.max(yMax, u.data.canvas_pos.y);
+        if (typeof v != "undefined"){
+            if(this.graph.vertices.size > 1){
+                let xMin = v.data.canvas_pos.x;
+                let yMin = v.data.canvas_pos.y;
+                let xMax = v.data.canvas_pos.x;
+                let yMax = v.data.canvas_pos.y;
+    
+                for(const u of this.graph.vertices.values()){
+                    xMin = Math.min(xMin, u.data.canvas_pos.x);
+                    yMin = Math.min(yMin, u.data.canvas_pos.y);
+                    xMax = Math.max(xMax, u.data.canvas_pos.x);
+                    yMax = Math.max(yMax, u.data.canvas_pos.y);
+                }
+    
+                top_left_corner = new CanvasCoord(xMin, yMin);
+                bot_right_corner = new CanvasCoord(xMax, yMax);
             }
-
-            top_left_corner = new CanvasCoord(xMin, yMin);
-            bot_right_corner = new CanvasCoord(xMax, yMax);
+            else if(this.graph.vertices.size === 1){
+                let xMin = v.data.canvas_pos.x - this.canvas.width/2;
+                let yMin = v.data.canvas_pos.y - this.canvas.height/2;
+                let xMax = v.data.canvas_pos.x + this.canvas.width/2;
+                let yMax = v.data.canvas_pos.y + this.canvas.height/2;
+                top_left_corner = new CanvasCoord(xMin, yMin);
+                bot_right_corner = new CanvasCoord(xMax, yMax);
+            }
         }
-        else if(this.graph.vertices.size === 1){
-            const v: ClientVertex = this.graph.vertices.values().next().value;
-            let xMin = v.data.canvas_pos.x - this.canvas.width/2;
-            let yMin = v.data.canvas_pos.y - this.canvas.height/2;
-            let xMax = v.data.canvas_pos.x + this.canvas.width/2;
-            let yMax = v.data.canvas_pos.y + this.canvas.height/2;
-            top_left_corner = new CanvasCoord(xMin, yMin);
-            bot_right_corner = new CanvasCoord(xMax, yMax);
-        }
+        
 
         this.centerCameraOnRectangle(top_left_corner, bot_right_corner);
     }
