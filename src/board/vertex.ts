@@ -6,7 +6,6 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "./board";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "./display/colors_v2";
-import { rgbTikzFromHexaColor } from "../tikz";
 import { highlightColors } from "./display/highlight_colors";
 
 export class ParameterValue {
@@ -208,30 +207,6 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         return this.data.canvas_pos.is_in_rect(c1,c2);
     }
 
-    getTikzCoordVar() {
-        return `v${this.index}`;
-    }
-
-    tikzify_coordinate() {
-        return `\\coordinate (${this.getTikzCoordVar()}) at (${Math.round(this.data.pos.x)/100}, ${Math.round(this.data.pos.y)/100});`;
-    }
-
-    tikzify_node(): string {
-        const weightTikz = (this.data.weight == "") ? "" : `\n\t\t\\node[label={[scale=\\weightSize]below: ${this.data.weight}}] at (${this.getTikzCoordVar()}) {};`;
-
-        return `\\node[scale = \\vertexSize, label={[text=white, scale=\\vertexIdSize]center: ${this.data.indexString}}, nodes={${this.data.color}}{}{}{}] at  (${this.getTikzCoordVar()})  {};${weightTikz}`;
-    }
-
-    tikzify_label() {
-        // TODO
-        let labelCode = "";
-        // https://tex.stackexchange.com/questions/58878/tikz-set-node-label-position-more-precisely
-        // shift={(1,0.3)} COMMENT 2
-
-        // labelCode = "\\node[shift={(" + round(this.label.getExactLabelOffsetX() * 10) / 1000 + "," + -round(this.label.getExactLabelOffsetY() * 10) / 1000 + ")}, scale=\\vertexSize] at  (v" + Vertices.indexOf(this) + ") {" + this.label.text + "};";
-
-        return labelCode;
-    }
 
 
 

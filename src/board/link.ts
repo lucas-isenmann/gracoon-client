@@ -6,7 +6,6 @@ import { ClientVertex, ClientVertexData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { updateWeightDiv } from "./weightable";
 import { Color, getCanvasColor } from "./display/colors_v2";
-import { rgbTikzFromHexaColor } from "../tikz";
 import { drawCircle, drawHead } from "./display/draw_basics";
 import { DOWN_TYPE } from "../interactors/interactor";
 import { highlightColors } from "./display/highlight_colors";
@@ -131,27 +130,6 @@ export class ClientLink extends BasicLink<ClientVertexData, ClientLinkData> {
             }
     }
 
-    /**
-     * TODO: ORIENTED CASE
-     * @returns 
-     */
-    getTikz() {
-        let labelCode = "";
-        // if (showLabels)
-        if ( typeof this.data.weightDiv != "undefined" ){
-            // labelCode = "node[midway, shift={(" + this.data.weightDiv.offsetLeft / 100 + "," + - this.data.weightDiv.offsetTop / 100 + ")}, scale = \\edgeWidth] {" + this.data.weight + "}";
-        }
-
-        const arrowTikz =  (this.orientation == ORIENTATION.DIRECTED) ? "[->,>=latex]" : "";
-
-        const start = this.startVertex;
-        const end = this.endVertex;
-
-        const weightTikz = (this.data.weight == "") ? "" :  `node[scale=\\weightSize, fill=${this.data.color}, text=white] {${this.data.weight}}`;
-
-        const cpTikz = (typeof this.data.cp != "undefined" ) ? `.. controls (${Math.round(this.data.cp.x)/100}, ${Math.round(this.data.cp.y)/100}) ..`: "--";
-        return `\\draw${arrowTikz}[line width = \\edgeWidth, color = ${this.data.color}] (${start.getTikzCoordVar()}) ${cpTikz} ${weightTikz} (${end.getTikzCoordVar()}) ${labelCode};`;
-    }
 
     /**
      * Sets the weight of the link, then updates the WeightDiv.

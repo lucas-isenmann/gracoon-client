@@ -56,6 +56,9 @@ function genHeader(g: ClientGraph) {
     }
 
     return `% LaTeX code generated using http://graccoon.com
+% Add the following packages in the preamble of your document:
+% usepackage{tikz}
+% usetikzpackage{calc, meta.arrays}
 \\begin{tikzpicture}
     [
         yscale=-1,
@@ -235,3 +238,33 @@ function colorToLatexColor(color: Color): string{
 }
 
 
+
+/*
+function defineColors(): string{
+    let result = "% Define colors used in Gracoon\n";
+    for (const [name, colorData] of colorsData){
+        const hexaColor = colorData.light;
+        result += rgbTikzFromHexaColor(name, hexaColor) + "\n";
+    }
+    return result + "\n";
+}
+
+
+
+export function rgbTikzFromHexaColor(colorName: string, hex: string): string {
+    if (hex.indexOf('#') === 0) {
+        hex = hex.slice(1);
+    }
+    // convert 3-digit hex to 6-digits.
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    if (hex.length !== 6) {
+        throw new Error('Invalid HEX color.');
+    }
+    const r = parseInt(hex.slice(0, 2), 16),
+        g = parseInt(hex.slice(2, 4), 16),
+        b = parseInt(hex.slice(4, 6), 16);
+    return `\\definecolor{${colorName}}{RGB}{${r},${g},${b}}`;
+}
+    */
