@@ -197,7 +197,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         
         const newVertices = new Map();
         for (const [index, v] of graph.vertices){
-            const data = new ClientVertexData(v.data.pos.x + mousePos.x, v.data.pos.y + mousePos.y, "", this.camera, Color.Neutral);
+            const data = new ClientVertexData((v.data.pos.x + mousePos.x -this.camera.camera.x)/this.camera.zoom, (v.data.pos.y + mousePos.y- this.camera.camera.y)/this.camera.zoom, "", this.camera, Color.Neutral);
             const newVertex = new ClientVertex(index, data, this);
             this.clipboard.push(newVertex);
             newVertices.set(newVertex.index, newVertex);

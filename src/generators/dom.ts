@@ -8,13 +8,14 @@ import { CanvasCoord } from "../board/display/canvas_coord";
 
 
 const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "Random tournament", [new Integer("n", 5, 3)])
-const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "GNP", [new Integer("n", 20, 3), new Percentage("p")]);
+const randomGNP = new GraphGenerator(GeneratorId.RandomGNP, "Random GNP", [new Integer("n", 20, 3), new Percentage("p")]);
 const completeBipartite = new GraphGenerator(GeneratorId.CompleteBipartite, "Complete bipartite Knm", [new Integer("n",3, 1),new Integer("m",2, 1)]);
-const gridGenerator = new GraphGenerator(GeneratorId.Grid, "grid", [new Integer("n (column)",3, 1),new Integer("m (row)",2, 1)]);
+const gridGenerator = new GraphGenerator(GeneratorId.Grid, "Grid", [new Integer("n (column)",3, 1),new Integer("m (row)",2, 1)]);
 const aztecDiamondGenerator = new GraphGenerator(GeneratorId.AztecDiamond, "Aztec Diamond", [new Integer("n",3,1)]);
 
 const generators_available = new Array<GraphGenerator>();
 generators_available.push(
+    new GraphGenerator("DClub", "Random d-Club", [new Integer("n", 6, 1), new Integer("d", 2, 1)]),
     new GraphGenerator(GeneratorId.UnitDisk, "Random Unit Disk Graph", [new Integer("n", 30,1), new Integer("d", 20, 0)]),
     new GraphGenerator("CirculantTournament", "Circulant Tournament", [new ListAttribute("0/1 list", "1 0")]),
     new GraphGenerator(GeneratorId.IndependentCircle, "Independent", [new Integer("n", 5, 3)]), 

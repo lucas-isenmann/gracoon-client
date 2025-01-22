@@ -1,5 +1,6 @@
 import { AttributesArray, Integer, ListAttribute, Percentage } from "./attribute";
 import { EmbeddedGraph, generateAztecDiamond, generateCirculantTournament, generateCliqueCircle, generateCompleteBipartite, generateCompleteMultipartite, generateGrid, generateIndependentCircle, generatePaleyGraph, generateRandomGNP, generateRandomTournament, generateStar, generateUGTournament, generateUnitDisk, generateUTournament, GeneratorId, ORIENTATION } from "gramoloss";
+import { genDClubs } from "./d-clubs-gen";
 
 
 
@@ -142,6 +143,16 @@ export class GraphGenerator {
                 }
 
                 this.graph = generateCirculantTournament( n, gaps)
+            }
+        }
+        else if (this.id == "DClub"){
+            if (this.attributes.length == 2 
+                && this.attributes[0] instanceof Integer
+                && this.attributes[1] instanceof Integer 
+            ){
+                const n = this.attributes[0].value
+                const d = this.attributes[1].value
+                this.graph = genDClubs(n, d);
             }
         }
 
