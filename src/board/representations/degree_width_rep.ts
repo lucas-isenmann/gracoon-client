@@ -90,7 +90,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             const canvas_coord1 = this.board.camera.create_canvas_coord(new Coord(x1,y));
             for (const [index2, x2] of this.x.entries()){
                 if (x1 < x2){
-                    if (this.board.graph.has_link(index2, index1, ORIENTATION.DIRECTED)){
+                    if (this.board.graph.hasLink(index2, index1, ORIENTATION.DIRECTED)){
                         if ( index1 == this.overVertex || index2 == this.overVertex){
                             console.log()
                             this.board.ctx.strokeStyle = "white";
@@ -127,9 +127,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let dwc = 0;
             for (const [index2, x2] of this.x.entries()){
                 if (index1 != index2){
-                    if (x1 < x2 && this.board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
+                    if (x1 < x2 && this.board.graph.hasLink(index2,index1, ORIENTATION.DIRECTED)){
                         dwc += 1;
-                    } else if (x2 < x1 && this.board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
+                    } else if (x2 < x1 && this.board.graph.hasLink(index1,index2, ORIENTATION.DIRECTED)){
                         dwc += 1;
                     } 
                 }
@@ -144,9 +144,9 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             let dwc = 0;
             for (const [index2, x2] of this.x.entries()){
                 if (index1 != index2){
-                    if (x1 < x2 && this.board.graph.has_link(index2,index1, ORIENTATION.DIRECTED)){
+                    if (x1 < x2 && this.board.graph.hasLink(index2,index1, ORIENTATION.DIRECTED)){
                         dwc += 1;
-                    } else if (x2 < x1 && this.board.graph.has_link(index1,index2, ORIENTATION.DIRECTED)){
+                    } else if (x2 < x1 && this.board.graph.hasLink(index1,index2, ORIENTATION.DIRECTED)){
                         dwc += 1;
                     } 
                 }
