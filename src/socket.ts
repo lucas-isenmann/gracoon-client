@@ -5,10 +5,10 @@ import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { SENSIBILITY } from "./parametors/parametor";
 import { ClientVertexData } from "./board/vertex";
-import { Coord, ORIENTATION, Rectangle, Vect } from "gramoloss";
+import { Board, Coord, ORIENTATION, Rectangle, Vect } from "gramoloss";
 import { ClientLinkData } from "./board/link";
 import { ClientTextZone } from "./board/text_zone";
-import { ClientBoard } from "./board/board";
+import { BoardElementType, ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
 import { handleErrorLog } from "./handlers/errorLog";
 
@@ -17,6 +17,7 @@ import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
 import { ClientRectangle } from "./board/rectangle";
 import { translate_by_canvas_vect } from "./board/resizable";
+import { LinkElement, VertexElement } from "./board/element";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -209,13 +210,14 @@ export function setupHandlers(board: ClientBoard) {
                     }
                 }
             } else if (kind == "Vertex"){
-                g.translate_vertex_by_canvas_vect(index, cshift, board.camera);
-                for (const link of g.links.values()){
-                    if (link.startVertex.index == index || link.endVertex.index == index){
-                        link.setAutoWeightDivPos();
-                    }
-                }
-                update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
+                board.translateElement(BoardElementType.Vertex, index, cshift);
+                // g.translate_vertex_by_canvas_vect(index, cshift, board.camera);
+                // for (const link of g.links.values()){
+                //     if (link.startVertex.index == index || link.endVertex.index == index){
+                //         link.setAutoWeightDivPos();
+                //     }
+                // }
+                // update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
             } else if (kind == "ControlPoint"){
                 const link = g.links.get(index);
                 if (typeof link != "undefined"){
@@ -270,10 +272,16 @@ export function setupHandlers(board: ClientBoard) {
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.camera, color));
-                update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
-                g.compute_vertices_index_string();
+                // const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.camera, color));
+                // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+                // g.compute_vertices_index_string();
+
+                new VertexElement(board, data.index, x, y, "", weight, color );
+
+                
             } else if (data.kind == "Link"){
+                console.log("Create Link");
+
                 const startIndex = data.element.startVertex.index as number;
                 const endIndex = data.element.endVertex.index as number;
                 const cp = typeof data.element.data.cp == "undefined" ? undefined : new Coord(data.element.data.cp.x, data.element.data.cp.y);
@@ -283,11 +291,13 @@ export function setupHandlers(board: ClientBoard) {
                 }
                 const color = data.element.data.color as Color;
                 const weight = data.element.data.weight as string;
-                console.log(weight)
 
-                const newLinkData = new ClientLinkData(cp, color, weight, board.camera);
-                const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
-                update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+                // const newLinkData = new ClientLinkData(cp, color, weight, board.camera);
+                // const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
+                // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+
+                new LinkElement(board, data.index, startIndex, endIndex, weight, color );
+
             }
         }
         board.requestDraw();        
@@ -310,18 +320,11 @@ export function setupHandlers(board: ClientBoard) {
             } else if (kind == "Area"){
                 board.delete_area(index);
             } else if (kind == "Vertex"){
-                board.graph.deleteVertex(index);
-                update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
-                g.compute_vertices_index_string()
+                board.deleteVertex(index);
+                // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             } else if (kind == "Link"){
-                if ( board.graph.links.has(index)){
-                    const link = board.graph.links.get(index);
-                    if ( typeof link != "undefined" && typeof link.data.weightDiv !== "undefined"){
-                        link.data.weightDiv.remove();
-                    }
-                    board.graph.links.delete(index);
-                }
-                update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
+                board.deleteLink(index);
+                // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
         board.requestDraw();
@@ -483,9 +486,11 @@ export function setupHandlers(board: ClientBoard) {
 
 
 
-    function handleResetGraph(rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, color: string}}]], 
+    function handleResetGraph(
+        rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, color: string}}]], 
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
-        sensibilities: [SENSIBILITY]) {
+        sensibilities: [SENSIBILITY])
+         {
         console.log("Handle: resetGraph");
         console.time("resetGraph")
 
@@ -494,8 +499,7 @@ export function setupHandlers(board: ClientBoard) {
 
         g.clear_vertices();
         for (const data of rawVertices) {
-            const vertexData = new ClientVertexData(data[1].data.pos.x, data[1].data.pos.y, data[1].data.weight, board.camera, data[1].data.color as Color);
-            const newVertex = g.set_vertex(data[0], vertexData);
+            new VertexElement(board, data[0], data[1].data.pos.x, data[1].data.pos.y, "", data[1].data.weight, data[1].data.color as Color)
         }
 
         g.clear_links();
@@ -511,10 +515,12 @@ export function setupHandlers(board: ClientBoard) {
                     break;
             }
             const cp = typeof rawLink.data.cp == "undefined" ? undefined : new Coord(rawLink.data.cp.x, rawLink.data.cp.y);
-            const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.camera);
-            // console.log("update_graph, cp ", newLinkData.cp);
-            const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
-            // console.log("update_graph, cp ", newLink.data.cp);
+            // const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.camera);
+            // const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
+
+
+            new LinkElement(board, data[0], rawLink.startVertex.index, rawLink.endVertex.index, rawLink.data.weight, rawLink.data.color as Color);
+
         }
 
         /*

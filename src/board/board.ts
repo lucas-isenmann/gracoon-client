@@ -1,4 +1,4 @@
-import { Area, Board, Coord, EmbeddedGraph, GeneratorId, Option, Rectangle, TextZone, Vect } from "gramoloss";
+import { Area, Board, Coord, EmbeddedGraph, GeneratorId, Link, Option, Rectangle, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -26,6 +26,7 @@ import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
 import { CrossMode, TwistMode } from "./stanchion";
+import { BoardElement, LinkElement, VertexElement } from "./element";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -103,6 +104,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     interactorLoaded: Option<PreInteractor>;
     interactorLoadedId: Option<string>;
 
+    elements: Map<number, BoardElement>;
+    svgContainer: SVGElement;
+    elementCounter: number = 0;
+
+
     graphClipboard: Option<ClientGraph>;
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
@@ -126,6 +132,15 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     constructor(){
         super();
+
+        this.elements = new Map();
+        this.svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        document.body.appendChild(this.svgContainer);
+        this.svgContainer.style.position = 'absolute';
+        this.svgContainer.setAttribute("width", "100vw");
+        this.svgContainer.setAttribute("height", "100vh");
+        this.svgContainer.setAttribute("viewBox", " 0 100 100");
+
 
         this.selfUser = new Self();
         this.otherUsers = new Map();
@@ -181,7 +196,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             board.draw();
         })
 
-
+        
     }
 
 
@@ -509,7 +524,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     draw() {
-        // console.time("draw")
         this.drawBackground();
         this.grid.draw(this.canvas, this.ctx, this.camera);
         this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
@@ -517,15 +531,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.strokes.forEach(stroke => stroke.draw(this));
         this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
-        this.graph.draw();
 
         this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
         this.drawInteractor();
-        if (typeof this.graphClipboard != "undefined"){
-            this.graphClipboard.draw();
-        }
+        
         this.drawClipboard();
-        // console.timeEnd("draw");
+
     }
 
     /**
@@ -554,6 +565,31 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
+    deleteVertex(serverId: number){
+        console.log("Board: delete vertex", serverId)
+        let vertex = undefined;
+        for (const [key, element] of this.elements){
+            if (element instanceof VertexElement && element.serverId == serverId){
+                element.delete();
+                this.elements.delete(key);
+            }
+            if (element instanceof LinkElement && (element.startIndex == serverId || element.endIndex == serverId)){
+                element.delete();
+                this.elements.delete(key);
+            }
+        }
+    }
+
+    deleteLink(serverId: number){
+        console.log("Board: delete link", serverId)
+        let vertex = undefined;
+        for (const [key, element] of this.elements){
+            if (element instanceof LinkElement && element.serverId == serverId){
+                element.delete();
+                this.elements.delete(key);
+            }
+        }
+    }
 
     
 
@@ -564,36 +600,43 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      * Emit delete_elements alone.
      */
     eraseAt(e: CanvasCoord, eraseDistance: number) : boolean{
-        for (const [index, s] of this.strokes.entries()) {
-            if (s.is_nearby(e, this.camera) !== false) {
-                this.emit_delete_elements([[BoardElementType.Stroke, index]]);
+        for (const element of this.elements.values()){
+            if (element.isNearby(e, eraseDistance)){
+                this.emit_delete_elements([[element.boardElementType, element.serverId]]);
                 return true;
             }
         }
-        for (const [index, vertex] of this.graph.vertices.entries()) {
-            if (vertex.is_nearby(e, Math.pow(eraseDistance + VERTEX_RADIUS, 2))) {
-                this.emit_delete_elements([[BoardElementType.Vertex, index]]);
-                return true;
-            }
-        }
-        for (const index of this.graph.links.keys()) {
-            if (this.graph.is_click_over_link(index, e, this.camera)) {
-                this.emit_delete_elements([[BoardElementType.Link, index]]);
-                return true;
-            }
-        }
-        for(const [index,area] of this.areas.entries()){
-            if( is_click_over(area,e) ){
-                this.emit_delete_elements([[BoardElementType.Area, index]]);
-                return true;
-            }
-        }
-        for(const [index,rectangle] of this.rectangles.entries()){
-            if( is_click_over(rectangle, e) ){
-                this.emit_delete_elements([[BoardElementType.Rectangle, index]]);
-                return true;
-            }
-        }
+
+        // for (const [index, s] of this.strokes.entries()) {
+        //     if (s.is_nearby(e, this.camera) !== false) {
+        //         this.emit_delete_elements([[BoardElementType.Stroke, index]]);
+        //         return true;
+        //     }
+        // }
+        // for (const [index, vertex] of this.graph.vertices.entries()) {
+        //     if (vertex.is_nearby(e, Math.pow(eraseDistance + VERTEX_RADIUS, 2))) {
+        //         this.emit_delete_elements([[BoardElementType.Vertex, index]]);
+        //         return true;
+        //     }
+        // }
+        // for (const index of this.graph.links.keys()) {
+            // if (this.graph.is_click_over_link(index, e, this.camera)) {
+        //         this.emit_delete_elements([[BoardElementType.Link, index]]);
+        //         return true;
+        //     }
+        // }
+        // for(const [index,area] of this.areas.entries()){
+        //     if( is_click_over(area,e) ){
+        //         this.emit_delete_elements([[BoardElementType.Area, index]]);
+        //         return true;
+        //     }
+        // }
+        // for(const [index,rectangle] of this.rectangles.entries()){
+        //     if( is_click_over(rectangle, e) ){
+        //         this.emit_delete_elements([[BoardElementType.Rectangle, index]]);
+        //         return true;
+        //     }
+        // }
         return false;
     }
 
@@ -714,6 +757,16 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
+    getSpecificElementNearby(pos: CanvasCoord, type: BoardElementType, d: number): Option<BoardElement>{
+        for (const element of this.elements.values()){
+            if ( element.boardElementType == type && element.isNearby(pos, d)){
+                return element;
+            }
+        }
+        return undefined;
+    }
+
+
     get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
 
         if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION_ELEMENT)){
@@ -753,10 +806,15 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         }
 
-        if (interactable_element_type.has(DOWN_TYPE.VERTEX)) {
-            for (const [index, v] of this.graph.vertices.entries()) {
-                if (v.is_nearby(pos, 150)) {
-                    return new ELEMENT_DATA_VERTEX(v);
+        for (const element of this.elements.values()){
+            if ( interactable_element_type.has(DOWN_TYPE.VERTEX) && element instanceof VertexElement){
+                if (element.isNearby(pos, 15)){
+                    return new ELEMENT_DATA_VERTEX(element);
+                }
+            }
+            if ( interactable_element_type.has(DOWN_TYPE.LINK) && element instanceof LinkElement){
+                if (element.isNearby(pos, 15)){
+                    return new ELEMENT_DATA_LINK(element);
                 }
             }
         }
@@ -765,9 +823,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
                 return new ELEMENT_DATA_CONTROL_POINT(link);
             }
-            if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.camera)) {
-                return new ELEMENT_DATA_LINK(link);
-            }
+            // if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.camera)) {
+            //     return new ELEMENT_DATA_LINK(link);
+            // }
         }
 
         if(interactable_element_type.has(DOWN_TYPE.RESIZE)){
@@ -845,7 +903,23 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
+    getSelectedVertices(): Set<number> {
+        const set = new Set<number>();
+        for (const element of this.elements.values()){
+            if (element instanceof VertexElement){
+                if (element.isSelected){
+                    set.add(element.serverId);
+                }
+            }
+        }
+        return set;
+    }
+
     clear_all_selections() {
+        for (const element of this.elements.values()){
+            element.deselect();
+        }
+
         this.graph.deselect_all_vertices();
         this.graph.deselect_all_links();
         this.deselect_all_strokes();
@@ -854,7 +928,13 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-   
+    translateElement(type: BoardElementType, serverId: number, cshift: CanvasVect){
+        for (const element of this.elements.values()){
+            if (element.boardElementType == type && element.serverId == serverId){
+                element.translate(cshift);
+            }
+        }
+    }
 
     translate_area(shift: CanvasVect, area: ClientArea, verticesContained: Set<number>){
         this.graph.vertices.forEach((vertex, vertexIndex) => {

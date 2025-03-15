@@ -128,6 +128,142 @@ paramIsLight.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
     }
 })
 
+// -----------------------------------------------------------------
+
+export const paramIsLightCritic = new Parametor(
+    "Is light critic?",
+    "is_light_critic",
+    "is_light_critic",
+    "Is light critic?",
+    true,
+    true,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+
+paramIsLightCritic.compute = ((g: ClientGraph, verbose: boolean) => {
+    const conflict = g.lightnessConflict();
+    
+    if (typeof conflict == "undefined"){
+
+        // Copy g
+        const h = new AbstractGraph();
+        for (const [id, v] of g.vertices){
+            h.setVertex(id, undefined);
+        }
+
+        for (const [id, link] of g.links){
+            const id1 = link.startVertex.index;
+            const id2 = link.endVertex.index;
+            h.addLink(id1, id2, ORIENTATION.DIRECTED);
+        }
+
+        const u = h.addVertex();
+
+        const todo = new Array<[number, number]>();
+        const done = new Array<[number, number, number]>();
+
+        for (const [id2, w] of g.vertices){
+            if (u.index < id2){
+                todo.push([u.index, id2]);
+            } else {
+                todo.push([id2, u.index]);
+            }
+        }
+
+        let finito = false;
+        while (finito == false){
+            const r = todo.pop();
+            if (typeof r != "undefined"){
+                const [x,y] = r;
+                const addedArc = h.addLink(x, y, ORIENTATION.DIRECTED);
+                if (typeof addedArc != "undefined"){
+                    if (h.isTournamentLight() == false){
+                        h.deleteLink(addedArc.index);
+                        if ( y > x){
+                            // Rembobiner
+                            while (true){
+                                const r2 = done.pop();
+                                if (typeof r2 == "undefined"){
+                                    // Finito
+                                    finito = true;
+                                    break;
+                                } else {
+                                    const [a,b, arcId] = r2;
+                                    h.deleteLink(arcId);
+                                    
+                                    if (a < b ){
+                                        todo.push([b,a]);
+                                        break;
+                                    } else {
+                                        todo.push([a,b]);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        done.push([x,y, addedArc.index]);
+                    }
+                }
+            } else {
+                // On a tout mis et c'est light
+                // Check si c'est un twin
+                let is_twin = true;
+                for (const [id, v] of g.vertices){
+                    
+                }
+
+                // Sinon return true
+
+                // Rembobiner
+                while (true){
+                    const r2 = done.pop();
+                    if (typeof r2 == "undefined"){
+                        // Finito
+                        finito = true;
+                        break;
+                    } else {
+                        const [a,b, arcId] = r2;
+                        h.deleteLink(arcId);
+                        
+                        if (a < b ){
+                            todo.push([b,a]);
+                            break;
+                        } else {
+                            todo.push([a,b]);
+                        }
+                    }
+                }
+
+            }
+        }
+
+
+
+
+        return ["true", []];
+    } else {
+        return ["false", conflict]
+    }
+})
+
+paramIsLightCritic.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
+    for (let i = 0 ; i < conflict.length; i ++){
+        const v = g.vertices.get(conflict[i]);
+        if (typeof v != "undefined"){
+            if (i == 0){
+                v.data.highlight = 0;
+            }
+            if (i == 1){
+                v.data.highlight = 1;
+            }
+            if (i > 1){
+                v.data.highlight = 2;
+            }
+        }
+    }
+})
 
 
 

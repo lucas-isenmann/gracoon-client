@@ -202,7 +202,7 @@ function setup() {
         ]),
         createStrokeInteractor(localBoard), 
         createColorInteractor(localBoard),
-        createAreaInteractor(localBoard),
+        // createAreaInteractor(localBoard),
         createRectangleInteractor(localBoard),
         createTextInteractor(localBoard),
         new EraserInteractor(localBoard) 

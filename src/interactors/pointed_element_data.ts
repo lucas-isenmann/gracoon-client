@@ -8,22 +8,23 @@ import { ClientStroke } from "../board/stroke";
 import { ClientTextZone } from "../board/text_zone";
 import { ClientVertex } from "../board/vertex";
 import { RESIZE_TYPE } from "./interactor";
+import { BoardElement, LinkElement, VertexElement } from "../board/element";
 
 
 export interface ELEMENT_DATA {
-    element: ClientVertex | ClientLink | ClientRectangle | ClientArea | ClientStroke | ClientRepresentation | ClientTextZone;
+    element: ClientVertex | ClientLink | ClientRectangle | ClientArea | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
 }
 
 export class ELEMENT_DATA_VERTEX {
-    element: ClientVertex;
-    constructor(v: ClientVertex){
+    element: VertexElement;
+    constructor(v: VertexElement){
         this.element = v;
     }
 }
 
 export class ELEMENT_DATA_LINK {
-    element: ClientLink;
-    constructor(l: ClientLink){
+    element: LinkElement;
+    constructor(l: LinkElement){
         this.element = l;
     }
 }

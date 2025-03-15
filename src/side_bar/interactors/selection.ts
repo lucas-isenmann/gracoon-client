@@ -10,11 +10,11 @@ import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
-import { ClientVertex } from "../../board/vertex";
 import { ClientArea } from "../../board/area";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
 import { ClientRectangle } from "../../board/rectangle";
+import { VertexElement } from "../../board/element";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -35,8 +35,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     const selectionV2 = new PreInteractor(INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
 
 
-
+    // Mouse down
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
+        console.log("Selection mouse down")
+        
         blurProperties();
         hasMoved = false;
         previous_shift = new Vect(0,0);
@@ -54,13 +56,13 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 rectSelectC1 = pointed.pointedPos.copy(); 
                 rectSelectC2 = pointed.pointedPos.copy();
             }
-        }else if ( pointed.data.element instanceof ClientVertex){
+        }else if ( pointed.data.element instanceof VertexElement){
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
-                board.grid.polarCenter.copy_from(v.data.pos);
+                board.grid.polarCenter.copy_from(v.center);
                 board.draw();
             }
-            vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.data.canvas_pos);
+            vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.center);
         } else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             const element = pointed.data.element;
             switch(pointed.data.resizeType){
@@ -111,7 +113,9 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }
     })
 
+    // Mouse Move
     selectionV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+        // console.log("Selection : Mouse move")
         hasMoved = true;
         if (typeof pointed == "undefined") return false;
 
@@ -119,8 +123,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             const v = pointed.data.element;
             const indices = new Array<[BoardElementType,number]>();
             
-            if ( v.data.is_selected ) {
-                const selected_vertices = board.graph.get_selected_vertices();
+            if ( v.isSelected ) {
+                const selected_vertices = board.getSelectedVertices();
                 for( const index of selected_vertices){
                     indices.push([BoardElementType.Vertex, index]);
                 }
@@ -135,9 +139,9 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
             else {
                 e.translate_by_canvas_vect(vertex_center_shift);
-                e = board.graph.align_position(e, new Set([pointed.data.element.index]), board.canvas, board.camera);
+                e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
                 e.translate_by_canvas_vect(vertex_center_shift.opposite());
-                indices.push([BoardElementType.Vertex, pointed.data.element.index]);
+                indices.push([BoardElementType.Vertex, pointed.data.element.serverId]);
             }
             
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
@@ -215,7 +219,9 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         return false;
     })
 
+    // Mouse up
     selectionV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+        console.log("Selection: mouse up")
         if (typeof pointed == "undefined") return false;
 
         if ( typeof pointed.data == "undefined"){
@@ -232,20 +238,20 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                     if (board.keyPressed.has("Control") == false) { 
                         board.clear_all_selections();
                     }
-                    board.selectConnectedComponent(pointed.data.element.index);
+                    board.selectConnectedComponent(pointed.data.element.serverId);
                 } else {
-                    if ( pointed.data.element.data.is_selected) {
+                    if ( pointed.data.element.isSelected) {
                         if (board.keyPressed.has("Control")) { 
-                            pointed.data.element.data.is_selected = false;
+                            pointed.data.element.isSelected = false;
                         }
                     }
                     else {
                         if (board.keyPressed.has("Control")) {
-                            pointed.data.element.data.is_selected = true;
+                            pointed.data.element.select();
                         }
                         else {
                             board.clear_all_selections();
-                            pointed.data.element.data.is_selected = true;
+                            pointed.data.element.select();
                         }
                     }
                 }
@@ -254,8 +260,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             else {
                 const vertex_moved = pointed.data.element;
                 for( const [index,v] of board.graph.vertices.entries()){
-                    if( index != pointed.data.element.index && vertex_moved.is_nearby(v.data.canvas_pos, 100)){
-                        board.emit_vertices_merge(index, pointed.data.element.index);
+                    if( index != pointed.data.element.serverId && vertex_moved.isNearby(v.data.canvas_pos, 10)){
+                        board.emit_vertices_merge(index, pointed.data.element.serverId);
                         break;
                     }
                 }
@@ -263,19 +269,20 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }
 
         else if ( pointed.data instanceof ELEMENT_DATA_LINK) {
+            const link = pointed.data.element;
             if (hasMoved === false) {
-                if ( pointed.data.element.data.is_selected) {
+                if ( link.isSelected) {
                     if (board.keyPressed.has("Control")) { 
-                        pointed.data.element.data.is_selected = false;
+                        link.deselect();
                     }
                 }
                 else {
-                    if (board.keyPressed.has("Control")) { 
-                        pointed.data.element.data.is_selected = true;
+                    if (board.keyPressed.has("Control")) {
+                        link.select();
                     }
                     else {
                         board.clear_all_selections();
-                        pointed.data.element.data.is_selected = true;
+                        link.select();
                     }
                 }
             }

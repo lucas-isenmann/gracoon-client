@@ -1,0 +1,37 @@
+
+@keyframes createLink {
+    0% {
+        transform-origin: center;
+        transform: scale(4);
+    }
+    100% {
+        transform-origin: center;
+        transform: scale(1);
+    }
+  }
+
+
+@keyframes selectLink {
+    from { transform-origin: center;
+        transform: scale(1); }
+    to { transform-origin: center;
+        transform: scale(2); }
+  }
+
+  @keyframes deselectLink {
+    from { transform-origin: center;
+        transform: scale(2); }
+    to { transform-origin: center;
+        transform: scale(1); }
+  }
+
+
+.link.selected {
+    stroke: rgb(214, 245, 38);
+    stroke-width: 4;
+    animation: selectLink 0.5s ease-out forwards;
+}
+
+.link.deselected {
+    animation: deselectLink 0.5s ease-out forwards;
+}

@@ -48,21 +48,6 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    override deleteVertex(index: number){
-        const vertex = this.vertices.get(index);
-        if ( typeof vertex == "undefined") return;
-        if (typeof vertex.data.weightDiv != "undefined"){
-            vertex.data.weightDiv.remove();
-        }
-        for (const link of this.links.values()){
-            if (link.startVertex.index == vertex.index || link.endVertex.index == vertex.index){
-                if(typeof link.data.weightDiv != "undefined"){
-                    link.data.weightDiv.remove()
-                }
-            }
-        }
-        super.deleteVertex(index);
-    }
 
     compressToString(): string{
         let str = "";
@@ -72,32 +57,6 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             str += `${link.startVertex.index} ${link.endVertex.index}\n`
         }
         return str;
-    }
-
-    /**
-     * Draw the graph on the context.
-     */
-    draw(){
-        this.drawLinks(this.board.ctx);
-        this.drawVertices(this.board.ctx);
-    }
-
-    /**
-     * Draw the vertices of the graph.
-     */
-    drawVertices(ctx: CanvasRenderingContext2D){
-        for (const v of this.vertices.values()) {
-            v.draw(this.board);
-        }
-    }
-
-    /**
-     * Draw the links of the graph.
-     */
-    drawLinks(ctx: CanvasRenderingContext2D) {
-        for (const link of this.links.values()) {
-            link.draw(this.board);
-        }
     }
 
 
@@ -192,23 +151,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
         }
     }
 
-    is_click_over_link(link_index: number, e: CanvasCoord, camera: Camera) {
-        const link = this.links.get(link_index);
-        if (typeof link == "undefined") return;
-        const v = link.startVertex;
-        const w = link.endVertex;
-        const linkcp_canvas = link.data.cp_canvas_pos;
-        const v_canvas_pos = v.data.canvas_pos;
-        const w_canvas_pos = w.data.canvas_pos
-        if (typeof linkcp_canvas != "string"){
-            return e.is_nearby_beziers_1cp(v_canvas_pos, linkcp_canvas, w_canvas_pos);
-        }
-        else {
-            // OPT dont need beziers as it is a straight line
-            const middle = v_canvas_pos.middle(w_canvas_pos);
-            return e.is_nearby_beziers_1cp(v_canvas_pos, middle, w_canvas_pos);
-        }
-    }
+   
 
     /**
      * Update the index string of every vertex according to the indexType of board
@@ -347,16 +290,6 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
             }
         }
         return aligned_pos;
-    }
-
-    get_selected_vertices(): Set<number> {
-        const set = new Set<number>();
-        this.vertices.forEach((v, index) => {
-            if (v.data.is_selected) {
-                set.add(index);
-            }
-        })
-        return set;
     }
 
 

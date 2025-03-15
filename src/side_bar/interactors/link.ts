@@ -6,8 +6,9 @@ import { PreInteractor } from "../pre_interactor";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
 import { getCanvasColor } from "../../board/display/colors_v2";
-import { ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "../../board/board";
+import { BoardElementType, ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
+import { VertexElement } from "../../board/element";
 
 
 
@@ -36,8 +37,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
     const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
 
-
+    // Mouse down
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+        console.log("mouse down ", pointed);
         board.regenAgregId();
         if ( typeof pointed.data == "undefined" ) {
             const pos = pointed.magnetPos;
@@ -63,7 +65,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_LINK ){
             const pos = board.camera.create_server_coord(pointed.pointedPos);
-            board.emitSubdivideLink( pointed.data.element.index, pos, "", board.colorSelected, (response) => { 
+            board.emitSubdivideLink( pointed.data.element.serverId, pos, "", board.colorSelected, (response) => { 
                 if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                     board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
                 }
@@ -74,24 +76,29 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         else if ( pointed.data instanceof ELEMENT_DATA_VERTEX) {
             const vertex = pointed.data.element;
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.index, orientation, "", board.colorSelected), () => {} )
+                board.emit_add_element( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation, "", board.colorSelected), () => {} )
                 if (board.keyPressed.has("Control")){
-                    linkInteractor.indexLastCreatedVertex = vertex.index;
-                    linkInteractor.lastVertexPos = vertex.data.pos;
+                    linkInteractor.indexLastCreatedVertex = vertex.serverId;
+                    linkInteractor.lastVertexPos = vertex.center;
                 }
             } else {
-                linkInteractor.indexLastCreatedVertex = vertex.index;
-                linkInteractor.lastVertexPos = vertex.data.pos
+                linkInteractor.indexLastCreatedVertex = vertex.serverId;
+                linkInteractor.lastVertexPos = vertex.center;
             }
         }
     })
 
+
+    // Mouse move
     linkInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         return true;
     })
 
+    // Mouse up
     linkInteractor.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
-        if (typeof pointed == "undefined") return false;
+        console.log("mouseup")
+        console.log(pointed)
+        // if (typeof pointed == "undefined") return false;
 
         if ( typeof linkInteractor.indexLastCreatedVertex == "undefined"){
             return;
@@ -100,24 +107,29 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             return;
         }
 
-        const firstVertexIndex = (pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.index : linkInteractor.indexLastCreatedVertex;
+        const firstVertexIndex = (typeof pointed != "undefined" && pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.serverId : linkInteractor.indexLastCreatedVertex;
         
 
-        const vertexIndex = board.graph.get_vertex_index_nearby(board.graph.align_position(e, new Set(), board.canvas, board.camera));
-        if (vertexIndex != null){
-            if ( firstVertexIndex != vertexIndex) { // there is a vertex nearby and it is not the previous one
-                board.emit_add_element(new LinkPreData(firstVertexIndex, vertexIndex,  orientation, "", board.colorSelected), (response: number) => {});
+        const selectedVertex = board.getSpecificElementNearby(board.graph.align_position(e, new Set(), board.canvas, board.camera), BoardElementType.Vertex, 15);
+        console.log(selectedVertex);
+        if (selectedVertex instanceof VertexElement){
+            if ( firstVertexIndex != selectedVertex.serverId) { // there is a vertex nearby and it is not the previous one
+                board.emit_add_element(new LinkPreData(firstVertexIndex, selectedVertex.serverId,  orientation, "", board.colorSelected), (response: number) => {});
             } 
         } else {
             const link = board.graph.nearbyLink(e);
             if (typeof link == "undefined"){
                 const aligned_mouse_pos = board.graph.align_position(e, new Set(), board.canvas, board.camera);
-                const server_pos = aligned_mouse_pos.toCoord(board.camera);
-                board.emit_add_element(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
+                const serverPos = aligned_mouse_pos.toCoord(board.camera);
+                console.log("emit add Vertex")
+                board.emit_add_element(new ClientVertexData(serverPos.x, serverPos.y, "", board.camera, board.colorSelected), (response) => { 
+                    
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
                         linkInteractor.lastVertexPos = aligned_mouse_pos;
                     }
+                    console.log("receive add vertex")
+                    console.log("emit add Element")
                     board.emit_add_element( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
@@ -133,10 +145,11 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     })
 
+    // Trigger
     linkInteractor.trigger = (board: ClientBoard, mousePos: Option<CanvasCoord>) => {
     }
 
-
+    // Canvas Draw
     linkInteractor.draw = (board: ClientBoard) => {
 
         if (typeof board.selfUser.canvasPos != "undefined"){

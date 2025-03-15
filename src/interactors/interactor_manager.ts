@@ -114,7 +114,9 @@ export function setupInteractions(board: ClientBoard) {
     // ----------------------------------------------------------------
     // Mouse actions
 
-    board.canvas.addEventListener('mouseup', function (e) {
+
+    // Mouse up
+    board.svgContainer.addEventListener('mouseup', function (e) {
         // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
@@ -129,16 +131,20 @@ export function setupInteractions(board: ClientBoard) {
         board.canvas.style.cursor = "default";
     })
 
-    board.canvas.addEventListener("mouseout", function(e){
-        lastPointedElement = undefined;
-        mousePos = undefined;
-        board.alignement_horizontal_y = undefined;
-        board.alignement_vertical_x = undefined;
-        board.selfUser.canvasPos = undefined;
-        requestAnimationFrame(function () {board.draw() });
+
+    // Mouse out
+    board.svgContainer.addEventListener("mouseout", function(e){
+        // console.log("mouseout")
+        // lastPointedElement = undefined;
+        // mousePos = undefined;
+        // board.alignement_horizontal_y = undefined;
+        // board.alignement_vertical_x = undefined;
+        // board.selfUser.canvasPos = undefined;
+        // requestAnimationFrame(function () {board.draw() });
     })
 
-    board.canvas.addEventListener('mousemove', function (e) {
+    // Mouse move
+    board.svgContainer.addEventListener('mousemove', function (e) {
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         if ( typeof board.selfUser.canvasPos != "undefined"){
             board.selfUser.canvasPos.copy_from(mousePos);
@@ -195,7 +201,8 @@ export function setupInteractions(board: ClientBoard) {
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     })
 
-    board.canvas.addEventListener('mousedown', function (e) {
+    // Mouse down
+    board.svgContainer.addEventListener('mousedown', function (e) {
         // console.log("mousedwon")
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
