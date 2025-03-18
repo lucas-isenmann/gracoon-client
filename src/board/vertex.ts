@@ -305,7 +305,15 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 }
 
 
+export class ShapeData {
+    pos: Coord;
+    color: Color;
 
+    constructor(pos: Coord, color: Color){
+        this.pos = pos;
+        this.color = color;
+    }
+}
 
 
 export class ClientVertexData extends BasicVertexData {

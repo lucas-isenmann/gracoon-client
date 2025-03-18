@@ -231,7 +231,7 @@ export function setupInteractions(board: ClientBoard) {
         else if (e.buttons == 2){
             const pointedPos = mousePos.copy();
             const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
-            lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, undefined );
+            lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons,  undefined );
         } else if (typeof board.interactorLoaded != "undefined"){
             const pointedPos = mousePos.copy();
             const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);

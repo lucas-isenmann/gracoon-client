@@ -1,4 +1,4 @@
-import { Option } from "gramoloss";
+import { Board, Option } from "gramoloss";
 import { ClientArea } from "../board/area";
 import { CanvasCoord } from "../board/display/canvas_coord";
 import { ClientLink } from "../board/link";
@@ -9,6 +9,7 @@ import { ClientTextZone } from "../board/text_zone";
 import { ClientVertex } from "../board/vertex";
 import { RESIZE_TYPE } from "./interactor";
 import { BoardElement, LinkElement, VertexElement } from "../board/element";
+import { BoardElementType } from "../board/board";
 
 
 export interface ELEMENT_DATA {
@@ -107,11 +108,25 @@ export class PointedElementData {
     pointedPos: CanvasCoord;
     magnetPos: CanvasCoord;
     buttonType: number;
+    type: BoardElementType | undefined;
     data: Option<ELEMENT_DATA>;
-    constructor(pointedPos: CanvasCoord, magnetPos: CanvasCoord, buttonType: number, data: Option<ELEMENT_DATA>){
+    constructor(pointedPos: CanvasCoord, magnetPos: CanvasCoord, buttonType: number,  data: Option<ELEMENT_DATA>){
         this.pointedPos = pointedPos;
         this.magnetPos = magnetPos;
         this.buttonType = buttonType;
         this.data = data; 
+        this.type = undefined;
+        if (typeof data != "undefined"){
+            if (data instanceof ELEMENT_DATA_VERTEX){
+                this.type = BoardElementType.Vertex;
+            }
+            if (data instanceof ELEMENT_DATA_LINK){
+                this.type = BoardElementType.Link;
+            }
+            if (data instanceof ELEMENT_DATA_RECTANGLE){
+                this.type = BoardElementType.Rectangle;
+            }
+        }
+        
     }
 }

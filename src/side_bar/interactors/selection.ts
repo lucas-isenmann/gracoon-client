@@ -227,7 +227,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         if ( typeof pointed.data == "undefined"){
             if (isRectangularSelecting && typeof rectSelectC1 != "undefined" && typeof rectSelectC2 != "undefined") {
                 isRectangularSelecting = false;
-                board.select_elements_in_rect(rectSelectC1, rectSelectC2);
+                board.selectElementsInRect(rectSelectC1, rectSelectC2);
             } else {
                 board.clear_all_selections();
             }
@@ -258,10 +258,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 
             }
             else {
-                const vertex_moved = pointed.data.element;
-                for( const [index,v] of board.graph.vertices.entries()){
-                    if( index != pointed.data.element.serverId && vertex_moved.isNearby(v.data.canvas_pos, 10)){
-                        board.emit_vertices_merge(index, pointed.data.element.serverId);
+                const vertexMoved = pointed.data.element;
+                for( const v of board.elements.values()){
+                    if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.center, 10)){
+                        board.emitVerticesMerge(v.serverId, pointed.data.element.serverId);
                         break;
                     }
                 }

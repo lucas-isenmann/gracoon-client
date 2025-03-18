@@ -25,6 +25,11 @@
         transform: scale(1); }
   }
 
+ 
+  
+.vertex:hover {
+    fill: rgb(22, 235, 181);
+}
 
 .vertex.selected {
     fill: rgb(214, 245, 38);

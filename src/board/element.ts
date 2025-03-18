@@ -1,8 +1,8 @@
-import { Coord, Link } from "gramoloss";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
 import { CanvasVect } from "./display/canvasVect";
+import { Coord, is_segments_intersection } from "gramoloss";
 
 
 export interface BoardElement {
@@ -11,6 +11,7 @@ export interface BoardElement {
     boardElementType: BoardElementType;
     delete: () => void;
     
+    setColor: (color: Color) => void;
 
     translate: (cshift: CanvasVect) => void;
 
@@ -18,6 +19,7 @@ export interface BoardElement {
     select: () => void;
     deselect: () => void;
 
+    isInRect: (corner1: CanvasCoord, corner2: CanvasCoord) => boolean;
     isNearby: (pos: CanvasCoord, d: number) => boolean;
 }
 
@@ -62,12 +64,21 @@ export class VertexElement implements BoardElement {
         board.elementCounter += 1;
     }
 
+    setColor (color: Color) {
+        this.color = color;
+        this.disk.setAttribute("fill", getCanvasColor(this.color, this.board.isDarkMode()));
+    }
+
     delete(){
         this.disk.remove();
     }
 
-    isNearby (pos: CanvasCoord,d: number){
+    isNearby (pos: CanvasCoord,d: number) {
         return pos.dist2(this.center) <= d*d 
+    }
+
+    isInRect (corner1: CanvasCoord, corner2: CanvasCoord) : boolean  {
+        return this.center.is_in_rect(corner1, corner2);
     }
 
     select(){
@@ -94,13 +105,14 @@ export class VertexElement implements BoardElement {
 
         for (const element of this.board.elements.values()){
             if (element instanceof LinkElement){
-                if ( element.startIndex == this.serverId){
-                    element.line.setAttribute("x1", this.center.x.toString())
-                    element.line.setAttribute("y1", this.center.y.toString())
+                const link = element;
+                if ( link.startVertex.serverId == this.serverId){
+                    link.line.setAttribute("x1", this.center.x.toString())
+                    link.line.setAttribute("y1", this.center.y.toString())
                 }
-                if ( element.endIndex == this.serverId){
-                    element.line.setAttribute("x2", this.center.x.toString())
-                    element.line.setAttribute("y2", this.center.y.toString())
+                if ( link.endVertex.serverId == this.serverId){
+                    link.line.setAttribute("x2", this.center.x.toString())
+                    link.line.setAttribute("y2", this.center.y.toString())
                 }
             }
         }
@@ -116,62 +128,90 @@ export class LinkElement implements BoardElement {
     boardElementType: BoardElementType;
     color: Color;
     isSelected: boolean = false;
-    startIndex: number;
-    endIndex: number;
+    startVertex: VertexElement;
+    endVertex: VertexElement;
     line: SVGLineElement;
+    isDirected: boolean;
+    board: ClientBoard;
+    
 
 
-    constructor(board: ClientBoard, serverId: number, starIndex: number, endIndex: number, label: string, color: Color){
+    constructor(board: ClientBoard, serverId: number, startVertex: VertexElement, endVertex: VertexElement, directed: boolean, label: string, color: Color){
         this.id = board.elementCounter;
         this.center = new CanvasCoord(0,0);
         this.color = color;
         this.boardElementType = BoardElementType.Link;
         this.serverId = serverId;
-        this.startIndex = starIndex;
-        this.endIndex = endIndex;
+        this.startVertex = startVertex;
+        this.endVertex = endVertex;
+        this.isDirected = directed;
+
         
-        // Check if startIndex and endIndex vertices exist
-        let startVertex: undefined | VertexElement = undefined;
-        let endVertex = undefined;
-        for (const element of board.elements.values()){
-            if (element instanceof VertexElement){
-                if (element.serverId == starIndex){
-                    startVertex = element;
-                } else if (element.serverId == endIndex){
-                    endVertex = element;
-                }
-            }
-        }
         this.line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        board.svgContainer.appendChild(this.line);
 
+        // Set line attributes
+        this.line.setAttribute("x1", startVertex.center.x.toString());
+        this.line.setAttribute("y1", startVertex.center.y.toString());
+        this.line.setAttribute("x2", endVertex.center.x.toString());
+        this.line.setAttribute("y2", endVertex.center.y.toString());
+        this.line.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
+        this.line.setAttribute("stroke-width", "2");
+        this.line.classList.add("link", "deselected")
+        this.line.style.transformBox = "fill-box";
 
-        // Create Line element
-        if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
-            // Set line attributes
-            this.line.setAttribute("x1", startVertex.center.x.toString());
-            this.line.setAttribute("y1", startVertex.center.y.toString());
-            this.line.setAttribute("x2", endVertex.center.x.toString());
-            this.line.setAttribute("y2", endVertex.center.y.toString());
-            this.line.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
-            this.line.setAttribute("stroke-width", "2");
-            this.line.classList.add("link", "deselected")
-            this.line.style.transformBox = "fill-box";
-        
-
-            board.svgContainer.appendChild(this.line);
-
-            this.center.x = (startVertex.center.x + endVertex.center.x)/2
-            this.center.y = (startVertex.center.y + endVertex.center.y)/2;
-
-            board.elements.set(this.id, this);
-            board.elementCounter += 1;
+        if (this.isDirected) {
+            const markerId = `arrow-head-${this.color}`;
+            this.line.setAttribute("marker-end", `url(#${markerId})`);
         }
-        
+    
+
+
+        this.center.x = (startVertex.center.x + endVertex.center.x)/2
+        this.center.y = (startVertex.center.y + endVertex.center.y)/2;
+
+        board.elements.set(this.id, this);
+        board.elementCounter += 1;
+        this.board = board;
     }
 
     delete(){
         this.line.remove();
     }
+
+    setColor (color: Color) {
+        this.color = color;
+        this.line.setAttribute("stroke", getCanvasColor(this.color, this.board.isDarkMode()));
+        if (this.isDirected){
+            const markerId = `arrow-head-${this.color}`;
+            this.line.setAttribute("marker-end", `url(#${markerId})`);
+        }
+
+    }
+
+    /**
+     * TODO
+     * @param c1 
+     * @param c2 
+     * @returns 
+     */
+    isInRect(c1: CanvasCoord, c2: CanvasCoord) {
+        //V1: is in rect if one of its extremities is in the rectangle
+        //TODO: be more clever and select also when there is an intersection between the edge and the rectangle
+        // let startVertex: undefined | VertexElement = undefined;
+        // let endVertex = undefined;
+        // for (const element of this.board.elements.values()){
+        //     if (element instanceof VertexElement){
+        //         if (element.serverId == starIndex){
+        //             startVertex = element;
+        //         } else if (element.serverId == endIndex){
+        //             endVertex = element;
+        //         }
+        //     }
+        // }
+        return this.startVertex.isInRect(c1, c2) || this.endVertex.isInRect(c1, c2);
+    }
+
 
     isNearby (pos: CanvasCoord, d: number){
         // const v = startVertex;
@@ -210,5 +250,159 @@ export class LinkElement implements BoardElement {
         this.line.classList.add("deselected")
         this.isSelected = false;
         this.line.style.animation = "deselectLine 0.5s ease-out forwards";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+export class ShapeElement implements BoardElement {
+    center: CanvasCoord;
+    id: number;
+    serverId: number;
+    boardElementType: BoardElementType;
+    color: Color;
+    isSelected: boolean = false;
+    board: ClientBoard;
+
+    shape: SVGRectElement;
+
+    canvas_corner_top_left : CanvasCoord;
+    canvas_corner_bottom_left : CanvasCoord;
+    canvas_corner_bottom_right : CanvasCoord;
+    canvas_corner_top_right : CanvasCoord;
+    
+
+
+    constructor(board: ClientBoard, serverId: number, c1: Coord, c2: Coord, color: Color){
+        this.id = board.elementCounter;
+        this.center = new CanvasCoord(0,0);
+        this.color = color;
+        this.boardElementType = BoardElementType.Rectangle;
+        this.serverId = serverId;
+
+        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
+        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
+        this.canvas_corner_top_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
+        this.canvas_corner_top_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
+
+        
+        this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        board.svgContainer.appendChild(this.shape);
+
+        // Set SVG Element attributes
+        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
+        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
+        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
+        this.shape.setAttribute("height", (-this.canvas_corner_bottom_right.y + this.canvas_corner_top_left.y).toString());
+        this.shape.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
+        this.shape.setAttribute("stroke-width", "2");
+        this.shape.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode()));
+        this.shape.setAttribute("fill-opacity", "0.1")
+        this.shape.classList.add("shape", "deselected")
+        this.shape.style.transformBox = "fill-box";
+
+
+        this.center.x = (c1.x + c2.x)/2;
+        this.center.y = (c1.y + c2.y)/2;
+
+        board.elements.set(this.id, this);
+        board.elementCounter += 1;
+        this.board = board;
+    }
+
+    delete(){
+        this.shape.remove();
+    }
+
+    setCorners(c1:CanvasCoord, c2:CanvasCoord){
+        console.log("setCorner")
+        this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
+        this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
+        this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
+        this.canvas_corner_top_left.y = Math.min(c1.y, c2.y);
+        this.canvas_corner_bottom_right.x = Math.max(c1.x, c2.x);
+        this.canvas_corner_bottom_right.y = Math.max(c1.y, c2.y);
+        this.canvas_corner_bottom_left.x = Math.min(c1.x, c2.x);
+        this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
+
+        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
+        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
+        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
+        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
+    }
+
+    setColor (color: Color) {
+        this.color = color;
+        this.shape.setAttribute("stroke", getCanvasColor(this.color, this.board.isDarkMode()));
+    }
+
+   
+    isInRect(c1: CanvasCoord, c2: CanvasCoord) {
+        
+        const topLeft = new Coord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
+        const topRight = new Coord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
+        const bottomLeft = new Coord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
+        const bottomRight = new Coord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
+        if (topLeft.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || topRight.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || bottomLeft.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || bottomRight.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right)){
+            return true;
+        }
+
+        if (this.canvas_corner_bottom_left.is_in_rect(c1,c2)
+        || this.canvas_corner_bottom_right.is_in_rect(c1,c2)
+        || this.canvas_corner_top_left.is_in_rect(c1,c2)
+        || this.canvas_corner_top_right.is_in_rect(c1,c2) ){
+            return true;
+        }
+
+        if (is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_top_right, topLeft, bottomLeft)
+        || is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_top_right, topRight, bottomRight)
+        || is_segments_intersection(this.canvas_corner_bottom_left, this.canvas_corner_bottom_right, topLeft, bottomLeft)
+        || is_segments_intersection(this.canvas_corner_bottom_left, this.canvas_corner_bottom_right, topRight, bottomRight)){
+            return true;
+        }
+
+        if (is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_bottom_left, topLeft, topRight)
+        || is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_bottom_left, bottomLeft, bottomRight)
+        || is_segments_intersection(this.canvas_corner_bottom_right, this.canvas_corner_top_right, topLeft, topRight)
+        || is_segments_intersection(this.canvas_corner_bottom_right, this.canvas_corner_top_right, bottomLeft, bottomRight)){
+            return true;
+        }
+
+        return false;
+    }
+
+
+    isNearby (pos: CanvasCoord, d: number){
+
+        return this.canvas_corner_bottom_left.x <= pos.x && pos.x <= this.canvas_corner_bottom_right.x && this.canvas_corner_top_left.y <= pos.y && pos.y <= this.canvas_corner_bottom_right.y;
+
+    }
+
+    translate (cshift: CanvasVect){
+
+    }
+
+    select(){
+        console.log("select line")
+        this.shape.classList.add("selected")
+        this.shape.classList.remove("deselected")
+        this.isSelected = true;
+        this.shape.style.animation = "selectLine 0.5s ease-out forwards";
+    }
+
+
+    deselect(){
+        this.shape.classList.remove("selected")
+        this.shape.classList.add("deselected")
+        this.isSelected = false;
+        this.shape.style.animation = "deselectLine 0.5s ease-out forwards";
     }
 }

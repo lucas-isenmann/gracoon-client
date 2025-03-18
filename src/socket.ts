@@ -4,9 +4,7 @@ import { update_params_loaded } from "./parametors/parametor_manager";
 import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { SENSIBILITY } from "./parametors/parametor";
-import { ClientVertexData } from "./board/vertex";
-import { Board, Coord, ORIENTATION, Rectangle, Vect } from "gramoloss";
-import { ClientLinkData } from "./board/link";
+import {  Coord,  ORIENTATION, Vect } from "gramoloss";
 import { ClientTextZone } from "./board/text_zone";
 import { BoardElementType, ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
@@ -15,9 +13,9 @@ import { handleErrorLog } from "./handlers/errorLog";
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
-import { ClientRectangle } from "./board/rectangle";
 import { translate_by_canvas_vect } from "./board/resizable";
-import { LinkElement, VertexElement } from "./board/element";
+import { LinkElement, ShapeElement, VertexElement } from "./board/element";
+import { setCurrentShape } from "./side_bar/interactors/rectangle";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -244,22 +242,33 @@ export function setupHandlers(board: ClientBoard) {
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
                 const c2 = new Coord(data.element.c2.x,data.element.c2.y);
                 const color = data.element.color as Color;
-                const rectangle = new ClientRectangle(c1, c2, color, board, data.element.index);
-                board.rectangles.set(data.element.index, rectangle);
-            } else if (data.kind == "Stroke"){
+                console.log("add Rectangle")
+                new ShapeElement(board, data.index, c1, c2, color);
+
+                for (const element of board.elements.values()){
+                    console.log("ahh")
+                    if (element instanceof ShapeElement && element.serverId == data.index){
+                        setCurrentShape(element);
+                        console.log("found")
+                    }
+                }
+            }
+             else if (data.kind == "Stroke"){
                 const positions = new Array<Coord>();
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
                 const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.camera, data.index);
                 board.strokes.set(data.index, new_stroke);
-            } else if (data.kind == "TextZone"){
+            } 
+            else if (data.kind == "TextZone"){
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
                 const width = data.element.width as number;
                 const text = data.element.text as string;
                 const new_text_zone = new ClientTextZone(pos, width, text , board, data.index);
                 board.text_zones.set(data.index, new_text_zone);
-            } else if (data.kind == "Area"){
+            } 
+            else if (data.kind == "Area"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
                 const c2 = new Coord(data.element.c2.x,data.element.c2.y);
                 const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board, data.index);
@@ -267,7 +276,8 @@ export function setupHandlers(board: ClientBoard) {
                 //TO CHECK: I added this line here because the panels were not updated when creating a new area. Is it still how we are supposed to do it now ? 
                 update_options_graphs(board);
        
-            } else if (data.kind == "Vertex"){
+            } 
+            else if (data.kind == "Vertex"){
                 const x = data.element.data.pos.x as number;
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
@@ -277,11 +287,9 @@ export function setupHandlers(board: ClientBoard) {
                 // g.compute_vertices_index_string();
 
                 new VertexElement(board, data.index, x, y, "", weight, color );
-
-                
-            } else if (data.kind == "Link"){
+            } 
+            else if (data.kind == "Link"){
                 console.log("Create Link");
-
                 const startIndex = data.element.startVertex.index as number;
                 const endIndex = data.element.endVertex.index as number;
                 const cp = typeof data.element.data.cp == "undefined" ? undefined : new Coord(data.element.data.cp.x, data.element.data.cp.y);
@@ -296,7 +304,23 @@ export function setupHandlers(board: ClientBoard) {
                 // const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
                 // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
 
-                new LinkElement(board, data.index, startIndex, endIndex, weight, color );
+                // Check if startIndex and endIndex vertices exist
+                let startVertex: undefined | VertexElement = undefined;
+                let endVertex: undefined | VertexElement = undefined;
+                for (const element of board.elements.values()){
+                    if (element instanceof VertexElement){
+                        if (element.serverId == startIndex){
+                            startVertex = element;
+                        } else if (element.serverId == endIndex){
+                            endVertex = element;
+                        }
+                    }
+                }
+
+                if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
+                    new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color );
+                }
+
 
             }
         }
@@ -308,7 +332,7 @@ export function setupHandlers(board: ClientBoard) {
         for ( const [kind, index] of data){
             // console.log(kind, index);
             if (kind == "Rectangle"){
-                board.rectangles.delete(index);
+                board.deleteShape(index);
             } else if ( kind == "Stroke"){
                 board.strokes.delete(index);
             } else if (kind == "TextZone"){
@@ -351,25 +375,27 @@ export function setupHandlers(board: ClientBoard) {
                 }
             }
         } else if (data.kind == "Vertex"){
-            const vertex = board.graph.vertices.get(data.index);
-            if (typeof vertex == "undefined") return;
-            if(data.param == "color"){
-                const color = data.value as string;
-                vertex.data.color = color as Color;
-            } else if (data.param == "weight"){
-                if ( (document.activeElement && typeof vertex.data.weightDiv != "undefined" && document.activeElement.id == vertex.data.weightDiv.id) == false ){
-                    const text = data.value as string;
-                    vertex.setWeight(text);
-                    weightUpdate = true;
-                }
+            if (data.param == "color"){
+                board.setColor(BoardElementType.Vertex, data.index, data.value as Color);
             }
+
+            // const vertex = board.graph.vertices.get(data.index);
+            // if (typeof vertex == "undefined") return;
+            // if (data.param == "weight"){
+            //     if ( (document.activeElement && typeof vertex.data.weightDiv != "undefined" && document.activeElement.id == vertex.data.weightDiv.id) == false ){
+            //         const text = data.value as string;
+            //         vertex.setWeight(text);
+            //         weightUpdate = true;
+            //     }
+            // }
         }else if (data.kind == "Link"){
+            if (data.param == "color"){
+                board.setColor(BoardElementType.Link, data.index, data.value as Color);
+            }
+
             const link = board.graph.links.get(data.index);
             if (typeof link == "undefined") return;
-            if(data.param == "color"){
-                const color = data.value as string;
-                link.data.color = color as Color;
-            } else if (data.param == "weight"){
+            if (data.param == "weight"){
                 const weight = data.value as string;
                 if ( (document.activeElement && typeof link.data.weightDiv != "undefined" && document.activeElement.id == link.data.weightDiv.id) == false ){
                     console.log("update link");
@@ -429,24 +455,26 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
-        // console.log("handle reset board");
-        board.clear();
-        for (const data of rawTextZones) {
-            const pos = new Coord(data[1].pos.x, data[1].pos.y);
-            const width = data[1].width as number;
-            const text = data[1].text as string;
-            const text_zone = new ClientTextZone(pos, width, text, board, data[0] )
-            board.text_zones.set(data[0], text_zone);
-        }
+        console.log("[Handle] reset board");
+        // board.clear();
+        // for (const data of rawTextZones) {
+        //     const pos = new Coord(data[1].pos.x, data[1].pos.y);
+        //     const width = data[1].width as number;
+        //     const text = data[1].text as string;
+        //     const text_zone = new ClientTextZone(pos, width, text, board, data[0] )
+        //     board.text_zones.set(data[0], text_zone);
+        // }
 
         for (const rectangle of rawRectangles){
             const c1 = new Coord(rectangle.c1.x, rectangle.c1.y);
             const c2 = new Coord(rectangle.c2.x, rectangle.c2.y);
             const color = rectangle.color as Color;
-            board.rectangles.set(rectangle.index, new ClientRectangle(c1, c2, color, board, rectangle.index));
+            new ShapeElement(board, rectangle.index, c1, c2, color)
+            // board.rectangles.set(rectangle.index, new ClientRectangle(c1, c2, color, board, rectangle.index));
         }
 
-        board.requestDraw();
+
+        // board.requestDraw();
     }
 
 
@@ -469,7 +497,7 @@ export function setupHandlers(board: ClientBoard) {
 
 
     function handleAreas(data: [[number, {c1: {x: number, y: number}, c2: {x: number, y: number}, color: string, label: string}]]){
-        console.log("Handle: reset areas")
+        console.log("[Handle] reset areas")
         board.clearAreas();
         for(const [index,rawArea] of data){
             const c1 = new Coord(rawArea.c1.x, rawArea.c1.y);
@@ -491,18 +519,24 @@ export function setupHandlers(board: ClientBoard) {
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
         sensibilities: [SENSIBILITY])
          {
-        console.log("Handle: resetGraph");
+        console.log("[Handle] resetGraph");
         console.time("resetGraph")
 
         // pour les vertices_entries c'est parce que on peut pas envoyer des Map par socket ...
         // edges = new_graph.edges marche pas car bizarrement ça ne copie pas les méthodes ...
 
-        g.clear_vertices();
+        for (const element of board.elements.values()){
+            if (element instanceof VertexElement){
+                board.deleteVertex(element.serverId);
+            } else if(element instanceof LinkElement) {
+                board.deleteLink(element.serverId);
+            }
+        }
+
         for (const data of rawVertices) {
             new VertexElement(board, data[0], data[1].data.pos.x, data[1].data.pos.y, "", data[1].data.weight, data[1].data.color as Color)
         }
 
-        g.clear_links();
         for (const data of rawLinks) {
             const rawLink = data[1];
             let orient = ORIENTATION.UNDIRECTED;
@@ -518,8 +552,26 @@ export function setupHandlers(board: ClientBoard) {
             // const newLinkData = new ClientLinkData(cp, rawLink.data.color as Color, rawLink.data.weight, board.camera);
             // const newLink = g.setLink(data[0], rawLink.startVertex.index, rawLink.endVertex.index, orient, newLinkData);
 
+            // Check if startIndex and endIndex vertices exist
 
-            new LinkElement(board, data[0], rawLink.startVertex.index, rawLink.endVertex.index, rawLink.data.weight, rawLink.data.color as Color);
+            let startVertex: undefined | VertexElement = undefined;
+            let endVertex: undefined | VertexElement = undefined;
+            for (const element of board.elements.values()){
+                if (element instanceof VertexElement){
+                    if (element.serverId == rawLink.startVertex.index){
+                        startVertex = element;
+                    } else if (element.serverId == rawLink.endVertex.index){
+                        endVertex = element;
+                    }
+                }
+            }
+
+            if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
+                new LinkElement(board, data[0], startVertex, endVertex, orient == ORIENTATION.DIRECTED, rawLink.data.weight, rawLink.data.color as Color);
+            }
+
+
+            
 
         }
 

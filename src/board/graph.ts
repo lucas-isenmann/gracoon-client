@@ -135,13 +135,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     }
 
 
-    select_vertices_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
-        for (const vertex of this.vertices.values()) {
-            if (vertex.is_in_rect(corner1, corner2)) {
-                vertex.data.is_selected = true;
-            }
-        }
-    }
+    
 
     select_links_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
         for (const [index, link] of this.links.entries()) {

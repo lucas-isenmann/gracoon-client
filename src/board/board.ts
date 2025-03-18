@@ -12,11 +12,11 @@ import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./r
 import { ClientStroke } from "./stroke";
 import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./display/canvasVect";
-import { ClientVertex, ClientVertexData } from "./vertex";
+import { ClientVertex, ClientVertexData, ShapeData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, drawCircle } from "./display/draw_basics";
-import { Color } from "./display/colors_v2";
+import { Color, colorsData, getCanvasColor } from "./display/colors_v2";
 import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
 import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
@@ -26,7 +26,7 @@ import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
 import { CrossMode, TwistMode } from "./stanchion";
-import { BoardElement, LinkElement, VertexElement } from "./element";
+import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -168,6 +168,32 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         if (ctx == null) throw Error("Cannot get context 2d of canvas");
         this.ctx = ctx; 
         
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+
+        for (const color of colorsData){
+            const markerId = `arrow-head-${color[0]}`;
+            console.log("init", markerId)
+            const arrowMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            
+            arrowMarker.setAttribute("id", markerId);
+            arrowMarker.setAttribute("viewBox", "0 0 10 10");
+            arrowMarker.setAttribute("refX", "15");
+            arrowMarker.setAttribute("refY", "5");
+            arrowMarker.setAttribute("markerWidth", "6");
+            arrowMarker.setAttribute("markerHeight", "6");
+            arrowMarker.setAttribute("orient", "auto");
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+            path.setAttribute("fill", getCanvasColor(color[0], this.darkMode));
+            
+            arrowMarker.appendChild(path);
+            defs.appendChild(arrowMarker);
+        }
+
+        this.svgContainer.insertBefore(defs, this.svgContainer.firstChild);
+
+       
 
 
         this.camera = new Camera();
@@ -527,7 +553,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.drawBackground();
         this.grid.draw(this.canvas, this.ctx, this.camera);
         this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
-        this.rectangles.forEach(rectangle => rectangle.draw());
+        // this.rectangles.forEach(rectangle => rectangle.draw());
         this.strokes.forEach(stroke => stroke.draw(this));
         this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
@@ -567,13 +593,22 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     deleteVertex(serverId: number){
         console.log("Board: delete vertex", serverId)
-        let vertex = undefined;
         for (const [key, element] of this.elements){
             if (element instanceof VertexElement && element.serverId == serverId){
                 element.delete();
                 this.elements.delete(key);
             }
-            if (element instanceof LinkElement && (element.startIndex == serverId || element.endIndex == serverId)){
+            if (element instanceof LinkElement && (element.startVertex.serverId == serverId || element.endVertex.serverId == serverId)){
+                element.delete();
+                this.elements.delete(key);
+            }
+        }
+    }
+
+    deleteShape(serverId: number){
+        console.log("Board: delete shape")
+        for (const [key, element] of this.elements){
+            if (element instanceof ShapeElement && element.serverId == serverId){
                 element.delete();
                 this.elements.delete(key);
             }
@@ -582,7 +617,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     deleteLink(serverId: number){
         console.log("Board: delete link", serverId)
-        let vertex = undefined;
         for (const [key, element] of this.elements){
             if (element instanceof LinkElement && element.serverId == serverId){
                 element.delete();
@@ -647,7 +681,22 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.areas.clear();
     }
 
+    setColor(type: BoardElementType, serverId: number, color: Color){
+        console.log("setColor", type, serverId, color)
+        for (const element of this.elements.values()){
+            if (element.boardElementType == type && element.serverId == serverId){
+                element.setColor(color);
+            }
+        }
+    }
+
     clear() {
+        console.log("clear")
+        for (const [key, element] of this.elements){
+            element.delete();
+            this.elements.delete(key)
+        }
+        
         this.clearAreas();
         for( const text_zone of this.text_zones.values()){
             text_zone.div.remove();
@@ -692,8 +741,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.updateOtherUsersCanvasPos()
     }
 
-    select_elements_in_rect(corner1: CanvasCoord, corner2: CanvasCoord) {
-        this.graph.select_vertices_in_rect(corner1, corner2);
+    selectElementsInRect(corner1: CanvasCoord, corner2: CanvasCoord) {
+
+        for (const element of this.elements.values()) {
+            if (element.isInRect(corner1, corner2)) {
+                element.select();
+            }
+        }
+
         this.graph.select_links_in_rect(corner1, corner2);
 
         for (const stroke of this.strokes.values()){
@@ -1005,11 +1060,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         socket.emit(SocketMsgType.UPDATE_ELEMENT, this.agregId, type, index, attribute, value);
     }
 
-    emit_vertices_merge(index1: number, index2: number){
+    emitVerticesMerge(index1: number, index2: number){
+        console.log("emit merge")
         socket.emit(SocketMsgType.MERGE_VERTICES, index1, index2);
     }
 
-    emit_paste_graph(graph: ClientGraph){
+    emitPasteGraph(graph: ClientGraph){
         
         const data = new Array();
         for (const vertex of graph.vertices.values()){
@@ -1080,9 +1136,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | Rectangle, callback: (response: number) => void  ){
-        if (element instanceof Rectangle){
-            socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.c1, c2: element.c2, color: element.color}, callback);
+    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | ShapeData, callback: (response: number) => void  ){
+        if (element instanceof ShapeData){
+            socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.pos, c2: element.pos, color: element.color}, callback);
         }
         switch(element.constructor){
             case ClientVertexData: {
@@ -1126,7 +1182,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     
    pasteGeneratedGraph() {
         if ( typeof this.graphClipboard != "undefined"){
-            this.emit_paste_graph(this.graphClipboard);
+            this.emitPasteGraph(this.graphClipboard);
         }
     }
     
