@@ -26,7 +26,7 @@ digraph G {
     button.id = "dot-parse-import-button"
     button.textContent = "Parse and import"
     button.onclick = () => {
-        const center = board.camera.create_server_coord(new CanvasCoord(400,400));
+        const center = board.camera.createServerCoord(new CanvasCoord(400,400));
         socket.emit(SocketMsgType.PARSE_DOT, fileInput.value, center.x, center.y, board.camera.zoom*100);
         popUpDiv.remove();
     }

@@ -37,8 +37,8 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
                 }
             }
 
-            const coord = board.camera.create_server_coord(pointed.pointedPos);
-            board.emit_add_element(new TextZone(coord, 100, "", board.get_next_available_index_text_zone()),(response: number) => { 
+            const coord = board.camera.createServerCoord(pointed.pointedPos);
+            board.emitAddElement(new TextZone(coord, 100, "", board.get_next_available_index_text_zone()),(response: number) => { 
                 setTimeout(() => {
                     const textZone = board.text_zones.get(response);
                     if ( typeof textZone != "undefined" ){

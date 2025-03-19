@@ -9,11 +9,9 @@ import { CanvasVect } from "../../board/display/canvasVect";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
-import { ELEMENT_DATA_AREA, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
-import { ClientArea } from "../../board/area";
+import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
-import { ClientRectangle } from "../../board/rectangle";
 import { VertexElement } from "../../board/element";
 
 
@@ -30,6 +28,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     let isRectangularSelecting = false; // could be refactored as follows: an Option{c1: CanvasCoord, c2: CanvasCoord}
     let rectSelectC1: Option<CanvasCoord> = undefined;
     let rectSelectC2: Option<CanvasCoord> = undefined;
+    const selectedElements = Array<[BoardElementType,number]>();
+
 
 
     const selectionV2 = new PreInteractor(INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
@@ -38,6 +38,20 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     // Mouse down
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         console.log("Selection mouse down")
+        console.log(pointed.data?.element);
+
+        if (typeof pointed.data != "undefined"){
+            if (pointed.data.element.isSelected){
+                const s2 = board.getSelectedElements();
+                selectedElements.splice(0, selectedElements.length);
+                for (const a of s2){
+                    selectedElements.push(a);
+                }
+            } else {
+                selectedElements.length = 0;
+                selectedElements.push([pointed.data.element.boardElementType, pointed.data.element.serverId]);
+            }
+        }
         
         blurProperties();
         hasMoved = false;
@@ -119,37 +133,23 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         hasMoved = true;
         if (typeof pointed == "undefined") return false;
 
-        if (pointed.data instanceof ELEMENT_DATA_VERTEX){
-            const v = pointed.data.element;
-            const indices = new Array<[BoardElementType,number]>();
-            
-            if ( v.isSelected ) {
-                const selected_vertices = board.getSelectedVertices();
-                for( const index of selected_vertices){
-                    indices.push([BoardElementType.Vertex, index]);
-                }
-                for (const [stroke_index, stroke] of board.strokes.entries()){
-                    if (stroke.isSelected){
-                        indices.push([BoardElementType.Stroke, stroke_index]);
-                    }
-                }
-                e.translate_by_canvas_vect(vertex_center_shift);
-                e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
-                e.translate_by_canvas_vect(vertex_center_shift.opposite());
-            }
-            else {
-                e.translate_by_canvas_vect(vertex_center_shift);
-                e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
-                e.translate_by_canvas_vect(vertex_center_shift.opposite());
-                indices.push([BoardElementType.Vertex, pointed.data.element.serverId]);
-            }
+        // Translate
+        if (typeof pointed.data != "undefined"){
+            e.translate_by_canvas_vect(vertex_center_shift);
+            // e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
+            // e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
+            e.translate_by_canvas_vect(vertex_center_shift.opposite());
             
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
-            board.emit_translate_elements(indices, shift.sub(previous_shift));
+            board.emit_translate_elements(selectedElements, shift.sub(previous_shift));
             previous_shift.set_from(shift);
+            
+            previous_canvas_shift.set_from(shift);
             return true;
         }
-        else if ( typeof pointed.data == "undefined"){
+
+        
+        if ( typeof pointed.data == "undefined"){
             if (isRectangularSelecting) {
                 rectSelectC2 = e; // peut etre faut copier
             } else {
@@ -159,61 +159,33 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
             return true;
         }
-        else if (pointed.data instanceof ELEMENT_DATA_STROKE){
-            const stroke = pointed.data.element;
-            const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-            const mini_shift = shift.sub(previous_canvas_shift);
+        
+        
+        // else if (pointed.data instanceof ELEMENT_DATA_REPRESENTATION || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE){
+        //     if ( typeof pointed.data.resizeType == "undefined" ){
+        //         const shift = CanvasVect.from_canvas_coords(pointed.pointedPos ,e);
+        //         const element = pointed.data.element;
 
-            if (stroke.isSelected){
-                for (const vertex of board.graph.vertices.values()){
-                    if (vertex.data.is_selected){
-                        vertex.translate_by_canvas_vect(mini_shift, board.camera);
-                    }
-                }
-                for (const other_stroke of board.strokes.values()){
-                    if (other_stroke.isSelected){
-                        other_stroke.translate_by_canvas_vect(mini_shift, board.camera);
-                    }
-                }
-            } else {
-                stroke.translate_by_canvas_vect(mini_shift, board.camera);
-            }
-            
-            previous_canvas_shift.set_from(shift);
-            return true;
-        }
-        else if ( pointed.data instanceof ELEMENT_DATA_REPRESENTATION_SUBELEMENT){
-            const rep = pointed.data.element;
-            const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-            rep.translate_element_by_canvas_vect(pointed.data.subElementIndex, shift.sub(previous_canvas_shift), board.camera);
-            previous_canvas_shift.set_from(shift);
-            return true;
-        }
-        else if (pointed.data instanceof ELEMENT_DATA_REPRESENTATION || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE){
-            if ( typeof pointed.data.resizeType == "undefined" ){
-                const shift = CanvasVect.from_canvas_coords(pointed.pointedPos ,e);
-                const element = pointed.data.element;
-
-                // TODO: voir fichier todo sur le translate
-                if ( pointed.data instanceof ELEMENT_DATA_AREA){
-                    board.translate_area(shift.sub(previous_canvas_shift), pointed.data.element, vertices_contained);
-                } else {
-                    element.translate_by_canvas_vect(shift.sub(previous_canvas_shift), board.camera );
-                    translate_by_canvas_vect(element, shift.sub(previous_canvas_shift), board.camera);
-                }
+        //         // TODO: voir fichier todo sur le translate
+        //         if ( pointed.data instanceof ELEMENT_DATA_AREA){
+        //             board.translate_area(shift.sub(previous_canvas_shift), pointed.data.element, vertices_contained);
+        //         } else {
+        //             element.translate_by_canvas_vect(shift.sub(previous_canvas_shift), board.camera );
+        //             translate_by_canvas_vect(element, shift.sub(previous_canvas_shift), board.camera);
+        //         }
                 
-                previous_canvas_shift.set_from(shift);
-                return true;
-            } 
-            else { // Resize the element
-                if (pointed.data.resizeType == RESIZE_TYPE.LEFT || pointed.data.resizeType == RESIZE_TYPE.RIGHT || pointed.data.resizeType == RESIZE_TYPE.TOP || pointed.data.resizeType == RESIZE_TYPE.BOTTOM){
-                    resize_side(pointed.data.element, e, opposite_coord, pointed.data.resizeType, board.camera)
-                } else {
-                    resize_corner(pointed.data.element, e, opposite_corner, board.camera);
-                }
-                return true;
-            }
-        }
+        //         previous_canvas_shift.set_from(shift);
+        //         return true;
+        //     } 
+        //     else { // Resize the element
+        //         if (pointed.data.resizeType == RESIZE_TYPE.LEFT || pointed.data.resizeType == RESIZE_TYPE.RIGHT || pointed.data.resizeType == RESIZE_TYPE.TOP || pointed.data.resizeType == RESIZE_TYPE.BOTTOM){
+        //             resize_side(pointed.data.element, e, opposite_coord, pointed.data.resizeType, board.camera)
+        //         } else {
+        //             resize_corner(pointed.data.element, e, opposite_corner, board.camera);
+        //         }
+        //         return true;
+        //     }
+        // }
 
 
         return false;
@@ -229,127 +201,53 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 isRectangularSelecting = false;
                 board.selectElementsInRect(rectSelectC1, rectSelectC2);
             } else {
-                board.clear_all_selections();
+                board.clearAllSelections();
             }
         }
-        else if ( pointed.data instanceof ELEMENT_DATA_VERTEX){
-            if (hasMoved === false) {
-                if (board.keyPressed.has("Shift")){
-                    if (board.keyPressed.has("Control") == false) { 
-                        board.clear_all_selections();
-                    }
+        else if (hasMoved == false){
+            if (board.keyPressed.has("Shift")){
+                if (board.keyPressed.has("Control") == false) { 
+                    board.clearAllSelections();
+                }
+                if (pointed.data instanceof ELEMENT_DATA_VERTEX){
                     board.selectConnectedComponent(pointed.data.element.serverId);
-                } else {
-                    if ( pointed.data.element.isSelected) {
-                        if (board.keyPressed.has("Control")) { 
-                            pointed.data.element.isSelected = false;
-                        }
-                    }
-                    else {
-                        if (board.keyPressed.has("Control")) {
-                            pointed.data.element.select();
-                        }
-                        else {
-                            board.clear_all_selections();
-                            pointed.data.element.select();
-                        }
-                    }
                 }
-                
-            }
-            else {
-                const vertexMoved = pointed.data.element;
-                for( const v of board.elements.values()){
-                    if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.center, 10)){
-                        board.emitVerticesMerge(v.serverId, pointed.data.element.serverId);
-                        break;
-                    }
-                }
-            }
-        }
-
-        else if ( pointed.data instanceof ELEMENT_DATA_LINK) {
-            const link = pointed.data.element;
-            if (hasMoved === false) {
-                if ( link.isSelected) {
+            } else {
+                if ( pointed.data.element.isSelected) {
                     if (board.keyPressed.has("Control")) { 
-                        link.deselect();
+                        pointed.data.element.isSelected = false;
                     }
                 }
                 else {
                     if (board.keyPressed.has("Control")) {
-                        link.select();
+                        pointed.data.element.select();
                     }
                     else {
-                        board.clear_all_selections();
-                        link.select();
+                        board.clearAllSelections();
+                        pointed.data.element.select();
                     }
                 }
             }
 
-        }
-        else if ( pointed.data instanceof ELEMENT_DATA_STROKE ) {
-            if (hasMoved === false) {
-                board.selectElement(pointed.data.element);
-            } else {
-                let indices = new Array<[BoardElementType,number]>();
-                let elements_to_translate = new Array();
-                
-                if (pointed.data.element.isSelected) {
-                    for (const [vertex_index, vertex] of board.graph.vertices.entries()){
-                        if (vertex.data.is_selected){
-                            indices.push([BoardElementType.Vertex, vertex_index]);
-                            elements_to_translate.push(vertex);
-                        }
-                    }
-                    for (const [stroke_index, stroke] of board.strokes.entries()){
-                        if (stroke.isSelected){
-                            indices.push([BoardElementType.Stroke, stroke_index]);
-                            elements_to_translate.push(stroke);
-                        }
-                    }
-                }
-                else {
-                    indices.push([BoardElementType.Stroke, pointed.data.index]);
-                    const stroke = pointed.data.element;
-                    elements_to_translate.push(stroke);
-                }
-                
-                const canvas_shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.camera.server_vect(canvas_shift);
-                for (const element of elements_to_translate){
-                    element.translate_by_canvas_vect(canvas_shift.opposite(), board.camera);
-                }
-                board.emit_translate_elements( indices, shift);
-            }
-        }
-        else if (pointed.data instanceof ELEMENT_DATA_REPRESENTATION_SUBELEMENT){
-            pointed.data.element.onmouseup(board.camera);
-        } 
-        else if ( pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
-            if (hasMoved === false) {
-                if (pointed.data.element instanceof ClientRectangle){
-                    board.selectElement(pointed.data.element);
+
+        } else if ( pointed.data instanceof ELEMENT_DATA_VERTEX){
+            
+            const vertexMoved = pointed.data.element;
+            for( const v of board.elements.values()){
+                if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.center, 10)){
+                    board.emitVerticesMerge(v.serverId, pointed.data.element.serverId);
+                    break;
                 }
             }
             
-            if (typeof pointed.data.resizeType != "undefined"){
-                const esc  = board.camera.create_server_coord(e);
-                board.emit_resize_element(pointed.data.element.getType(), pointed.data.index, esc, pointed.data.resizeType);
-            }
-            else if ( pointed.data.element instanceof ClientArea ){
-                const canvasShift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.camera.server_vect(canvasShift);
-                board.translate_area(canvasShift.opposite(), pointed.data.element, vertices_contained);
-                board.emit_translate_elements([[BoardElementType.Area, pointed.data.index]], shift);
-            } else if (pointed.data.element instanceof ClientRectangle){
-                const canvasShift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                const shift = board.camera.server_vect(canvasShift);
-                translate_by_canvas_vect(pointed.data.element, canvasShift.opposite(), board.camera);
-                board.emit_translate_elements([[BoardElementType.Rectangle, pointed.data.index]], shift);
-            }
-            
-        } 
+        }
+
+        // else if ( pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
+             //     if (typeof pointed.data.resizeType != "undefined"){
+        //         const esc  = board.camera.create_server_coord(e);
+        //         board.emit_resize_element(pointed.data.element.getType(), pointed.data.index, esc, pointed.data.resizeType);
+        //     }
+     
         
         hasMoved = false;
     })

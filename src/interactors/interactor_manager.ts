@@ -41,24 +41,7 @@ export function setupInteractions(board: ClientBoard) {
             
             
             if (e.key == "Delete") {
-                const data_socket = new Array();
-                for (const v of board.graph.vertices.values()) {
-                    if (v.data.is_selected) {
-                        data_socket.push([BoardElementType.Vertex, v.index]);
-                    }
-                }
-                board.graph.links.forEach((link, index) => {
-                    if (link.data.is_selected) {
-                        data_socket.push([ BoardElementType.Link, index]);
-                    }
-                })
-                board.strokes.forEach((s, index) => {
-                    if (s.isSelected) {
-                        data_socket.push([BoardElementType.Stroke, index]);
-                    }
-                })
-
-                board.emit_delete_elements(data_socket);
+                board.emit_delete_elements(board.getSelectedElements());
                 return;
             }
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){
@@ -120,7 +103,7 @@ export function setupInteractions(board: ClientBoard) {
         // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
-        mousePos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+        mousePos = board.graph.alignPosition(mousePos, new Set(), board.canvas, board.camera);
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
@@ -197,7 +180,7 @@ export function setupInteractions(board: ClientBoard) {
             }
         }
 
-        const mouse_server_coord = board.camera.create_server_coord(mousePos);
+        const mouse_server_coord = board.camera.createServerCoord(mousePos);
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     })
 
@@ -230,11 +213,11 @@ export function setupInteractions(board: ClientBoard) {
         // } 
         else if (e.buttons == 2){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+            const magnetPos = board.graph.alignPosition(mousePos, new Set(), board.canvas, board.camera);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons,  undefined );
         } else if (typeof board.interactorLoaded != "undefined"){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+            const magnetPos = board.graph.alignPosition(mousePos, new Set(), board.canvas, board.camera);
             const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, data );
             board.interactorLoaded.mousedown(board, lastPointedElement);
@@ -254,7 +237,7 @@ export function setupInteractions(board: ClientBoard) {
         if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
         const pointedPos = mousePos.copy();
-        const magnetPos = board.graph.align_position(mousePos, new Set(), board.canvas, board.camera);
+        const magnetPos = board.graph.alignPosition(mousePos, new Set(), board.canvas, board.camera);
         lastPointedElement = new PointedElementData(pointedPos, magnetPos, 0, data );
         board.interactorLoaded.mousedown(board, lastPointedElement);
         board.requestDraw();
@@ -275,7 +258,7 @@ export function setupInteractions(board: ClientBoard) {
             }
         }
         
-        const mouse_server_coord = board.camera.create_server_coord(mousePos);
+        const mouse_server_coord = board.camera.createServerCoord(mousePos);
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     });
 

@@ -23,8 +23,8 @@ export function createAreaInteractor(board: ClientBoard): PreInteractor{
     area_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if ( typeof pointed.data == "undefined"){
             is_creating_area = true;
-            const first_corner = board.camera.create_server_coord(pointed.pointedPos);
-            board.emit_add_element(new Area("G", first_corner, first_corner, "", board.get_next_available_index_area()), (response: number) => { last_created_area_index = response });
+            const first_corner = board.camera.createServerCoord(pointed.pointedPos);
+            board.emitAddElement(new Area("G", first_corner, first_corner, "", board.get_next_available_index_area()), (response: number) => { last_created_area_index = response });
             opposite_corner = pointed.pointedPos.copy();
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_AREA ){
@@ -92,9 +92,9 @@ export function createAreaInteractor(board: ClientBoard): PreInteractor{
     area_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof pointed == "undefined") return false;
 
-        const esc  = board.camera.create_server_coord(e);
+        const esc  = board.camera.createServerCoord(e);
         if (typeof pointed.data == "undefined" && typeof last_created_area_index != "undefined") {
-            board.emit_resize_element(BoardElementType.Area, last_created_area_index, esc, RESIZE_TYPE.TOP_RIGHT);
+            board.emitResizeElement(BoardElementType.Area, last_created_area_index, esc, RESIZE_TYPE.TOP_RIGHT);
             is_creating_area = false;
         }
         else if ( pointed.data instanceof ELEMENT_DATA_AREA ){

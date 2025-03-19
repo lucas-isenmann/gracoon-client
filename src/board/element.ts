@@ -12,6 +12,7 @@ export interface BoardElement {
     delete: () => void;
     
     setColor: (color: Color) => void;
+    color: Color;
 
     translate: (cshift: CanvasVect) => void;
 
@@ -157,7 +158,7 @@ export class LinkElement implements BoardElement {
         this.line.setAttribute("y2", endVertex.center.y.toString());
         this.line.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
         this.line.setAttribute("stroke-width", "2");
-        this.line.classList.add("link", "deselected")
+        this.line.classList.add("link")
         this.line.style.transformBox = "fill-box";
 
         if (this.isDirected) {
@@ -278,6 +279,8 @@ export class ShapeElement implements BoardElement {
     canvas_corner_bottom_left : CanvasCoord;
     canvas_corner_bottom_right : CanvasCoord;
     canvas_corner_top_right : CanvasCoord;
+    c1: Coord;
+    c2: Coord;
     
 
 
@@ -288,10 +291,14 @@ export class ShapeElement implements BoardElement {
         this.boardElementType = BoardElementType.Rectangle;
         this.serverId = serverId;
 
-        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
-        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
-        this.canvas_corner_top_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
-        this.canvas_corner_top_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
+        this.c1 = c1.copy();
+        this.c2 = c2.copy();
+
+
+        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
+        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
+        this.canvas_corner_top_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
+        this.canvas_corner_top_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
 
         
         this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -301,7 +308,7 @@ export class ShapeElement implements BoardElement {
         this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
         this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
         this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
-        this.shape.setAttribute("height", (-this.canvas_corner_bottom_right.y + this.canvas_corner_top_left.y).toString());
+        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
         this.shape.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
         this.shape.setAttribute("stroke-width", "2");
         this.shape.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode()));
@@ -324,6 +331,10 @@ export class ShapeElement implements BoardElement {
 
     setCorners(c1:CanvasCoord, c2:CanvasCoord){
         console.log("setCorner")
+
+        this.c1.copy_from(c1);
+        this.c2.copy_from(c2);
+
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
         this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
@@ -342,6 +353,7 @@ export class ShapeElement implements BoardElement {
     setColor (color: Color) {
         this.color = color;
         this.shape.setAttribute("stroke", getCanvasColor(this.color, this.board.isDarkMode()));
+        this.shape.setAttribute("fill", getCanvasColor(this.color, this.board.isDarkMode()));
     }
 
    
@@ -379,6 +391,12 @@ export class ShapeElement implements BoardElement {
         return false;
     }
 
+    isClickOver (pos: CanvasCoord): boolean{
+        return this.canvas_corner_bottom_left.x <= pos.x &&
+            pos.x <= this.canvas_corner_top_right.x && 
+            this.canvas_corner_top_right.y <= pos.y && 
+            pos.y <= this.canvas_corner_bottom_left.y;
+    }
 
     isNearby (pos: CanvasCoord, d: number){
 
@@ -387,15 +405,27 @@ export class ShapeElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
+        this.center.x += cshift.x;
+        this.center.y += cshift.y;
 
+        this.canvas_corner_bottom_left.translate_by_canvas_vect(cshift);
+        this.canvas_corner_bottom_right.translate_by_canvas_vect(cshift);
+        this.canvas_corner_top_left.translate_by_canvas_vect(cshift);
+        this.canvas_corner_top_right.translate_by_canvas_vect(cshift);
+
+
+        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
+        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
+        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
+        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
     }
 
     select(){
-        console.log("select line")
+        console.log("select shape")
         this.shape.classList.add("selected")
         this.shape.classList.remove("deselected")
         this.isSelected = true;
-        this.shape.style.animation = "selectLine 0.5s ease-out forwards";
+        this.shape.style.animation = "selectShape 0.5s ease-out forwards";
     }
 
 
@@ -403,6 +433,6 @@ export class ShapeElement implements BoardElement {
         this.shape.classList.remove("selected")
         this.shape.classList.add("deselected")
         this.isSelected = false;
-        this.shape.style.animation = "deselectLine 0.5s ease-out forwards";
+        this.shape.style.animation = "deselectShape 0.5s ease-out forwards";
     }
 }

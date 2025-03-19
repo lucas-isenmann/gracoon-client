@@ -1,4 +1,4 @@
-import { Board, Coord, Option, Rectangle } from "gramoloss";
+import { Coord, Option } from "gramoloss";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
@@ -22,18 +22,16 @@ export function setCurrentShape(newShape: ShapeElement){
 
 export function createRectangleInteractor(board: ClientBoard){
 
-    const rectangle_interactorV2 = new PreInteractor(INTERACTOR_TYPE.RECTANGLE, "Draw rectangle", "", "rectangle", "default", new Set([]));
+    const shapeInteractor = new PreInteractor(INTERACTOR_TYPE.RECTANGLE, "Draw rectangle", "", "rectangle", "default", new Set([]));
 
     
     
-    rectangle_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
+    shapeInteractor.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if (typeof pointed.data == "undefined" ) {
-            firstCorner = board.camera.create_server_coord(pointed.magnetPos);
+            firstCorner = board.camera.createServerCoord(pointed.magnetPos);
 
-            board.emit_add_element(new ShapeData(firstCorner, board.colorSelected), (data) =>{
+            board.emitAddElement(new ShapeData(firstCorner, board.colorSelected), (data) =>{
                 console.log("receive", data)
-
-                
             });
             
             // const newIndex = board.get_next_available_index_rectangle();
@@ -42,23 +40,31 @@ export function createRectangleInteractor(board: ClientBoard){
         } 
     })
     
-    rectangle_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+    shapeInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
-            const magnetE = board.graph.align_position(e, new Set(), board.canvas, board.camera);
-            currentRectangle.setCorners(board.camera.create_canvas_coord(firstCorner), magnetE);
-            board.emit_resize_element(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_RIGHT);
+            const magnetE = board.graph.alignPosition(e, new Set(), board.canvas, board.camera);
+            // currentRectangle.setCorners(board.camera.create_canvas_coord(firstCorner), magnetE);
+            if ( firstCorner.x <= magnetE.x && firstCorner.y <= magnetE.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_RIGHT);
+            } else if ( firstCorner.x <= magnetE.x && firstCorner.y >= magnetE.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.TOP_RIGHT);
+            } else if ( firstCorner.x >= magnetE.x && firstCorner.y <= magnetE.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_LEFT);
+            } else if ( firstCorner.x >= magnetE.x && firstCorner.y >= magnetE.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.TOP_LEFT);
+            }
             
             return true;   
         }
         return false;
     })
     
-    rectangle_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+    shapeInteractor.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined") {
             currentRectangle = undefined;
             firstCorner = undefined;
         }
     })
     
-    return rectangle_interactorV2;
+    return shapeInteractor;
 }

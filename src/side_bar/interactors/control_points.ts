@@ -55,9 +55,9 @@ export function createControlPointInteractor(board: ClientBoard): PreInteractor{
                 const middle = v1.data.pos.middle(v2.data.pos);
                 const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
                 const orthogonal = new Vect(-vect.y, vect.x);
-                const eCoord = board.camera.create_server_coord(e);
+                const eCoord = board.camera.createServerCoord(e);
                 const projection = eCoord.orthogonal_projection(middle, orthogonal);
-                const downCoordServer = board.camera.create_server_coord(pointed.pointedPos);
+                const downCoordServer = board.camera.createServerCoord(pointed.pointedPos);
 
                 const shift = Vect.from_coords(downCoordServer, projection);
                 board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));

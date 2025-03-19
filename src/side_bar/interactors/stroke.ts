@@ -16,7 +16,7 @@ export function createStrokeInteractor(board: ClientBoard){
     const stroke_interactorV2 = new PreInteractor(INTERACTOR_TYPE.PEN, "Pen", "p", "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
 
     stroke_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
-        const server_pos = board.camera.create_server_coord(pointed.pointedPos);
+        const server_pos = board.camera.createServerCoord(pointed.pointedPos);
         indexLastStroke = board.get_next_available_index_strokes();
         lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.camera, indexLastStroke);
         board.strokes.set(indexLastStroke, lastStroke);
@@ -41,7 +41,7 @@ export function createStrokeInteractor(board: ClientBoard){
             const memorySize = new Blob([serializedArray]).size;
             console.log(`Memory size: ${memorySize} bytes`);
     
-            board.emit_add_element( lastStroke, (response: number) => { })
+            board.emitAddElement( lastStroke, (response: number) => { })
         
             lastStroke = undefined;
             indexLastStroke = undefined;

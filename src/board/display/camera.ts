@@ -32,13 +32,13 @@ export class Camera {
         return new CanvasVect(v.x*this.zoom, v.y*this.zoom)
     }
 
-    create_server_coord(c: CanvasCoord){
+    createServerCoord(c: CanvasCoord){
         return new Coord( (c.x - this.camera.x)/ this.zoom, (c.y - this.camera.y)/ this.zoom);
     }
 
     create_server_coord_from_subtranslated(c: CanvasCoord, shift: CanvasVect): Coord{
         const c2 = new CanvasCoord(c.x - shift.x, c.y - shift.y);
-        return this.create_server_coord(c2);
+        return this.createServerCoord(c2);
     }
 
     create_canvas_coord(c: Coord){

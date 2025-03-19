@@ -91,8 +91,8 @@ export function resize_side<R extends Resizable>(element: R, pos: CanvasCoord, o
         element.canvas_corner_bottom_left.x = Math.min(pos.x, opposite_coord);
     }
 
-    element.c1 = view.create_server_coord(element.canvas_corner_top_left);
-    element.c2 = view.create_server_coord(element.canvas_corner_bottom_right);
+    element.c1 = view.createServerCoord(element.canvas_corner_top_left);
+    element.c2 = view.createServerCoord(element.canvas_corner_bottom_right);
 }
 
 export function resize_corner<R extends Resizable>(element: R, c1: CanvasCoord, c2: CanvasCoord, view: Camera){
@@ -105,6 +105,6 @@ export function resize_corner<R extends Resizable>(element: R, c1: CanvasCoord, 
     element.canvas_corner_bottom_left.x = Math.min(c1.x, c2.x);
     element.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
 
-    element.c1 = view.create_server_coord(element.canvas_corner_top_left);
-    element.c2 = view.create_server_coord(element.canvas_corner_bottom_right);
+    element.c1 = view.createServerCoord(element.canvas_corner_top_left);
+    element.c2 = view.createServerCoord(element.canvas_corner_bottom_right);
 }

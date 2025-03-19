@@ -182,10 +182,11 @@ export function setupHandlers(board: ClientBoard) {
         const cshift = board.camera.create_canvas_vect(shift);
         for (const [kind, index] of data.indices){
             if (kind == "Rectangle"){
-                const rectangle = board.rectangles.get(index);
-                if (typeof rectangle != "undefined"){
-                    translate_by_canvas_vect(rectangle, cshift, board.camera);
-                }
+                board.translateElement(BoardElementType.Rectangle, index, cshift);
+                // const rectangle = board.rectangles.get(index);
+                // if (typeof rectangle != "undefined"){
+                //     translate_by_canvas_vect(rectangle, cshift, board.camera);
+                // }
             } else if ( kind == "TextZone"){
                 const text_zone = board.text_zones.get(index);
                 if (typeof text_zone != "undefined") {
@@ -242,14 +243,11 @@ export function setupHandlers(board: ClientBoard) {
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
                 const c2 = new Coord(data.element.c2.x,data.element.c2.y);
                 const color = data.element.color as Color;
-                console.log("add Rectangle")
                 new ShapeElement(board, data.index, c1, c2, color);
 
                 for (const element of board.elements.values()){
-                    console.log("ahh")
                     if (element instanceof ShapeElement && element.serverId == data.index){
                         setCurrentShape(element);
-                        console.log("found")
                     }
                 }
             }
@@ -432,6 +430,17 @@ export function setupHandlers(board: ClientBoard) {
                 area.update_canvas_pos(board.camera);
             }
         } else if (data.kind == "Rectangle"){
+            if (data.param == "color"){
+                board.setColor(BoardElementType.Rectangle, data.index, data.value as Color);
+            }
+
+            if (data.param == "c1"){
+                board.setC1(data.index, data.value.x, data.value.y);
+            }
+            if (data.param == "c2"){
+                board.setC2(data.index, data.value.x, data.value.y);
+            }
+
             const rectangle = board.rectangles.get(data.index);
             if (typeof rectangle == "undefined") return;
             if(data.param == "c1"){
@@ -470,6 +479,7 @@ export function setupHandlers(board: ClientBoard) {
             const c2 = new Coord(rectangle.c2.x, rectangle.c2.y);
             const color = rectangle.color as Color;
             new ShapeElement(board, rectangle.index, c1, c2, color)
+            console.log(c1, c2)
             // board.rectangles.set(rectangle.index, new ClientRectangle(c1, c2, color, board, rectangle.index));
         }
 

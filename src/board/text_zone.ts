@@ -147,7 +147,7 @@ export class ClientTextZone extends TextZone {
 
     translate(shift: CanvasVect, camera: Camera) {
         this.canvas_pos.translate_by_canvas_vect(shift);
-        this.pos = camera.create_server_coord(this.canvas_pos);
+        this.pos = camera.createServerCoord(this.canvas_pos);
         this.resetDivPos();
     }
 

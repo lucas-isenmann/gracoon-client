@@ -400,7 +400,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 element.isSelected = true;
             }
             else {
-                this.clear_all_selections();
+                this.clearAllSelections();
                 element.isSelected = true;
             }
         }
@@ -769,7 +769,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         while (this.text_zones.has(index)) {
             index += 1;
         }
-        const pos = this.camera.create_server_coord(canvas_pos);
+        const pos = this.camera.createServerCoord(canvas_pos);
         const text_zone = new ClientTextZone(pos, 200, "salut", this, index);
         this.text_zones.set(index, text_zone);
         return index;
@@ -824,42 +824,42 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
 
-        if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION_ELEMENT)){
-            for (const [index, rep] of this.representations.entries()){
-                const resizeType = resize_type_nearby(rep, pos, 10);
-                if (typeof resizeType != "undefined"){
-                    return new ELEMENT_DATA_REPRESENTATION(rep, index, resizeType);
-                }
-                const subElementIndex = rep.click_over(pos, this.camera);
-                if (typeof subElementIndex != "string"){
-                    return new ELEMENT_DATA_REPRESENTATION_SUBELEMENT(rep, index, subElementIndex)
-                }
-            }
-        }
+        // if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION_ELEMENT)){
+        //     for (const [index, rep] of this.representations.entries()){
+        //         const resizeType = resize_type_nearby(rep, pos, 10);
+        //         if (typeof resizeType != "undefined"){
+        //             return new ELEMENT_DATA_REPRESENTATION(rep, index, resizeType);
+        //         }
+        //         const subElementIndex = rep.click_over(pos, this.camera);
+        //         if (typeof subElementIndex != "string"){
+        //             return new ELEMENT_DATA_REPRESENTATION_SUBELEMENT(rep, index, subElementIndex)
+        //         }
+        //     }
+        // }
 
-        if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION)){
-            for (const [index, rep] of this.representations.entries()){
-                if ( is_click_over(rep, pos)){
-                    return new ELEMENT_DATA_REPRESENTATION(rep, index, undefined);
-                }
-            }
-        }
+        // if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION)){
+        //     for (const [index, rep] of this.representations.entries()){
+        //         if ( is_click_over(rep, pos)){
+        //             return new ELEMENT_DATA_REPRESENTATION(rep, index, undefined);
+        //         }
+        //     }
+        // }
 
-        if (interactable_element_type.has(DOWN_TYPE.RECTANGLE)){
-            for (const [index, rect] of this.rectangles.entries()){
-                const resizeType = resize_type_nearby(rect, pos, 10);
-                if (typeof resizeType != "undefined"){
-                    return new ELEMENT_DATA_RECTANGLE(rect, index, resizeType);
-                }
-            }
+        // if (interactable_element_type.has(DOWN_TYPE.RECTANGLE)){
+        //     for (const [index, rect] of this.rectangles.entries()){
+        //         const resizeType = resize_type_nearby(rect, pos, 10);
+        //         if (typeof resizeType != "undefined"){
+        //             return new ELEMENT_DATA_RECTANGLE(rect, index, resizeType);
+        //         }
+        //     }
             
-            for (const [index, rect] of this.rectangles.entries()){
-                if ( is_click_over(rect, pos)){
-                    return new ELEMENT_DATA_RECTANGLE(rect, index, undefined);
-                }
-            }
+        //     for (const [index, rect] of this.rectangles.entries()){
+        //         if ( is_click_over(rect, pos)){
+        //             return new ELEMENT_DATA_RECTANGLE(rect, index, undefined);
+        //         }
+        //     }
 
-        }
+        // }
 
         for (const element of this.elements.values()){
             if ( interactable_element_type.has(DOWN_TYPE.VERTEX) && element instanceof VertexElement){
@@ -872,47 +872,52 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                     return new ELEMENT_DATA_LINK(element);
                 }
             }
+            if (interactable_element_type.has(DOWN_TYPE.RECTANGLE) && element instanceof ShapeElement){
+                if (element.isClickOver(pos)){
+                    return new ELEMENT_DATA_RECTANGLE(element, undefined);
+                }
+            }
         }
        
-        for (const [index, link] of this.graph.links.entries()) {
-            if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
-                return new ELEMENT_DATA_CONTROL_POINT(link);
-            }
-            // if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.camera)) {
-            //     return new ELEMENT_DATA_LINK(link);
-            // }
-        }
+        // for (const [index, link] of this.graph.links.entries()) {
+        //     if (interactable_element_type.has(DOWN_TYPE.CONTROL_POINT) && typeof link.data.cp_canvas_pos != "string" && link.data.cp_canvas_pos.is_nearby(pos, 150)) {
+        //         return new ELEMENT_DATA_CONTROL_POINT(link);
+        //     }
+        //     // if (interactable_element_type.has(DOWN_TYPE.LINK) && this.graph.is_click_over_link(index, pos, this.camera)) {
+        //     //     return new ELEMENT_DATA_LINK(link);
+        //     // }
+        // }
 
-        if(interactable_element_type.has(DOWN_TYPE.RESIZE)){
-            for (const [index, area] of this.areas.entries()){
-                const resizeType = resize_type_nearby(area, pos, 10);
-                if (typeof resizeType != "undefined"){
-                    return new ELEMENT_DATA_AREA(area, index, resizeType);
-                }
-            }
-        }        
+        // if(interactable_element_type.has(DOWN_TYPE.RESIZE)){
+        //     for (const [index, area] of this.areas.entries()){
+        //         const resizeType = resize_type_nearby(area, pos, 10);
+        //         if (typeof resizeType != "undefined"){
+        //             return new ELEMENT_DATA_AREA(area, index, resizeType);
+        //         }
+        //     }
+        // }        
 
-        for(const [index, area] of this.areas.entries()){
-            if(interactable_element_type.has(DOWN_TYPE.AREA) && is_click_over(area, pos)){
-                return new ELEMENT_DATA_AREA(area, index, undefined);
-            }
-        }
+        // for(const [index, area] of this.areas.entries()){
+        //     if(interactable_element_type.has(DOWN_TYPE.AREA) && is_click_over(area, pos)){
+        //         return new ELEMENT_DATA_AREA(area, index, undefined);
+        //     }
+        // }
 
-        if (interactable_element_type.has(DOWN_TYPE.STROKE)) {
-            for(const [index,s] of this.strokes.entries()){
-                if (s.is_nearby(pos, this.camera)){     
-                    return new ELEMENT_DATA_STROKE(s, index);
-                }
-            }
-        }
+        // if (interactable_element_type.has(DOWN_TYPE.STROKE)) {
+        //     for(const [index,s] of this.strokes.entries()){
+        //         if (s.is_nearby(pos, this.camera)){     
+        //             return new ELEMENT_DATA_STROKE(s, index);
+        //         }
+        //     }
+        // }
 
-        if ( interactable_element_type.has(DOWN_TYPE.TEXT_ZONE)){
-            for (const [index, textZone] of this.text_zones.entries()){
-                if ( textZone.is_nearby(pos)){
-                    return new ELEMENT_DATA_TEXT_ZONE(textZone, index);
-                }
-            }
-        }
+        // if ( interactable_element_type.has(DOWN_TYPE.TEXT_ZONE)){
+        //     for (const [index, textZone] of this.text_zones.entries()){
+        //         if ( textZone.is_nearby(pos)){
+        //             return new ELEMENT_DATA_TEXT_ZONE(textZone, index);
+        //         }
+        //     }
+        // }
 
         return undefined;
     }
@@ -946,7 +951,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     deselectAll(){
-        this.clear_all_selections();
+        this.clearAllSelections();
     }
 
     unhighlightAll(){
@@ -970,16 +975,37 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         return set;
     }
 
-    clear_all_selections() {
+    getSelectedElements(): Array<[BoardElementType, number]> {
+        const t = new Array<[BoardElementType, number]>();
+        for (const element of this.elements.values()){
+            if (element.isSelected){
+                t.push([element.boardElementType, element.serverId]);
+            }
+        }
+        return t;
+    }
+
+    clearAllSelections() {
         for (const element of this.elements.values()){
             element.deselect();
         }
+    }
 
-        this.graph.deselect_all_vertices();
-        this.graph.deselect_all_links();
-        this.deselect_all_strokes();
-        for (const rectangle of this.rectangles.values()){
-            rectangle.isSelected = false;
+    setC1(serverId: number, x: number, y: number){
+        console.log("set C1, ", x, y)
+        for (const element of this.elements.values()){
+            if (element instanceof ShapeElement && element.serverId == serverId){
+                element.setCorners(new CanvasCoord(x,y), new CanvasCoord(element.c2.x, element.c2.y));
+            }
+        }
+    }
+
+    setC2(serverId: number, x: number, y: number){
+        console.log("set C2, ", x, y)
+        for (const element of this.elements.values()){
+            if (element instanceof ShapeElement && element.serverId == serverId){
+                element.setCorners(new CanvasCoord(element.c1.x, element.c1.y), new CanvasCoord(x,y));
+            }
         }
     }
 
@@ -1036,7 +1062,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     emitGenerateGraph(generatorId: GeneratorId, params: Array<any>) {
-        socket.emit(SocketMsgType.GENERATE_GRAPH, this.camera.create_server_coord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
+        socket.emit(SocketMsgType.GENERATE_GRAPH, this.camera.createServerCoord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
     }
 
     emitRedo() {
@@ -1099,7 +1125,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
 
-    emit_resize_element(type: BoardElementType, index: number, pos: Coord, resize_type: RESIZE_TYPE){
+    emitResizeElement(type: BoardElementType, index: number, pos: Coord, resize_type: RESIZE_TYPE){
         socket.emit(SocketMsgType.RESIZE_ELEMENT, type, index, pos.x, pos.y, resize_type);
     }
 
@@ -1136,7 +1162,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emit_add_element(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | ShapeData, callback: (response: number) => void  ){
+    emitAddElement(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | ShapeData, callback: (response: number) => void  ){
         if (element instanceof ShapeData){
             socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.pos, c2: element.pos, color: element.color}, callback);
         }

@@ -169,8 +169,8 @@ export class ClientArea extends Area{
         this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
         this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
         this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
-        this.c1 = camera.create_server_coord(this.canvas_corner_top_left);
-        this.c2 = camera.create_server_coord(this.canvas_corner_bottom_right);
+        this.c1 = camera.createServerCoord(this.canvas_corner_top_left);
+        this.c2 = camera.createServerCoord(this.canvas_corner_bottom_right);
     }
     
 

@@ -1,0 +1,42 @@
+
+@keyframes createShape {
+    0% {
+        transform-origin: center;
+        transform: scale(4);
+    }
+    100% {
+        transform-origin: center;
+        transform: scale(1);
+    }
+  }
+
+
+@keyframes selectShape {
+    from { transform-origin: center;
+        transform: scale(1); }
+    to { transform-origin: center;
+        transform: scale(1.1); }
+  }
+
+@keyframes deselectShape {
+    from { transform-origin: center;
+        transform: scale(1.1); }
+    to { transform-origin: center;
+        transform: scale(1); }
+  }
+
+
+.shape:hover {
+    stroke-width: 4;
+    animation: selectShape 0.5s ease-out forwards;
+}
+
+.shape.selected {
+    stroke: rgb(214, 245, 38);
+    stroke-width: 4;
+    animation: selectShape 0.5s ease-out forwards;
+}
+
+.shape.deselected {
+    animation: deselectShape 0.5s ease-out forwards;
+}

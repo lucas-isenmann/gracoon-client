@@ -8,12 +8,13 @@ import { ClientStroke } from "../board/stroke";
 import { ClientTextZone } from "../board/text_zone";
 import { ClientVertex } from "../board/vertex";
 import { RESIZE_TYPE } from "./interactor";
-import { BoardElement, LinkElement, VertexElement } from "../board/element";
+import { BoardElement, LinkElement, ShapeElement, VertexElement } from "../board/element";
 import { BoardElementType } from "../board/board";
 
 
 export interface ELEMENT_DATA {
-    element: ClientVertex | ClientLink | ClientRectangle | ClientArea | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
+    // element: ClientVertex | ClientLink | ClientRectangle | ClientArea | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
+    element: BoardElement;
 }
 
 export class ELEMENT_DATA_VERTEX {
@@ -90,12 +91,10 @@ export class ELEMENT_DATA_REPRESENTATION_SUBELEMENT {
 
 
 export class ELEMENT_DATA_RECTANGLE {
-    element: ClientRectangle;
-    index: number;
+    element: ShapeElement;
     resizeType: Option<RESIZE_TYPE>;
-    constructor(rect: ClientRectangle, index: number, resizeType: Option<RESIZE_TYPE>){
+    constructor(rect: ShapeElement, resizeType: Option<RESIZE_TYPE>){
         this.element = rect;
-        this.index = index;
         this.resizeType = resizeType;
     }
 }

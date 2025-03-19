@@ -46,7 +46,7 @@ export class ClientStroke extends Stroke{
 
 
     push(cpos:CanvasCoord, camera: Camera){
-        const pos = camera.create_server_coord(cpos);
+        const pos = camera.createServerCoord(cpos);
         this.positions.push(pos);
         this.bot_right.x = Math.max(pos.x, this.bot_right.x);
         this.top_left.x = Math.min(pos.x, this.top_left.x);

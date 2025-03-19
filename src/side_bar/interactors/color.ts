@@ -73,22 +73,14 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
     
     color_interactorV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         board.regenAgregId();
-        if ( pointed.data instanceof ELEMENT_DATA_VERTEX || pointed.data instanceof ELEMENT_DATA_LINK ) {
+        if (typeof pointed.data != "undefined"){
             if ( pointed.data.element.color != board.colorSelected){
                 if (typeof pointed.type != "undefined"){
                     board.emit_update_element( pointed.type , pointed.data.element.serverId, "color", board.colorSelected);
                 }
             }
         }
-        else if ( pointed.data instanceof ELEMENT_DATA_STROKE ){
-            if ( pointed.data.element.color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Stroke, pointed.data.index, "color", board.colorSelected);
-            }
-        } else if (pointed.data instanceof ELEMENT_DATA_RECTANGLE){
-            if ( pointed.data.element.color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Rectangle, pointed.data.index, "color", board.colorSelected);
-            }
-        }
+       
     })
     
     
@@ -96,24 +88,29 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
         if (typeof pointed == "undefined") return false;
 
         const elt = board.get_element_nearby(e, color_interactorV2.interactable_element_type);
-        if ( elt instanceof ELEMENT_DATA_VERTEX || elt instanceof ELEMENT_DATA_LINK) {
+        if (typeof elt != "undefined"){
             if ( elt.element.color != board.colorSelected){
-                if (typeof pointed.type != "undefined"){
-                    board.emit_update_element( pointed.type , elt.element.serverId, "color", board.colorSelected);
-                }
+                board.emit_update_element( elt.element.boardElementType , elt.element.serverId, "color", board.colorSelected);
             }
-            return true;
         }
+        // if ( elt instanceof ELEMENT_DATA_VERTEX || elt instanceof ELEMENT_DATA_LINK) {
+        //     if ( elt.element.color != board.colorSelected){
+        //         if (typeof pointed.type != "undefined"){
+        //             board.emit_update_element( pointed.type , elt.element.serverId, "color", board.colorSelected);
+        //         }
+        //     }
+        //     return true;
+        // }
        
-        else if (elt instanceof ELEMENT_DATA_STROKE ){
-            if ( elt.element.color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Stroke, elt.index, "color", board.colorSelected);
-            }
-        } else if (elt instanceof ELEMENT_DATA_RECTANGLE){
-            if ( elt.element.color != board.colorSelected){
-                board.emit_update_element( BoardElementType.Rectangle, elt.index, "color", board.colorSelected);
-            }
-        }
+        // else if (elt instanceof ELEMENT_DATA_STROKE ){
+        //     if ( elt.element.color != board.colorSelected){
+        //         board.emit_update_element( BoardElementType.Stroke, elt.index, "color", board.colorSelected);
+        //     }
+        // } else if (elt instanceof ELEMENT_DATA_RECTANGLE){
+        //     if ( elt.element.color != board.colorSelected){
+        //         board.emit_update_element( BoardElementType.Rectangle, elt.index, "color", board.colorSelected);
+        //     }
+        // }
         return false;
     })
     
