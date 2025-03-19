@@ -128,6 +128,38 @@ paramIsLight.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
     }
 })
 
+
+// Has tournament a light extension?
+
+
+export const paramHasLightExtension = new Parametor(
+    "Has tournament light extension?",
+    "has_light_extension",
+    "has_light_extension",
+    "has_light_extension",
+    true,
+    true,
+    [SENSIBILITY.ELEMENT],
+    false
+);
+
+
+paramHasLightExtension.compute = ((g: ClientGraph, verbose: boolean) => {
+    const b = g.hasLightExtension();
+
+    if (b){
+        return ["true", []];
+    } else {
+        return ["false", []]
+    }
+})
+
+paramHasLightExtension.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
+  
+})
+
+
+
 // -----------------------------------------------------------------
 
 export const paramIsLightCritic = new Parametor(
