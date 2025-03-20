@@ -15,7 +15,7 @@
     from { transform-origin: center;
         transform: scale(1); }
     to { transform-origin: center;
-        transform: scale(2); }
+        transform: scale(5); }
   }
 
   @keyframes deselectVertex {
@@ -25,10 +25,26 @@
         transform: scale(1); }
   }
 
- 
-  
+  @keyframes pulseStroke {
+    0%, 100% { stroke-width: 4; }
+    50% { stroke-width: 10; }
+}
+
+.vertex.highlight {
+    stroke-opacity: 0.5;
+    animation: pulseStroke 1s infinite ease-in-out;
+}
+
+.vertex {
+    transform-origin: center;
+    scale: 2;
+    stroke-width: 0;
+}
+
+
 .vertex:hover {
     fill: rgb(22, 235, 181);
+    scale: 2;
 }
 
 .vertex.selected {

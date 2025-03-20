@@ -1,6 +1,7 @@
-import { Coord, ORIENTATION } from "gramoloss";
+import { Coord, EmbeddedGraph, ORIENTATION } from "gramoloss";
 import { ClientGraph } from "./graph";
 import { Color } from "./display/colors_v2";
+import { ClientBoard } from "./board";
 
 
 
@@ -40,7 +41,7 @@ import { Color } from "./display/colors_v2";
 */
 
 
-function genHeader(g: ClientGraph) {
+function genHeader(g: EmbeddedGraph) {
 
     let hasArc = false;
     for (const link of g.links.values()){
@@ -79,7 +80,7 @@ function genHeader(g: ClientGraph) {
     \node[node_style] (v) at (4.2, 2.8) {$v$};
     \node[node_style] (a) at (4.2, 3.2) {$a$};
  */
-function defineNodes(g: ClientGraph, figSize: number) {
+function defineNodes(g: EmbeddedGraph, figSize: number) {
 
     figSize /= 2;
 
@@ -148,7 +149,7 @@ function defineNodes(g: ClientGraph, figSize: number) {
     \draw[arc_style] (v) to[bend left=30] node[midway, left] {1} (a);
     \draw[arc_style] (a) to[bend left=30] node[midway, right] {1/2} (v);
  */
-function createLinks(g: ClientGraph) {
+function createLinks(g: EmbeddedGraph) {
     let str = "\t% Draw edges and arcs\n";
     for (const link of g.links.values()) {
 
@@ -200,7 +201,7 @@ function createLinks(g: ClientGraph) {
  * @param figSize 
  * @returns 
  */
-export function generateTikz2(g: ClientGraph, figSize: number) {
+export function generateTikz2(g: EmbeddedGraph, figSize: number) {
     let latex = "";
     latex += genHeader(g);
     latex += defineNodes(g, figSize) + "\n";

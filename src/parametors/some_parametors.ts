@@ -1,12 +1,13 @@
 
-import { ClientGraph } from '../board/graph';
 import { Parametor, SENSIBILITY } from './parametor';
-import { AbstractGraph, DominationVariant, ORIENTATION } from 'gramoloss';
+import { AbstractGraph, DominationVariant, EmbeddedGraph, ORIENTATION } from 'gramoloss';
 import { ClientLink, ClientLinkData } from '../board/link';
 import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
 import { Color } from '../board/display/colors_v2';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
+import { BoardElementType, ClientBoard } from '../board/board';
+import { Graph2 } from '../board/graph2';
 
 
 
@@ -22,7 +23,7 @@ export const paramNumberArcs = new Parametor(
     false
 );
 
-paramNumberArcs.compute = ((g: ClientGraph, verbose: boolean) => {
+paramNumberArcs.compute = (g: Graph2, verbose: boolean) => {
     let nbArcs = 0;
     for (const link of g.links.values()){
         if (link.orientation == ORIENTATION.DIRECTED){
@@ -30,7 +31,7 @@ paramNumberArcs.compute = ((g: ClientGraph, verbose: boolean) => {
         }
     }
     return [nbArcs.toString(), []];
-})
+}
 
 export const paramNumberLinks = new Parametor(
     "Number of links (edges or arcs)",
@@ -43,9 +44,12 @@ export const paramNumberLinks = new Parametor(
     false
 );
 
-paramNumberLinks.compute = ((g: ClientGraph, verbose: boolean) => {
+paramNumberLinks.compute = (g: Graph2, verbose: boolean) => {
     return [g.links.size.toString(), []];
-})
+}
+
+
+
 
 
 // -----------------------------------------
@@ -62,7 +66,10 @@ export const paramDichromaticNumber = new Parametor(
 );
 
 
-paramDichromaticNumber.compute = ((g: ClientGraph, verbose: boolean) => {
+
+
+
+paramDichromaticNumber.compute = (g: Graph2, verbose: boolean) => {
     const minColoring = g.minimumProperDicoloring();
 
     const coloring = new Map();
@@ -74,14 +81,11 @@ paramDichromaticNumber.compute = ((g: ClientGraph, verbose: boolean) => {
         colors.add(color);
     }
     return [colors.size.toString(), coloring];
-})
+}
 
-paramDichromaticNumber.showCertificate = ((g:ClientGraph, coloring: Map<number, number>) => {
+paramDichromaticNumber.showCertificate = ((board: ClientBoard, coloring: Map<number, number>) => {
     for (const [vId, colorId] of coloring){
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = colorId;
-        }
+        board.highlight([[BoardElementType.Vertex, vId, colorId]])
     }
 })
 
@@ -101,7 +105,7 @@ export const paramIsLight = new Parametor(
 );
 
 
-paramIsLight.compute = ((g: ClientGraph, verbose: boolean) => {
+paramIsLight.compute= ((g: Graph2, verbose: boolean) => {
     const conflict = g.lightnessConflict();
     console.log(conflict)
     if (typeof conflict == "undefined"){
@@ -111,19 +115,16 @@ paramIsLight.compute = ((g: ClientGraph, verbose: boolean) => {
     }
 })
 
-paramIsLight.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
+paramIsLight.showCertificate = ((board: ClientBoard, conflict: Array<number>) => {
     for (let i = 0 ; i < conflict.length; i ++){
-        const v = g.vertices.get(conflict[i]);
-        if (typeof v != "undefined"){
-            if (i == 0){
-                v.data.highlight = 0;
-            }
-            if (i == 1){
-                v.data.highlight = 1;
-            }
-            if (i > 1){
-                v.data.highlight = 2;
-            }
+        if (i == 0){
+            board.highlightVertex(conflict[i], 0)
+        }
+        if (i == 1){
+            board.highlightVertex(conflict[i], 1)
+        }
+        if (i > 1){
+            board.highlightVertex(conflict[i], 2)
         }
     }
 })
@@ -144,7 +145,7 @@ export const paramHasLightExtension = new Parametor(
 );
 
 
-paramHasLightExtension.compute = ((g: ClientGraph, verbose: boolean) => {
+paramHasLightExtension.compute= ((g: Graph2, verbose: boolean) => {
     const b = g.hasLightExtension();
 
     if (b){
@@ -154,9 +155,7 @@ paramHasLightExtension.compute = ((g: ClientGraph, verbose: boolean) => {
     }
 })
 
-paramHasLightExtension.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
-  
-})
+
 
 
 
@@ -174,7 +173,7 @@ export const paramIsLightCritic = new Parametor(
 );
 
 
-paramIsLightCritic.compute = ((g: ClientGraph, verbose: boolean) => {
+paramIsLightCritic.compute= ((g: Graph2, verbose: boolean) => {
     const conflict = g.lightnessConflict();
     
     if (typeof conflict == "undefined"){
@@ -280,19 +279,16 @@ paramIsLightCritic.compute = ((g: ClientGraph, verbose: boolean) => {
     }
 })
 
-paramIsLightCritic.showCertificate = ((g:ClientGraph, conflict: Array<number>) => {
+paramIsLightCritic.showCertificate = ((board: ClientBoard, conflict: Array<number>) => {
     for (let i = 0 ; i < conflict.length; i ++){
-        const v = g.vertices.get(conflict[i]);
-        if (typeof v != "undefined"){
-            if (i == 0){
-                v.data.highlight = 0;
-            }
-            if (i == 1){
-                v.data.highlight = 1;
-            }
-            if (i > 1){
-                v.data.highlight = 2;
-            }
+        if (i == 0){
+            board.highlightVertex(conflict[i], 0)
+        }
+        if (i == 1){
+            board.highlightVertex(conflict[i], 1)
+        }
+        if (i > 1){
+            board.highlightVertex(conflict[i], 2)
         }
     }
 })
@@ -303,12 +299,12 @@ paramIsLightCritic.showCertificate = ((g:ClientGraph, conflict: Array<number>) =
 export const paramMinimalSpanningTree = new Parametor("Minimal weighted spanning tree", 
 "minimalWeightedSpanningTree", "minWST", "Minimal weighted spanning tree", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
-paramMinimalSpanningTree.compute = ((g: ClientGraph, verbose: boolean) => {
+paramMinimalSpanningTree.compute= ((g: Graph2, verbose: boolean) => {
     const r = g.minimumSpanningTree();
     return [r[0].toString(), r[1]];
 })
 
-paramMinimalSpanningTree.showCertificate = ((g:ClientGraph, certificate: Array<ClientLink>) => {
+paramMinimalSpanningTree.showCertificate = ((board: ClientBoard, certificate: Array<ClientLink>) => {
     for (const link of certificate){
         link.data.highlight = 1;
     }
@@ -317,12 +313,12 @@ paramMinimalSpanningTree.showCertificate = ((g:ClientGraph, certificate: Array<C
 // ------------------
 export const paramHasCycle = new Parametor("Has cycle?", "has_cycle", "?has_cycle", "Check if the graph has an undirected cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
-paramHasCycle.compute = ((g: ClientGraph, verbose: boolean) => {
+paramHasCycle.compute= ((g: Graph2, verbose: boolean) => {
     const r = g.hasCycle2();
     return [String(r[0]), r[1]];
 });
 
-paramHasCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+paramHasCycle.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
         const v = g.vertices.get(vId);
@@ -343,7 +339,7 @@ paramHasCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
 // -------------------------
 export const paramGirth = new Parametor("Girth", "girth", "girth", "Shortest cycle", true, false, [SENSIBILITY.ELEMENT], false);
 
-paramGirth.compute = ((g: ClientGraph, verbose: boolean) => {
+paramGirth.compute= ((g: Graph2, verbose: boolean) => {
     const cycle = g.shortestCycle();
     if (cycle.length == 0){
         return ["+∞", []];
@@ -353,7 +349,7 @@ paramGirth.compute = ((g: ClientGraph, verbose: boolean) => {
     
 });
 
-paramGirth.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+paramGirth.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
         const v = g.vertices.get(vId);
@@ -374,7 +370,7 @@ paramGirth.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
 // ------------------
 export const paramHasDirectedCycle = new Parametor("Has directed cycle?", "has_directed_cycle", "?has_directed_cycle", "Check if the graph has a directed cycle", true, true, [SENSIBILITY.ELEMENT], false);
 
-paramHasDirectedCycle.compute = ((g: ClientGraph) => {
+paramHasDirectedCycle.compute= ((g: Graph2) => {
     const cycle = g.getDirectedCycle();
     if (typeof cycle == "undefined"){
         return [String(false), cycle];
@@ -385,7 +381,7 @@ paramHasDirectedCycle.compute = ((g: ClientGraph) => {
     
 })
 
-paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) => {
+paramHasDirectedCycle.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
         const v = g.vertices.get(vId);
@@ -407,14 +403,14 @@ paramHasDirectedCycle.showCertificate = (g: ClientGraph, cycle: Array<number>) =
 // ------------------
 export let paramNbVertices = new Parametor("Vertices number", "vertex_number", "#vertices", "Print the number of vertices", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramNbVertices.compute = ((g: ClientGraph) => {
+paramNbVertices.compute= ((g: Graph2) => {
     return [String(g.vertices.size), undefined]
 })
 
 
 export let paramNbEdges = new Parametor("Edges number", "edge_number", "#edges", "Print the number of edges", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramNbEdges.compute = ((g: ClientGraph) => {
+paramNbEdges.compute= ((g: Graph2) => {
     let counter = 0;
     for (var link of g.links.values()) {
         if (link.orientation == ORIENTATION.UNDIRECTED) {
@@ -430,7 +426,7 @@ paramNbEdges.compute = ((g: ClientGraph) => {
 
 export const paramIsConnected = new Parametor("Is connected?", "is_connected", "is connected?", "Is the graph/area connected?", true, true, [SENSIBILITY.ELEMENT], true);
 
-paramIsConnected.compute = ((g: ClientGraph) => {
+paramIsConnected.compute= ((g: Graph2) => {
     return [String(g.isConnected()), undefined];
 });
 
@@ -438,7 +434,7 @@ paramIsConnected.compute = ((g: ClientGraph) => {
 
 export const paramNbConnectedComp = new Parametor("Number connected component", "number_connected_comp", "#connected comp.", "Compute the number of connected component (undirected)", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramNbConnectedComp.compute = ((g: ClientGraph) => {
+paramNbConnectedComp.compute= ((g: Graph2) => {
 
     if (g.vertices.size < 1) {
         return ["0", undefined];
@@ -487,12 +483,9 @@ paramNbConnectedComp.compute = ((g: ClientGraph) => {
     return [String(cc), component ];
 });
 
-paramNbConnectedComp.showCertificate = (g:ClientGraph, component: Map<number, number>) => {
-    for (const v of g.vertices.values()){
-        const c = component.get(v.index);
-        if (typeof c != "undefined"){
-            v.data.highlight = c;
-        }
+paramNbConnectedComp.showCertificate = (board: ClientBoard, component: Map<number, number>) => {
+    for (const [serverId, value] of component){
+        board.highlightVertex(serverId, value);
     }
 }
 
@@ -501,7 +494,7 @@ paramNbConnectedComp.showCertificate = (g:ClientGraph, component: Map<number, nu
 
 export let paramNumberColors = new Parametor("Number vertex colors", "nb_vertex_colors", "#colors (vertices)", "Print the number of different colors used on the vertices", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
 
-paramNumberColors.compute = ((g: ClientGraph) => {
+paramNumberColors.compute= ((g: Graph2) => {
     let colors_set = new Set<string>();
     for (const v of g.vertices.values()) {
         colors_set.add(v.data.color);
@@ -512,7 +505,7 @@ paramNumberColors.compute = ((g: ClientGraph) => {
 
 export const paramIsDrawingPlanar = new Parametor("Is drawing planar?", "is_drawing_planar", "is_drawing_planar", "Return true iff drawing is planar", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], true);
 
-paramIsDrawingPlanar.compute = ((g: ClientGraph) => {
+paramIsDrawingPlanar.compute= ((g: Graph2) => {
     console.log("is drawing planar update");
     const crossings = g.crossings();
     console.log(crossings);
@@ -520,21 +513,17 @@ paramIsDrawingPlanar.compute = ((g: ClientGraph) => {
     return [result, crossings];
 });
 
-paramIsDrawingPlanar.showCertificate = (g: ClientGraph, crossings: Array<[number, number]>) => {
+paramIsDrawingPlanar.showCertificate = (board: ClientBoard, crossings: Array<[number, number]>) => {
     for (const [lId1, lId2] of crossings){
-        const link1 = g.links.get(lId1);
-        const link2 = g.links.get(lId2);
-        if (typeof link1 != "undefined" && typeof link2 != "undefined"){
-            link1.data.highlight = 0;
-            link2.data.highlight = 0;
-        }
+        board.highlightLink(lId1, 0);
+        board.highlightLink(lId2, 0);
     }
 }
 
 
 export const paramMinDegree = new Parametor("Minimum degree", "min_degree", "min degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramMinDegree.compute = ((g: ClientGraph, verbose: boolean) => {
+paramMinDegree.compute= ((g: Graph2, verbose: boolean) => {
     const data = g.getDegreesData();
     const minVertices = new Array();
     for (const v of g.vertices.values()){
@@ -545,7 +534,7 @@ paramMinDegree.compute = ((g: ClientGraph, verbose: boolean) => {
     return [String(data.min_value), minVertices];
 });
 
-paramMinDegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVertex>) => {
+paramMinDegree.showCertificate = (board: ClientBoard, minVertices: Array<ClientVertex>) => {
     for (const v of minVertices){
         v.data.highlight = 0;
     }
@@ -553,7 +542,7 @@ paramMinDegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVerte
 
 export let paramMinIndegree = new Parametor("Mininum in-degree", "min_indegree", "min_indegree", "Minimum indegree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
-paramMinIndegree.compute = ((g: ClientGraph, verbose) => {
+paramMinIndegree.compute= ((g: Graph2, verbose) => {
     const md = g.minIndegree();
     const minVertices = new Array();
     for (const v of g.vertices.values()){
@@ -564,7 +553,7 @@ paramMinIndegree.compute = ((g: ClientGraph, verbose) => {
     return [String(md), minVertices];
 });
 
-paramMinIndegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVertex>) => {
+paramMinIndegree.showCertificate = (board: ClientBoard, minVertices: Array<ClientVertex>) => {
     for (const v of minVertices){
         v.data.highlight = 0;
     }
@@ -572,7 +561,7 @@ paramMinIndegree.showCertificate = (g: ClientGraph, minVertices: Array<ClientVer
 
 export let paramMaxIndegree = new Parametor("Maximum in-degree", "max_indegree", "max_indegree", "Maximum in-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
-paramMaxIndegree.compute = ((g: ClientGraph, verbose) => {
+paramMaxIndegree.compute= ((g: Graph2, verbose) => {
     const md = g.maxIndegree();
     const vertices = new Array();
     for (const v of g.vertices.values()){
@@ -583,7 +572,7 @@ paramMaxIndegree.compute = ((g: ClientGraph, verbose) => {
     return [String(md), vertices];
 });
 
-paramMaxIndegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+paramMaxIndegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
     for (const v of vertices){
         v.data.highlight = 0;
     }
@@ -591,7 +580,7 @@ paramMaxIndegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex
 
 export let paramMinOutdegree = new Parametor("Minimum out-degree", "min_out_degree", "min_out_degree", "Minimum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
-paramMinOutdegree.compute = ((g: ClientGraph, verbose) => {
+paramMinOutdegree.compute= ((g: Graph2, verbose) => {
     const md = g.minOutdegree();
     const vertices = new Array();
     for (const v of g.vertices.values()){
@@ -602,7 +591,7 @@ paramMinOutdegree.compute = ((g: ClientGraph, verbose) => {
     return [String(md), vertices];
 });
 
-paramMinOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+paramMinOutdegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
     for (const v of vertices){
         v.data.highlight = 0;
     }
@@ -610,7 +599,7 @@ paramMinOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVerte
 
 export let paramMaxOutdegree = new Parametor("Maximum out-degree", "max_out_degree", "max_out_degree", "Maximum out-degree", true, false, new Array(SENSIBILITY.ELEMENT), false);
 
-paramMaxOutdegree.compute = ((g: ClientGraph, verbose) => {
+paramMaxOutdegree.compute= ((g: Graph2, verbose) => {
     const md = g.maxOutdegree();
     const vertices = new Array();
     for (const v of g.vertices.values()){
@@ -621,7 +610,7 @@ paramMaxOutdegree.compute = ((g: ClientGraph, verbose) => {
     return [String(md), vertices];
 });
 
-paramMaxOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVertex>) => {
+paramMaxOutdegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
     for (const v of vertices){
         v.data.highlight = 0;
     }
@@ -632,12 +621,12 @@ paramMaxOutdegree.showCertificate = (g: ClientGraph, vertices: Array<ClientVerte
 
 export let paramMaxDegree = new Parametor("Maximum degree", "max_degree", "max degree", "Print the minimum degree", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramMaxDegree.compute = ((g: ClientGraph, verbose: boolean) => {
+paramMaxDegree.compute= ((g: Graph2, verbose: boolean) => {
     const data = g.getDegreesData();
     return [String(data.max_value), data.max_vertices];
 });
 
-paramMaxDegree.showCertificate = (g: ClientGraph, certificate: Set<number>) =>  {
+paramMaxDegree.showCertificate = (board: ClientBoard, certificate: Set<number>) =>  {
     for (const vId of certificate){
         const v = g.vertices.get(vId);
         if (typeof v != "undefined"){
@@ -648,7 +637,7 @@ paramMaxDegree.showCertificate = (g: ClientGraph, certificate: Set<number>) =>  
 
 export let paramAverageDegree = new Parametor("Average degree", "avg_degree", "avg. degree", "Print the average degree", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramAverageDegree.compute = ((g: ClientGraph) => {
+paramAverageDegree.compute= ((g: Graph2) => {
     // Remark : If no loop, we can simply use that sum(degree) = 2|E| so avg(degree) = 2|E|/|V|
     const data = g.getDegreesData();
     const avg = Math.round((data.avg + Number.EPSILON) * 100) / 100
@@ -659,7 +648,7 @@ paramAverageDegree.compute = ((g: ClientGraph) => {
 
 export let paramIsProperColoring = new Parametor("Proper vertex-coloring?", "has_proper_coloring", "proper vertex-coloring?", "Print if the current coloring of the vertices is proper or not", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR], true);
 
-paramIsProperColoring.compute = ((g: ClientGraph) => {
+paramIsProperColoring.compute= ((g: Graph2) => {
 
     if (g.vertices.size == 0) {
         return ["true", undefined];
@@ -686,7 +675,7 @@ paramIsProperColoring.compute = ((g: ClientGraph) => {
     return ["true", undefined];
 });
 
-paramIsProperColoring.showCertificate = (g: ClientGraph, certificate: Array<ClientVertex>) => {
+paramIsProperColoring.showCertificate = (board: ClientBoard, certificate: Array<ClientVertex>) => {
     for (const v of certificate){
         v.data.highlight = 0;
     }
@@ -697,7 +686,7 @@ paramIsProperColoring.showCertificate = (g: ClientGraph, certificate: Array<Clie
 
 export let paramDiameter = new Parametor("Diameter", "diameter", "diameter", "Print the diameter of the graph", true, false, [SENSIBILITY.ELEMENT], true);
 
-paramDiameter.compute = ((g: ClientGraph) => {
+paramDiameter.compute= ((g: Graph2) => {
     const FW = g.FloydWarshall(undefined);
     let diameter = 0;
     const certificate = new Array();
@@ -737,7 +726,7 @@ paramDiameter.compute = ((g: ClientGraph) => {
     return [String(diameter), shortestPath];
 });
 
-paramDiameter.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
+paramDiameter.showCertificate = (board: ClientBoard, certificate: Array<number>) => {
     const v0 = g.vertices.get(certificate[0]);
     if (typeof v0 != "undefined"){
         v0.data.highlight = 1;
@@ -764,7 +753,7 @@ paramDiameter.showCertificate = (g: ClientGraph, certificate: Array<number>) => 
 // -----------------
 export const paramDelaunayConstructor = new Parametor("Delaunay constructor", "delaunay", "delaunay", "Resets the edges of the graph", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
-paramDelaunayConstructor.compute = ((g: ClientGraph) => {
+paramDelaunayConstructor.compute= ((g: Graph2) => {
     g.resetDelaunayGraph((i,j) => {
         return new ClientLinkData(undefined, Color.Neutral, "", g.board.camera);
     });
@@ -775,7 +764,7 @@ paramDelaunayConstructor.compute = ((g: ClientGraph) => {
 // -----------------
 export const paramStretch = new Parametor("Stretch", "stretch", "stretch", "Computes the stretch", true, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
-paramStretch.compute = ((g: ClientGraph) => {
+paramStretch.compute= ((g: Graph2) => {
     const [stretch, path] = g.stretch();
     if (typeof stretch != "undefined"){
         return [String(stretch.toFixed(3)), path];
@@ -784,7 +773,7 @@ paramStretch.compute = ((g: ClientGraph) => {
     }
 });
 
-paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
+paramStretch.showCertificate = (board: ClientBoard, certificate: Array<number>) => {
     if (certificate.length <= 0) return;
     const v0 = g.vertices.get(certificate[0]);
     if (typeof v0 != "undefined"){
@@ -813,7 +802,7 @@ paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
 // // -----------------
 // export const paramStretchGeneticMaximizer = new Parametor("Stretch Genetic Maximizer", "stretchG", "stretchG", "Computes the stretch", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
-// paramStretchGeneticMaximizer.compute = ((g: ClientGraph) => {
+// paramStretchGeneticMaximizer.compute= ((g: Graph2) => {
 //     const popSize = 36;
 //     const graphSize = 20;
 //     const nbRows = 6;
@@ -855,14 +844,14 @@ paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
 //             }
 //         }
 //     } else {
-//         const population = new Array<ClientGraph>();
+//         const population = new Array<EmbeddedGraph>();
 //         const fitness = new Array();
 //         let totalFitness = 0;
 //         for ( let i = 0 ; i < popSize ; i ++){
 //             const c1 = topLeftCorners[i];
 //             const c2 = c1.add(new Coord(w,w));
 //             const subgraph = g.getSubgraphFromRectangle(c1,c2);
-//             population.push(ClientGraph.fromGraph(subgraph));
+//             population.push(EmbeddedGraph.fromGraph(subgraph));
 //             const stretch = subgraph.stretch()
 //             fitness.push(Math.pow(stretch,3))
 //             totalFitness += Math.pow(stretch,3);
@@ -879,7 +868,7 @@ paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
 
 //         // Selection and mutate
 //         g.clear();
-//         const newPop = new Array<ClientGraph>();
+//         const newPop = new Array<EmbeddedGraph>();
 //         let sumStretch = 0;
 //         for( let i = 0 ; i < popSize ; i ++){
 //             const c1 = topLeftCorners[i];
@@ -944,7 +933,7 @@ paramStretch.showCertificate = (g: ClientGraph, certificate: Array<number>) => {
 
 export let param_is_good_weight = new Parametor("Is good weight for our problem ?", "isgood", "isgood", "Paramètre trop stylé", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
-param_is_good_weight.compute = ((g: ClientGraph) => {
+param_is_good_weight.compute= ((g: Graph2) => {
     const FW = g.FloydWarshall( undefined);
 
     for (const v of g.vertices.values()) {
@@ -973,7 +962,7 @@ param_is_good_weight.compute = ((g: ClientGraph) => {
 
 export const param_weighted_distance_identification = new Parametor("Weighted distance identification number", "wdin", "wdin", "Weighted distance identification number", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
-param_weighted_distance_identification.compute = ((g: ClientGraph) => {
+param_weighted_distance_identification.compute= ((g: Graph2) => {
     console.log("compute TIME");
     console.time('wdi')
     let k = 1;
@@ -1023,7 +1012,7 @@ param_weighted_distance_identification.compute = ((g: ClientGraph) => {
 
 export const param_wdin2 = new Parametor("Weighted distance identification number (for trees)", "wdin2", "wdin2", "Weighted distance identification number", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.WEIGHT], false);
 
-param_wdin2.compute = ((g: ClientGraph) => {
+param_wdin2.compute= ((g: Graph2) => {
     console.time("wdin2")
 
     if (g.isConnected() == false) {
@@ -1047,7 +1036,7 @@ param_wdin2.compute = ((g: ClientGraph) => {
     }
 })
 
-function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: Array<number>){
+function wdin2_order(g: EmbeddedGraph, ordered_links: Array<number>, association: Array<number>){
     const no = ordered_links.length;
     const i = g.links.size;
     if ( i == 0 ){
@@ -1064,8 +1053,8 @@ function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: 
     const bridge = g.links.get(bridge_index);
     if (typeof bridge == "undefined") return;
     g.links.delete(bridge_index);
-    const g1 = g.getConnectedComponentOf(bridge.startVertex.index) as ClientGraph;
-    const g2 = g.getConnectedComponentOf(bridge.endVertex.index) as ClientGraph;
+    const g1 = g.getConnectedComponentOf(bridge.startVertex.index) as EmbeddedGraph;
+    const g2 = g.getConnectedComponentOf(bridge.endVertex.index) as EmbeddedGraph;
     wdin2_order(g1, ordered_links, association);
     wdin2_order(g2, ordered_links, association);
     g.links.set(bridge_index, bridge);
@@ -1075,7 +1064,7 @@ function wdin2_order(g: ClientGraph, ordered_links: Array<number>, association: 
 }
 
 // g is supposed connected
-function wdin2_search(g: ClientGraph, k: number): boolean{
+function wdin2_search(g: EmbeddedGraph, k: number): boolean{
     const m = g.links.size;
     const ordered_links = new Array<number>();
     const association = new Array<number>();
@@ -1090,7 +1079,7 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
     const subgraph = new Array();
     const constraints = new Array<Array<Array<[number,boolean]>>>();
     for (let i = 0 ; i < m ; i ++){
-        const newg = new ClientGraph(g.board);
+        const newg = new EmbeddedGraph(g.board);
         for ( let j = association[i]; j <= i ; j ++){
             const link = g.links.get(ordered_links[j]);
             if (typeof link != "undefined"){
@@ -1140,7 +1129,7 @@ function wdin2_search(g: ClientGraph, k: number): boolean{
     }
 }
 
-function test2(g: ClientGraph, constraints: Array<Array<[number,boolean]>>): boolean{
+function test2(g: EmbeddedGraph, constraints: Array<Array<[number,boolean]>>): boolean{
     for (const constraint of constraints){
         let sum = 0;
         for (const [linkIndex, b] of constraint){
@@ -1161,7 +1150,7 @@ function test2(g: ClientGraph, constraints: Array<Array<[number,boolean]>>): boo
 }
 
 // only for trees
-function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[number,boolean]>>{
+function make_constraints(g: EmbeddedGraph, bridge_index: number): Array<Array<[number,boolean]>>{
     const paths = new Map<number, Map<number,Array<number>>>();
     for ( const v_index of g.vertices.keys()){
         const paths_from_v = new Map<number,Array<number>>();
@@ -1226,7 +1215,7 @@ function make_constraints(g: ClientGraph, bridge_index: number): Array<Array<[nu
 }
 
 
-function test(g: ClientGraph): boolean {
+function test(g: EmbeddedGraph): boolean {
 
     const FW = g.FloydWarshall(undefined);
     for (const v_index of g.vertices.keys()) {
@@ -1256,7 +1245,7 @@ function test(g: ClientGraph): boolean {
 
 export const paramFVSN = new Parametor("Feedback Vertex Set Number", "fvsn", "fvsn", "Feedback Vertex Set Number", false, false, [SENSIBILITY.ELEMENT], false);
 
-paramFVSN.compute = ((g: ClientGraph) => {
+paramFVSN.compute= ((g: Graph2) => {
     return [g.fvsn().toString(), undefined];
 })
 
@@ -1265,12 +1254,12 @@ paramFVSN.compute = ((g: ClientGraph) => {
 
 export const paramMinQuasiKernel = new Parametor("Minimum Quasi Kernel", "minQuasiKernel", "minQK", "Minimum Quasi Kernel", true, false, [SENSIBILITY.ELEMENT], false);
 
-paramMinQuasiKernel.compute = (g: ClientGraph) => {
+paramMinQuasiKernel.compute = (board: ClientBoard) => {
     const minQK = g.minQuasiKernel();
     return [minQK.size.toString(), minQK];
 }
 
-paramMinQuasiKernel.showCertificate = (g: ClientGraph, quasiKernel: Set<number>) => {
+paramMinQuasiKernel.showCertificate = (board: ClientBoard, quasiKernel: Set<number>) => {
     for (const vId of quasiKernel){
         const v = g.vertices.get(vId);
         if (typeof v != "undefined"){
@@ -1286,7 +1275,7 @@ paramMinQuasiKernel.showCertificate = (g: ClientGraph, quasiKernel: Set<number>)
 // --------------------
 export const paramIsQuasiKernel = new Parametor("Is Quasi Kernel", "is_quasi_kernel", "isQK", "Is Quasi Kernel", true, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
 
-paramIsQuasiKernel.compute = ((g: ClientGraph) => {
+paramIsQuasiKernel.compute= ((g: Graph2) => {
 
     for (const v of g.vertices.values()){
         if (v.data.color != Color.Neutral){
@@ -1327,7 +1316,7 @@ paramIsQuasiKernel.compute = ((g: ClientGraph) => {
 
 
 
-function getUncoveredVertex(g: ClientGraph): ClientVertex | undefined{
+function getUncoveredVertex(g: EmbeddedGraph): ClientVertex | undefined{
     let l = [...g.vertices.values()];
     l = shuffle(l);
     
@@ -1363,7 +1352,7 @@ function getUncoveredVertex(g: ClientGraph): ClientVertex | undefined{
 
 export const paramIsQKAlgoOK = new Parametor("Is Algo OK", "paramIsQKAlgoOK", "isQK", "Is Quasi Kernel", false, true, [SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.WEIGHT], false);
 
-paramIsQKAlgoOK.compute = ((g: ClientGraph) => {
+paramIsQKAlgoOK.compute= ((g: Graph2) => {
     console.log("compute");
     for (const v of g.vertices.values()){
         v.data.color = Color.Neutral;
@@ -1421,12 +1410,12 @@ export const paramDFVS = new Parametor(
     "Min directed feedback vertex set", 
     true, false, [SENSIBILITY.ELEMENT], false);
 
-paramDFVS.compute = ((g: ClientGraph) => {
+paramDFVS.compute= ((g: Graph2) => {
     const set = g.minDirectedFeedbackVertexSet();
     return [set.size.toString(), set];
 })
 
-paramDFVS.showCertificate = ((g: ClientGraph, set: Set<number>) => {
+paramDFVS.showCertificate= ((g: Graph2, set: Set<number>) => {
     for (const vIndex of set){
         const v = g.vertices.get(vIndex);
         if (typeof v != "undefined"){
@@ -1445,12 +1434,12 @@ export const paramDS = new Parametor(
     "Domination number", 
     true, false, [SENSIBILITY.ELEMENT], false);
 
-paramDS.compute = ((g: ClientGraph) => {
+paramDS.compute= ((g: Graph2) => {
     const minDS = g.minDominatingSet(undefined);
     return [minDS.size.toString(), minDS];
 })
 
-paramDS.showCertificate = ((g: ClientGraph, minDS: Set<number>) => {
+paramDS.showCertificate= ((g: Graph2, minDS: Set<number>) => {
     for (const vIndex of minDS){
         const v = g.vertices.get(vIndex);
         if (typeof v != "undefined"){
@@ -1467,12 +1456,12 @@ export const paramIDS = new Parametor(
     "Independent domination number", 
     true, false, [SENSIBILITY.ELEMENT], false);
 
-paramIDS.compute = ((g: ClientGraph) => {
+paramIDS.compute= ((g: Graph2) => {
     const minIDS = g.minDominatingSet(DominationVariant.Independent);
     return [minIDS.size.toString(), minIDS];
 })
 
-paramIDS.showCertificate = ((g: ClientGraph, minIDS: Set<number>) => {
+paramIDS.showCertificate= ((g: Graph2, minIDS: Set<number>) => {
     for (const vIndex of minIDS){
         const v = g.vertices.get(vIndex);
         if (typeof v != "undefined"){
@@ -1489,7 +1478,7 @@ export const paramCDS = new Parametor(
     "Connected domination number", 
     true, false, [SENSIBILITY.ELEMENT], false);
 
-paramCDS.compute = ((g: ClientGraph) => {
+paramCDS.compute= ((g: Graph2) => {
     const minCDS = g.minConnectedDominatingSet();
     if (typeof minCDS == "undefined"){
         return ["/", new Set()];
@@ -1498,7 +1487,7 @@ paramCDS.compute = ((g: ClientGraph) => {
     }
 })
 
-paramCDS.showCertificate = ((g: ClientGraph, minCDS: Set<number>) => {
+paramCDS.showCertificate= ((g: Graph2, minCDS: Set<number>) => {
     for (const vIndex of minCDS){
         const v = g.vertices.get(vIndex);
         if (typeof v != "undefined"){
@@ -1513,12 +1502,12 @@ export const paramVertexCover = new Parametor(
     "Vertex cover number", "vertexCoverNumber", "VC", "Vertex cover number", 
     false, false, [SENSIBILITY.ELEMENT], false);
 
-paramVertexCover.compute = ((g: ClientGraph) => {
+paramVertexCover.compute= ((g: Graph2) => {
     const minVC = g.minVertexCover();
     return [minVC.size.toString(), minVC];
 })
 
-paramVertexCover.showCertificate = ((g: ClientGraph, vertexCover: Set<number>) => {
+paramVertexCover.showCertificate= ((g: Graph2, vertexCover: Set<number>) => {
     for (const vIndex of vertexCover){
         const v = g.vertices.get(vIndex);
         if (typeof v != "undefined"){
@@ -1530,12 +1519,12 @@ paramVertexCover.showCertificate = ((g: ClientGraph, vertexCover: Set<number>) =
 
 export const paramCliqueNumber = new Parametor("Clique number", "cliqueNumber", "w", "Clique number", false, false, [SENSIBILITY.ELEMENT], false);
 
-paramCliqueNumber.compute = ((g: ClientGraph) => {
+paramCliqueNumber.compute= ((g: Graph2) => {
     const maxClique = g.maximumClique();
     return [maxClique.size.toString(), maxClique];
 });
 
-paramCliqueNumber.showCertificate = (g: ClientGraph, clique: Set<number>) =>{
+paramCliqueNumber.showCertificate = (board: ClientBoard, clique: Set<number>) =>{
     for (const vId of clique){
         const v = g.vertices.get(vId);
         if (typeof v != "undefined"){
@@ -1547,7 +1536,7 @@ paramCliqueNumber.showCertificate = (g: ClientGraph, clique: Set<number>) =>{
 
 export const paramChromaticNumber = new Parametor("Chromatic number", "chromaticNumber", "χ", "Chromatic number", false, false, [SENSIBILITY.ELEMENT], false);
 
-paramChromaticNumber.compute = ((g: ClientGraph) => {
+paramChromaticNumber.compute= ((g: Graph2) => {
     const minColoring = g.minimalProperColoring();
     const colors = new Set<number>();
     for (const color of minColoring.values()){
@@ -1557,7 +1546,7 @@ paramChromaticNumber.compute = ((g: ClientGraph) => {
     return [colors.size.toString(), minColoring];
 })
 
-paramChromaticNumber.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+paramChromaticNumber.showCertificate = (board: ClientBoard, coloring: Map<number, number>) => {
     for (const [vId, colorId] of coloring){
         const v = g.vertices.get(vId);
         if (typeof v != "undefined"){
@@ -1569,7 +1558,7 @@ paramChromaticNumber.showCertificate = (g: ClientGraph, coloring: Map<number, nu
 
 export const paramChromaticIndex = new Parametor("Chromatic index", "chromaticIndex", "χ'", "Chromatic index", false, false, [SENSIBILITY.ELEMENT], false);
 
-paramChromaticIndex.compute = ((g: ClientGraph) => {
+paramChromaticIndex.compute= ((g: Graph2) => {
     const cliques = new Set<Set<number>>();
     for (const i of g.vertices.keys()){
         const clique = new Set<number>();
@@ -1590,7 +1579,7 @@ paramChromaticIndex.compute = ((g: ClientGraph) => {
     return [colors.size.toString(), minColoring];
 })
 
-paramChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+paramChromaticIndex.showCertificate = (board: ClientBoard, coloring: Map<number, number>) => {
     for (const [vId, colorId] of coloring){
         const l = g.links.get(vId);
         if (typeof l != "undefined"){
@@ -1602,7 +1591,7 @@ paramChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number, num
 
 export const paramGeomChromaticIndex = new Parametor("Geometric chromatic index", "paramGCI", "gci", "Geometric chromatic index", false, false, [SENSIBILITY.ELEMENT, SENSIBILITY.GEOMETRIC], false);
 
-paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
+paramGeomChromaticIndex.compute= ((g: Graph2) => {
 
     const cliques = new Set<Set<number>>();
     for (const i of g.vertices.keys()){
@@ -1626,7 +1615,7 @@ paramGeomChromaticIndex.compute = ((g: ClientGraph) => {
     return [colors.size.toString(), coloring];
 })
 
-paramGeomChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number, number>) => {
+paramGeomChromaticIndex.showCertificate = (board: ClientBoard, coloring: Map<number, number>) => {
     for (const [vId, colorId] of coloring){
         const l = g.links.get(vId);
         if (typeof l != "undefined"){
@@ -1638,7 +1627,7 @@ paramGeomChromaticIndex.showCertificate = (g: ClientGraph, coloring: Map<number,
 
 export const paramDegreeWidth = new Parametor("Degreewidth of tournaments", "paramDW", "dw", "Degreewidth", false, false, [SENSIBILITY.ELEMENT], false);
 
-paramDegreeWidth.compute = ((g: ClientGraph) => {
+paramDegreeWidth.compute= ((g: Graph2) => {
 
     if (g.vertices.size <= 0){
         return ["0", undefined];

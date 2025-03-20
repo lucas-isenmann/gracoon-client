@@ -27,6 +27,8 @@ export interface BoardElement {
 
 
 
+
+
 export class VertexElement implements BoardElement {
     center: CanvasCoord;
     id: number;
@@ -36,6 +38,7 @@ export class VertexElement implements BoardElement {
     isSelected: boolean = false;
     disk: SVGCircleElement;
     board: ClientBoard;
+    highlight: number | undefined;
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
@@ -56,13 +59,26 @@ export class VertexElement implements BoardElement {
         circle.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode())); // Use provided color instead of hardcoded red
         circle.style.transformBox = "fill-box";
         
-        circle.style.animation = "vertexCreate 0.5s ease-out forwards";
+        // circle.style.animation = "vertexCreate 0.5s ease-out forwards";
         this.disk = circle;
         this.disk.classList.add("vertex");
-        this.disk.classList.add("deselected")
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
+
+        board.resetGraph() 
+    }
+
+    setHighlight(value: number){
+        this.highlight = value;
+        this.disk.classList.add("highlight");
+        this.disk.setAttribute("stroke", "black");
+        this.disk.setAttribute('stroke-width', '10');
+    }
+
+    unHighlight(){
+        this.highlight = undefined;
+        this.disk.classList.remove("highlight")
     }
 
     setColor (color: Color) {
@@ -83,17 +99,18 @@ export class VertexElement implements BoardElement {
     }
 
     select(){
-        this.disk.classList.add("selected")
         this.disk.classList.remove("deselected")
+        this.disk.classList.add("selected")
+
         this.isSelected = true;
-        this.disk.style.animation = "selectVertex 0.5s ease-out forwards";
+        // this.disk.style.animation = "selectVertex 0.5s ease-out forwards";
     }
 
     deselect(){
         this.disk.classList.remove("selected")
         this.disk.classList.add("deselected")
         this.isSelected = false;
-        this.disk.style.animation = "deselectVertex 0.5s ease-out forwards";
+        // this.disk.style.animation = "deselectVertex 0.5s ease-out forwards";
 
     }
 
@@ -134,6 +151,7 @@ export class LinkElement implements BoardElement {
     line: SVGLineElement;
     isDirected: boolean;
     board: ClientBoard;
+    highlight: number | undefined;
     
 
 
@@ -174,6 +192,18 @@ export class LinkElement implements BoardElement {
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
+
+        board.resetGraph() 
+    }
+
+    setHighlight(value: number){
+        this.highlight = value;
+        this.line.classList.add("highlight")
+    }
+
+    unHighlight(){
+        this.highlight = undefined;
+        this.line.classList.remove("highlight")
     }
 
     delete(){

@@ -40,6 +40,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         console.log("Selection mouse down")
         console.log(pointed.data?.element);
 
+        // Compute selectedElements for the mouseDown, mouseMove, mouseUp cycle
         if (typeof pointed.data != "undefined"){
             if (pointed.data.element.isSelected){
                 const s2 = board.getSelectedElements();

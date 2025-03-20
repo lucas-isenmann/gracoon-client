@@ -7,6 +7,8 @@ import { ParametorLoaded } from './param_loaded';
 import { Zone } from './zone';
 import { ClientArea } from '../board/area';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
+import { EmbeddedGraph } from 'gramoloss';
+import { Graph2 } from '../board/graph2';
 
 
 
@@ -88,7 +90,7 @@ export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
     paramLoaded.div.classList.remove("inactive_parametor");
 
     if(param.is_live){
-        update_parametor(board.graph, paramLoaded);
+        update_parametor(board, paramLoaded);
         board.requestDraw();
     }
         
@@ -105,7 +107,7 @@ export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
 
 
 
-export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILITY>, force_compute?:boolean) {
+export function update_params_loaded(board: ClientBoard, sensibilities:Set<SENSIBILITY>, force_compute?:boolean) {
     // console.log("update_params_loaded ", sensibilities);
     if(force_compute === undefined){
         force_compute = false;
@@ -116,7 +118,7 @@ export function update_params_loaded(g:ClientGraph, sensibilities:Set<SENSIBILIT
             invalidParametor(param);
         }
         if((force_compute || param.parametor.is_live) && param.parametor.is_sensible(sensibilities)){
-            update_parametor(g, param);
+            update_parametor(board, param);
         }
         
     }
@@ -127,24 +129,24 @@ function invalidParametor(param: ParametorLoaded){
 }
 
 
-export function update_parametor(g:ClientGraph, param: ParametorLoaded){
+export function update_parametor(board: ClientBoard, param: ParametorLoaded){
     console.log("update_param")
     if ( param.zone instanceof ClientArea ){
-        const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
-        param.certificate = result[1];
-        updateResultSpan(result[0], param.parametor, param.resultSpan);
-        if (param.isVerbose){
-            g.board.unhighlightAll();
-            param.parametor.showCertificate(g, param.certificate);
-        }
+        // const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
+        // param.certificate = result[1];
+        // updateResultSpan(result[0], param.parametor, param.resultSpan);
+        // if (param.isVerbose){
+        //     g.board.unhighlightAll();
+        //     param.parametor.showCertificate(g, param.certificate);
+        // }
     }
     else{
-        const result = param.parametor.compute(g, true);
+        const result = param.parametor.compute(board.g, true);
         param.certificate = result[1];
         updateResultSpan(result[0], param.parametor, param.resultSpan);
         if (param.isVerbose){
-            g.board.unhighlightAll();
-            param.parametor.showCertificate(g, param.certificate);
+            board.unhighlightAll();
+            param.parametor.showCertificate(board, param.certificate);
         }
     }
 }

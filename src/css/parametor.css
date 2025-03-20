@@ -11,6 +11,7 @@
     align-items: flex-end;
     flex-direction: column;
     display: flex;
+    z-index: 10;
 }
 
 #params_available .param {

@@ -151,27 +151,27 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
 
 
     setAutoWeightDivPosNeighbors(){
-        for (const neighbor of this.board.graph.getNeighbors(this)){
-            if (neighbor.index != this.index) {
-                neighbor.setAutoWeightDivPos();
-            }
-        }
-        for (const neighbor of this.board.graph.getOutNeighbors(this)){
-            if (neighbor.index != this.index) {
-                const neighbor2 = this.board.graph.vertices.get(neighbor.index);
-                if (typeof neighbor2 != "undefined"){
-                    neighbor2.setAutoWeightDivPos();
-                }
-            }
-        }
-        for (const neighbor of this.board.graph.getInNeighbors(this)){
-            if (neighbor.index != this.index) {
-                const neighbor2 = this.board.graph.vertices.get(neighbor.index);
-                if (typeof neighbor2 != "undefined"){
-                    neighbor2.setAutoWeightDivPos();
-                }
-            }
-        }
+        // for (const neighbor of this.board.graph.getNeighbors(this)){
+        //     if (neighbor.index != this.index) {
+        //         neighbor.setAutoWeightDivPos();
+        //     }
+        // }
+        // for (const neighbor of this.board.graph.getOutNeighbors(this)){
+        //     if (neighbor.index != this.index) {
+        //         const neighbor2 = this.board.graph.vertices.get(neighbor.index);
+        //         if (typeof neighbor2 != "undefined"){
+        //             neighbor2.setAutoWeightDivPos();
+        //         }
+        //     }
+        // }
+        // for (const neighbor of this.board.graph.getInNeighbors(this)){
+        //     if (neighbor.index != this.index) {
+        //         const neighbor2 = this.board.graph.vertices.get(neighbor.index);
+        //         if (typeof neighbor2 != "undefined"){
+        //             neighbor2.setAutoWeightDivPos();
+        //         }
+        //     }
+        // }
     }
 
 
@@ -215,9 +215,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
      */
     draw(board: ClientBoard) {
         let vertex_radius = VERTEX_RADIUS;
-        if (board.getIndexType() != INDEX_TYPE.NONE) {
-            vertex_radius = 2 * VERTEX_RADIUS;
-        }
+        
 
         const color = getCanvasColor(this.data.color, board.isDarkMode());
 
@@ -251,13 +249,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
         drawCircle(this.data.canvas_pos, color, vertex_radius - 2, 1, board.ctx);
 
         // DRAW INDEX 
-        if (board.getIndexType() != INDEX_TYPE.NONE) {
-            board.ctx.font = "17px Arial";
-            const measure = board.ctx.measureText(this.data.indexString);
-            board.ctx.fillStyle = (board.isDarkMode()) ? "black" : "white";
-            const pos = this.data.canvas_pos;
-            board.ctx.fillText(this.data.indexString, pos.x - measure.width / 2, pos.y + 5);
-        }
+        
 
         // DRAW PARAMETER VALUES
         for( const pv of this.data.parameter_values.values()){
@@ -274,32 +266,7 @@ export class ClientVertex extends BasicVertex<ClientVertexData> {
      * Update the indexString according to the indexType of board
      */
     updateIndexString(){
-        const letters = "abcdefghijklmnopqrstuvwxyz";
-        if (this.board.getIndexType() == INDEX_TYPE.NONE) {
-            this.data.indexString = "";
-        } else if (this.board.getIndexType() == INDEX_TYPE.NUMBER_STABLE) {
-            this.data.indexString = String(this.index)
-        } else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_STABLE) {
-            this.data.indexString = letters.charAt(this.index % letters.length);
-        }
-        else if (this.board.getIndexType() == INDEX_TYPE.NUMBER_UNSTABLE) {
-            let counter = 0;
-            for (const key of this.board.graph.vertices.keys()) {
-                if (key < this.index) {
-                    counter++;
-                }
-            }
-            this.data.indexString = String(counter)
-        }
-        else if (this.board.getIndexType() == INDEX_TYPE.ALPHA_UNSTABLE) {
-            let counter = 0;
-            for (const key of this.board.graph.vertices.keys()) {
-                if (key < this.index) {
-                    counter++;
-                }
-            }
-            this.data.indexString = letters.charAt(counter % letters.length);
-        }
+        
     }
 
 }

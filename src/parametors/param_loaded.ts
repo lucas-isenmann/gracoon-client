@@ -109,7 +109,7 @@ export class ParametorLoaded {
                     }
                 }
                 this.nameSpan.classList.add("parametor-verbose")
-                this.parametor.showCertificate(board.graph, this.certificate);
+                this.parametor.showCertificate(board, this.certificate);
                 board.requestDraw();
             } else {
                 this.nameSpan.classList.remove("parametor-verbose");
@@ -133,7 +133,7 @@ export class ParametorLoaded {
             svg_reload_parametor.title = "Recompute parameter";
             svg_reload_parametor.src = "/img/parametor/reload.svg";
             svg_reload_parametor.addEventListener('click', ()=>{
-                update_parametor(board.graph, paramLoaded );
+                update_parametor(board, paramLoaded );
                 board.requestDraw();
             });
             svg_reload_parametor.classList.add("reload_img");

@@ -1,4 +1,4 @@
-import { Area, Board, Coord, EmbeddedGraph, GeneratorId, Link, Option, Rectangle, TextZone, Vect } from "gramoloss";
+import { Area, Board, Coord, EmbeddedGraph, EmbeddedVertexData, GeneratorId, Link, Option, ORIENTATION, Rectangle, TextZone, Vect, Vertex } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -27,6 +27,7 @@ import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
 import { CrossMode, TwistMode } from "./stanchion";
 import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
+import { Graph2, VertexData2 } from "./graph2";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -92,7 +93,6 @@ export enum INDEX_TYPE {
 
 export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
     camera: Camera;
-    graph: ClientGraph;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
     elementOver: undefined | ClientVertex | ClientLink | ClientStroke | ClientRectangle;
@@ -107,6 +107,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     elements: Map<number, BoardElement>;
     svgContainer: SVGElement;
     elementCounter: number = 0;
+
+    g: Graph2;
 
 
     graphClipboard: Option<ClientGraph>;
@@ -132,6 +134,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     constructor(){
         super();
+
+        this.g = new Graph2();
 
         this.elements = new Map();
         this.svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -197,7 +201,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
         this.camera = new Camera();
-        this.graph = new ClientGraph(this);
         
         
         this.elementOver = undefined;
@@ -223,6 +226,53 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         })
 
         
+    }
+
+    resetGraph(){
+        console.log("reset Graph")
+        this.g = new Graph2();
+        for (const element of this.elements.values()){
+            if (element instanceof VertexElement){
+                this.g.setVertex(element.serverId, new VertexData2() );
+            }
+        }
+        for (const element of this.elements.values()){
+            if (element instanceof LinkElement){
+                this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED);
+            }
+        }
+    }
+
+
+    highlight(indices: Array<[BoardElementType, number, number]>) {
+        for (const [type, serverId, highlightValue] of indices){
+            for (const element of this.elements.values()){
+                if (element.boardElementType == type && element.serverId == serverId  ){
+                    if (element instanceof VertexElement || element instanceof LinkElement){
+                        element.setHighlight(highlightValue)
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    highlightVertex(serverId: number, value: number){
+        for (const element of this.elements.values()){
+            if (element.serverId == serverId && element instanceof VertexElement ){
+                element.setHighlight(value)
+                break;
+            }
+        }
+    }
+
+    highlightLink(serverId: number, value: number){
+        for (const element of this.elements.values()){
+            if (element.serverId == serverId && element instanceof LinkElement ){
+                element.setHighlight(value)
+                break;
+            }
+        }
     }
 
 
@@ -406,16 +456,145 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-    setIndexType(newIndexType: INDEX_TYPE){
-        if (this.indexType != newIndexType){
-            this.indexType = newIndexType;
-            this.graph.compute_vertices_index_string();
+
+    nearbyLink(pos: CanvasCoord): Option<LinkElement>{
+        for (const element of this.elements.values()){
+            if (element instanceof LinkElement && element.isNearby(pos, 10)){
+                return element;
+            }
         }
+        return undefined
+    }
+    
+    // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
+    alignPosition(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
+        const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
+        if (this.is_aligning) {
+            this.alignement_horizontal_y = undefined;
+            this.alignement_vertical_x = undefined;
+            for (const element of this.elements.values()){
+                if (excluded_indices.has(element.serverId) == false) {
+                    if (Math.abs(element.center.y - pos_to_align.y) <= 15) { // TODO element.canvasCenter
+                        aligned_pos.y = element.center.y;
+                        this.alignement_horizontal_y = camera.canvasCoordY(element.center);
+                        break
+                    }
+                    if (Math.abs(element.center.x - pos_to_align.x) <= 15) { // TODO element.canvasCenter
+                        aligned_pos.x = element.center.x;
+                        this.alignement_vertical_x = camera.canvasCoordX(element.center);
+                        break;
+                    }
+                }
+            }
+        }
+        if ( this.grid.type == GridType.GridRect ) {
+            const grid_size = this.grid.grid_size;
+            for (let x = camera.camera.x % grid_size; x < canvas.width; x += grid_size) {
+                if (Math.abs(x - pos_to_align.x) <= 15) {
+                    aligned_pos.x = x;
+                    break;
+                }
+            }
+            for (let y = camera.camera.y % grid_size; y < canvas.height; y += grid_size) {
+                if (Math.abs(y - pos_to_align.y) <= 15) {
+                    aligned_pos.y = y;
+                    break;
+                }
+            }
+        } else  if ( this.grid.type == GridType.GridVerticalTriangular ) {
+            const grid_size = this.grid.grid_size;
+            const h = grid_size*Math.sqrt(3)/2;
+
+            // find the corners of the quadrilateral containing the point
+            const px = ((pos_to_align.x-camera.camera.x)- (pos_to_align.y-camera.camera.y)/Math.sqrt(3))/grid_size;
+            const py = (pos_to_align.y-camera.camera.y)/h;
+            const i = Math.floor(px);
+            const j = Math.floor(py);
+            const corners = [
+                new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2), // top left
+                new Coord((i+1)*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2), // top right
+                new Coord(i*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2), // bottom left
+                new Coord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2) // bottom right
+            ]
+            
+            // align on the corners if the point is near enough
+            for (let corner of corners){
+                corner = corner.add(camera.camera);
+                if (Math.sqrt(corner.dist2(pos_to_align)) <= 2*15){
+                    aligned_pos.x = corner.x;
+                    aligned_pos.y = corner.y;
+                    return aligned_pos;
+                }
+            }
+
+            // projection on the \ diagonal starting at the top left corner
+            const projection1 = pos_to_align.orthogonal_projection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
+            if (projection1.dist2(pos_to_align) <= 15*15){
+                aligned_pos.x = projection1.x;
+                aligned_pos.y = projection1.y;
+            }
+
+            // projection on the \ diagonal starting at the top right corner
+            const projection2 = pos_to_align.orthogonal_projection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
+            if (projection2.dist2(pos_to_align) <= 15*15){
+                aligned_pos.x = projection2.x;
+                aligned_pos.y = projection2.y;
+            }
+
+            // projection on the / diagonal starting at the top right corner
+            const projection = pos_to_align.orthogonal_projection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
+            if (projection.dist2(pos_to_align) <= 15*15){
+                aligned_pos.x = projection.x;
+                aligned_pos.y = projection.y;
+            }
+
+            // align on the horizontal lines
+            for (let k of [0,3]){ // 0 and 3 are the indices of the top left and bottom right corner
+                // of the quadrilateral containing the point
+                let y = corners[k].y;
+                if (Math.abs(y - pos_to_align.y) <= 15) {
+                    aligned_pos.y = y;
+                    break;
+                }
+            }
+            
+        } else if (this.grid.type == GridType.GridPolar){
+            const size = this.grid.grid_size;
+            const center = CanvasCoord.fromCoord(this.grid.polarCenter, this.camera);
+            const p = aligned_pos;
+
+            let d = Math.sqrt(p.dist2(center));
+            if (d != 0){
+                const i = Math.floor(d/(2*size));
+                let alignToCenter = false;
+                if ( d - i*2*size <= 20){
+                    if (i == 0) {
+                        alignToCenter = true;
+                    }
+                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*(i*2*size)/d;
+                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*(i*2*size)/d;
+                } else if ( (i+1)*2*size - d <= 20){
+                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*((i+1)*2*size)/d;
+                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*((i+1)*2*size)/d;
+                }
+                
+                if (alignToCenter == false){
+                    for (let j = 0 ; j < this.grid.polarDivision; j ++){
+                        const angle = 2*Math.PI*j/this.grid.polarDivision;
+                        const end = new Vect(1,0);
+                        end.rotate(angle);
+                        const projection = aligned_pos.orthogonal_projection(center, end);
+                        if ( Math.sqrt(aligned_pos.dist2(projection)) <= 20){
+                            aligned_pos.x = projection.x;
+                            aligned_pos.y = projection.y;
+                        }
+                    }
+                }
+            }
+        }
+        return aligned_pos;
     }
 
-    getIndexType(): INDEX_TYPE {
-        return this.indexType;
-    }
 
     afterVariableChange(){
     }
@@ -732,12 +911,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             area.update_after_camera_change(this.camera);
         }
 
-        for (const v of this.graph.vertices.values()) {
-            v.update_after_view_modification(this.camera);
-        }
-        for (const link of this.graph.links.values()) {
-            link.update_after_view_modification(this.camera);
-        }
+        // for (const v of this.graph.vertices.values()) {
+        //     v.update_after_view_modification(this.camera);
+        // }
+        // for (const link of this.graph.links.values()) {
+        //     link.update_after_view_modification(this.camera);
+        // }
         this.updateOtherUsersCanvasPos()
     }
 
@@ -749,18 +928,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             }
         }
 
-        this.graph.select_links_in_rect(corner1, corner2);
 
-        for (const stroke of this.strokes.values()){
-            if (stroke.is_in_rect(corner1,corner2)){
-                stroke.isSelected = true;   
-            }
-        }
-        for (const rectangle of this.rectangles.values()){
-            if (rectangle.isInRect(corner1, corner2)){
-                rectangle.isSelected = true;
-            }
-        }
+       
     }
 
 
@@ -790,24 +959,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             }
         }
 
-        for (const link of this.graph.links.values()){
-            if (link.isPosNear(pos)){
-                this.elementOver = link;
-                break;
-            }
-        }
+        
         for (const stroke of this.strokes.values()){
             if (stroke.is_nearby(pos, this.camera)){
                 this.elementOver = stroke;
                 break;
             }
         }
-        for (const vertex of this.graph.vertices.values()){
-            if (vertex.is_nearby(pos, 150)){
-                this.elementOver = vertex;
-                break;
-            }
-        }
+        
         return before !== this.elementOver;
     }
 
@@ -955,12 +1114,17 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     unhighlightAll(){
-        for (const v of this.graph.vertices.values()){
-            v.data.highlight = undefined;
+        for (const element of this.elements.values()){
+            if (element instanceof VertexElement || element instanceof LinkElement){
+                element.unHighlight();
+            }
         }
-        for (const l of this.graph.links.values()){
-            l.data.highlight = undefined;
-        }
+        // for (const v of this.graph.vertices.values()){
+        //     v.data.highlight = undefined;
+        // }
+        // for (const l of this.graph.links.values()){
+        //     l.data.highlight = undefined;
+        // }
     }
 
     getSelectedVertices(): Set<number> {
@@ -1017,36 +1181,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
-    translate_area(shift: CanvasVect, area: ClientArea, verticesContained: Set<number>){
-        this.graph.vertices.forEach((vertex, vertexIndex) => {
-            if (verticesContained.has(vertexIndex)){
-                vertex.translate_by_canvas_vect(shift, this.camera);
-            }
-        })
-        for( const link of this.graph.links.values()){
-            if ( typeof link.data.cp != "undefined"){
-                const v1 = link.startVertex;
-                const v2 = link.endVertex;
-                if(verticesContained.has(link.startVertex.index) && verticesContained.has(link.endVertex.index)){
-                    link.translate_cp_by_canvas_vect(shift, this.camera);
-                }
-                else if(verticesContained.has(link.startVertex.index)){ // and thus not v2
-                    const newPos = v1.data.pos;
-                    const previousPos = this.camera.create_server_coord_from_subtranslated(v1.data.canvas_pos, shift);
-                    const fixedPos = v2.data.pos;
-                    link.transformCP(newPos, previousPos, fixedPos);
-                    link.data.cp_canvas_pos = this.camera.create_canvas_coord(link.data.cp);
-                }else if(verticesContained.has(link.endVertex.index)) { // and thus not v1
-                    const newPos = v2.data.pos;
-                    const previousPos = this.camera.create_server_coord_from_subtranslated(v2.data.canvas_pos, shift);
-                    const fixedPos = v1.data.pos;
-                    link.transformCP(newPos, previousPos, fixedPos);
-                    link.data.cp_canvas_pos = this.camera.create_canvas_coord(link.data.cp);
-                }
-            }
-        }
-        translate_by_canvas_vect(area, shift, this.camera);
-    }
+    
 
 
     /**

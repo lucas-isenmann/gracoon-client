@@ -110,16 +110,16 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         const firstVertexIndex = (typeof pointed != "undefined" && pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.serverId : linkInteractor.indexLastCreatedVertex;
         
 
-        const selectedVertex = board.getSpecificElementNearby(board.graph.alignPosition(e, new Set(), board.canvas, board.camera), BoardElementType.Vertex, 15);
+        const selectedVertex = board.getSpecificElementNearby(board.alignPosition(e, new Set(), board.canvas, board.camera), BoardElementType.Vertex, 15);
         console.log(selectedVertex);
         if (selectedVertex instanceof VertexElement){
             if ( firstVertexIndex != selectedVertex.serverId) { // there is a vertex nearby and it is not the previous one
                 board.emitAddElement(new LinkPreData(firstVertexIndex, selectedVertex.serverId,  orientation, "", board.colorSelected), (response: number) => {});
             } 
         } else {
-            const link = board.graph.nearbyLink(e);
+            const link = board.nearbyLink(e);
             if (typeof link == "undefined"){
-                const aligned_mouse_pos = board.graph.alignPosition(e, new Set(), board.canvas, board.camera);
+                const aligned_mouse_pos = board.alignPosition(e, new Set(), board.canvas, board.camera);
                 const serverPos = aligned_mouse_pos.toCoord(board.camera);
                 console.log("emit add Vertex")
                 board.emitAddElement(new ClientVertexData(serverPos.x, serverPos.y, "", board.camera, board.colorSelected), (response) => { 
@@ -134,7 +134,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 });
             }
             else {
-                board.emitSubdivideLink(link.index, e.toCoord(board.camera), "", board.colorSelected, (response) => { 
+                board.emitSubdivideLink(link.serverId, e.toCoord(board.camera), "", board.colorSelected, (response) => { 
                     board.emitAddElement( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
@@ -155,12 +155,12 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         if (typeof board.selfUser.canvasPos != "undefined"){
             const color = getCanvasColor(board.colorSelected, board.isDarkMode());
             const p1 = board.selfUser.canvasPos;
-            const pos = board.graph.alignPosition(p1, new Set(), board.canvas, board.camera);
+            const pos = board.alignPosition(p1, new Set(), board.canvas, board.camera);
             board.drawCanvasCircle( pos, 10, color, 0.5);
             if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
                 board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.camera), color ,4);
                 if ( orientation == ORIENTATION.DIRECTED) {
-                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos, (board.getIndexType() != INDEX_TYPE.NONE) ? 2*VERTEX_RADIUS : VERTEX_RADIUS);
+                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos,  VERTEX_RADIUS);
                 }
             }
         }

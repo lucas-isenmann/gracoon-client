@@ -1,6 +1,9 @@
 import { ClientBoard } from '../board/board';
 import { Parametor } from './parametor';
 import { load_param, params_available } from './parametor_manager';
+import { EntireZone } from './zone';
+
+
 
 export function update_params_available_div(board: ClientBoard) {
     const div = document.getElementById("params_available_content");
@@ -27,7 +30,7 @@ export function update_params_available_div(board: ClientBoard) {
         param_label_div.id = `param_div_label_${param.id}`;
         param_label_div.innerHTML = param.name
 
-        // param_label_div.onclick = function () { load_param(param, canvas, ctx, g, null); params_available_turn_off_div(); }
+        param_label_div.onclick = function () { load_param(param, board, board.entireZone); params_available_turn_off_div(); }
         div.appendChild(param_div);
         param_div.appendChild(param_label_div);
     }
@@ -131,29 +134,22 @@ export function params_available_turn_on_div() {
 
 
 function toggle_list_graph_option(param:Parametor, board: ClientBoard){
-    // console.log("CLICKY CLICKY", param);
-
-
-    // if there is no area, click on the parametor just computes it on the full graph
+    // If there is no area, click on the parametor just computes it on the full graph
     if(board.areas.size == 0){
         load_param(param, board, board.entireZone);
         params_available_turn_off_div(); 
     }
     else{
-
         // We get the container of the list
         const containerDOM = document.getElementById(`param_div_${param.id}_list_graph_container`);
         if (containerDOM == null) return;
 
         // We toggle its visibility
-        // console.log("AVANT", containerDOM.style.display)
         if(containerDOM.style.display != "flex"){
             containerDOM.style.display = "flex"
         }
         else{
             containerDOM.style.display = "none"
         }
-
-        // console.log("APRES", containerDOM.style.display)
     }
 }

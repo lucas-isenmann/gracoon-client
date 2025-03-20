@@ -42,7 +42,7 @@ export function createRectangleInteractor(board: ClientBoard){
     
     shapeInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
-            const magnetE = board.graph.alignPosition(e, new Set(), board.canvas, board.camera);
+            const magnetE = board.alignPosition(e, new Set(), board.canvas, board.camera);
             // currentRectangle.setCorners(board.camera.create_canvas_coord(firstCorner), magnetE);
             if ( firstCorner.x <= magnetE.x && firstCorner.y <= magnetE.y){
                 board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_RIGHT);

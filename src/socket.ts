@@ -28,7 +28,7 @@ export const socket = io(adress);
 
 
 export function setupHandlers(board: ClientBoard) {
-    const g = board.graph;
+    // const g = board.graph;
 
     // GENERIC
     socket.on("error", handleErrorLog);
@@ -197,18 +197,20 @@ export function setupHandlers(board: ClientBoard) {
                 if (typeof stroke != "undefined"){
                     stroke.translate_by_canvas_vect(cshift, board.camera);
                 }
-            } else if ( kind == "Area"){
-                const area = board.areas.get(index);
-                if (typeof area != "undefined"){
-                    const vertices_contained = g.verticesContaintedByArea(area);
-                    board.translate_area(cshift, area, vertices_contained);
-                    for (const link of g.links.values()){
-                        if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
-                            link.setAutoWeightDivPos();
-                        }
-                    }
-                }
-            } else if (kind == "Vertex"){
+            } 
+            // else if ( kind == "Area"){
+            //     const area = board.areas.get(index);
+            //     if (typeof area != "undefined"){
+            //         const vertices_contained = g.verticesContaintedByArea(area);
+            //         board.translate_area(cshift, area, vertices_contained);
+            //         for (const link of g.links.values()){
+            //             if (vertices_contained.has(link.startVertex.index) || vertices_contained.has(link.endVertex.index)){
+            //                 link.setAutoWeightDivPos();
+            //             }
+            //         }
+            //     }
+            // } 
+            else if (kind == "Vertex"){
                 board.translateElement(BoardElementType.Vertex, index, cshift);
                 // g.translate_vertex_by_canvas_vect(index, cshift, board.camera);
                 // for (const link of g.links.values()){
@@ -217,23 +219,25 @@ export function setupHandlers(board: ClientBoard) {
                 //     }
                 // }
                 // update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-            } else if (kind == "ControlPoint"){
-                const link = g.links.get(index);
-                if (typeof link != "undefined"){
-                    if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
-                        link.data.cp.translate(shift);
-                        link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
-                    }
-                    link.setAutoWeightDivPos();
-                    update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
-                }
-                
-            } else {
+            }
+            //  else if (kind == "ControlPoint"){
+            //     const link = g.links.get(index);
+            //     if (typeof link != "undefined"){
+            //         if ( typeof link.data.cp != "undefined" && typeof link.data.cp_canvas_pos != "string"){
+            //             link.data.cp.translate(shift);
+            //             link.data.cp_canvas_pos.translate_by_canvas_vect(cshift);
+            //         }
+            //         link.setAutoWeightDivPos();
+            //         update_params_loaded(g, new Set([SENSIBILITY.GEOMETRIC]), false);
+            //     }
+            // } 
+            else {
                 console.log(`translate element: kind ${kind} not supported`);
             }
         }
         
         board.requestDraw();
+        board.resetGraph()
     }
 
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
@@ -280,11 +284,8 @@ export function setupHandlers(board: ClientBoard) {
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                // const newVertex = board.graph.set_vertex(data.index, new ClientVertexData(x,y,weight, board.camera, color));
-                // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
-                // g.compute_vertices_index_string();
-
                 new VertexElement(board, data.index, x, y, "", weight, color );
+                update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
             } 
             else if (data.kind == "Link"){
                 console.log("Create Link");
@@ -317,12 +318,12 @@ export function setupHandlers(board: ClientBoard) {
 
                 if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
                     new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color );
+                    update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
                 }
 
 
             }
         }
-        board.requestDraw();        
     }
 
     function handleDeleteElements(data: [[string,number]], sensibilities: [SENSIBILITY]){
@@ -350,6 +351,7 @@ export function setupHandlers(board: ClientBoard) {
             }
         }
         board.requestDraw();
+        board.resetGraph()
     }
 
 
@@ -391,26 +393,27 @@ export function setupHandlers(board: ClientBoard) {
                 board.setColor(BoardElementType.Link, data.index, data.value as Color);
             }
 
-            const link = board.graph.links.get(data.index);
-            if (typeof link == "undefined") return;
-            if (data.param == "weight"){
-                const weight = data.value as string;
-                if ( (document.activeElement && typeof link.data.weightDiv != "undefined" && document.activeElement.id == link.data.weightDiv.id) == false ){
-                    console.log("update link");
-                    link.setWeight(weight);
-                    weightUpdate = true;
-                }
-            } else if (data.param == "cp"){
-                if (typeof data.value == "undefined"){
-                    link.data.cp = undefined;
-                    link.data.cp_canvas_pos = "";
-                } else {
-                    const new_cp = new Coord(data.value.x, data.value.y);
-                    link.set_cp(new_cp, board.camera);
-                }
-                link.setAutoWeightDivPos();
-            }
-        }else if (data.kind == "Stroke"){
+            // const link = board.graph.links.get(data.index);
+            // if (typeof link == "undefined") return;
+            // if (data.param == "weight"){
+            //     const weight = data.value as string;
+            //     if ( (document.activeElement && typeof link.data.weightDiv != "undefined" && document.activeElement.id == link.data.weightDiv.id) == false ){
+            //         console.log("update link");
+            //         link.setWeight(weight);
+            //         weightUpdate = true;
+            //     }
+            // } else if (data.param == "cp"){
+            //     if (typeof data.value == "undefined"){
+            //         link.data.cp = undefined;
+            //         link.data.cp_canvas_pos = "";
+            //     } else {
+            //         const new_cp = new Coord(data.value.x, data.value.y);
+            //         link.set_cp(new_cp, board.camera);
+            //     }
+            //     link.setAutoWeightDivPos();
+            // }
+        } 
+        else if (data.kind == "Stroke"){
             const stroke = board.strokes.get(data.index);
             if (typeof stroke == "undefined") return;
             if(data.param == "color"){
@@ -441,26 +444,15 @@ export function setupHandlers(board: ClientBoard) {
                 board.setC2(data.index, data.value.x, data.value.y);
             }
 
-            const rectangle = board.rectangles.get(data.index);
-            if (typeof rectangle == "undefined") return;
-            if(data.param == "c1"){
-                const new_c1 = new Coord(data.value.x , data.value.y);
-                rectangle.c1 = new_c1;
-                rectangle.update_after_camera_change(board.camera);
-            } else if(data.param == "c2"){
-                const new_c2 = new Coord(data.value.x , data.value.y);
-                rectangle.c2 = new_c2;
-                rectangle.update_after_camera_change(board.camera);
-            } else if (data.param == "color"){
-                rectangle.color = data.value as Color;
-            }
+            
         } else {
             console.log("Kind not supported :", data.kind);
         }
-        if (weightUpdate){
-            update_params_loaded(g, new Set([SENSIBILITY.WEIGHT]), false);
-        }
+        // if (weightUpdate){
+        //     update_params_loaded(g, new Set([SENSIBILITY.WEIGHT]), false);
+        // }
         board.requestDraw();
+        board.resetGraph()
     }
 
     function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
@@ -508,18 +500,18 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleAreas(data: [[number, {c1: {x: number, y: number}, c2: {x: number, y: number}, color: string, label: string}]]){
         console.log("[Handle] reset areas")
-        board.clearAreas();
-        for(const [index,rawArea] of data){
-            const c1 = new Coord(rawArea.c1.x, rawArea.c1.y);
-            const c2 = new Coord(rawArea.c2.x, rawArea.c2.y);
-            const new_area = new ClientArea( rawArea.label, c1, c2, rawArea.color, board, index);
-            board.areas.set(index, new_area);
-        }
+        // board.clearAreas();
+        // for(const [index,rawArea] of data){
+        //     const c1 = new Coord(rawArea.c1.x, rawArea.c1.y);
+        //     const c2 = new Coord(rawArea.c2.x, rawArea.c2.y);
+        //     const new_area = new ClientArea( rawArea.label, c1, c2, rawArea.color, board, index);
+        //     board.areas.set(index, new_area);
+        // }
         
-        update_params_loaded(g, new Set([SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.GEOMETRIC]), false);
-        update_options_graphs(board);
-        // console.log("update???")
-        board.requestDraw();
+        // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.GEOMETRIC]), false);
+        // update_options_graphs(board);
+        // // console.log("update???")
+        // board.requestDraw();
     }
 
 
@@ -597,15 +589,15 @@ export function setupHandlers(board: ClientBoard) {
         //     console.log(link.startVertex.index, link.endVertex.index, link.orientation);
         // }
 
-        g.compute_vertices_index_string();
 
 
         // TODO sensibilities is unsued
         const sensi2 = new Set<SENSIBILITY>();
         sensi2.add(SENSIBILITY.ELEMENT)
-        update_params_loaded(g, sensi2, true);
+        // update_params_loaded(g, sensi2, true);
         console.timeEnd('resetGraph')
         board.requestDraw();
+        board.resetGraph()
     }
 
 }

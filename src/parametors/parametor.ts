@@ -1,4 +1,7 @@
+import { EmbeddedGraph } from "gramoloss";
 import { ClientGraph } from "../board/graph";
+import { ClientBoard } from "../board/board";
+import { Graph2 } from "../board/graph2";
 
 export enum SENSIBILITY {
     GEOMETRIC = "GEOMETRIC", // Move of vertex/link
@@ -25,8 +28,8 @@ function getSensibility(s: string){
 export class Parametor {
     name: string;
     id:string;
-    compute: (g: ClientGraph, verbose: boolean) => [string, any];
-    showCertificate: (g: ClientGraph, certificate: any) => void;
+    compute: (g: Graph2, verbose: boolean) => [string, any];
+    showCertificate: (board: ClientBoard, certificate: any) => void;
     is_live:boolean;
     is_boolean:boolean;
     sensibility:Set<SENSIBILITY>;
@@ -49,7 +52,7 @@ export class Parametor {
         this.showCertificate = () => {};
     }
 
-    static from_function(f: (g: ClientGraph, verbose: boolean) => [string, any], name: string, id: string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean): Parametor {
+    static from_function(f: (g: Graph2, verbose: boolean) => [string, any], name: string, id: string, short_name:string, title:string, is_live:boolean, is_boolean:boolean, sensibility:Array<SENSIBILITY>, has_info:boolean): Parametor {
         let param = new Parametor(name, id, short_name, title, is_live, is_boolean, sensibility, has_info);
         param.compute = f;
         return param;

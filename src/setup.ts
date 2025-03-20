@@ -68,7 +68,6 @@ function setup() {
 
     setupClientVersionDiv();
     
-
    
 
     setupHandlers(localBoard);
@@ -146,7 +145,7 @@ function setup() {
             new PreFolder("export", [
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
                         // const tikzStr = TikZ_create_file_data(localBoard.graph);
-                        const tikzStr = generateTikz2(localBoard.graph, 2);
+                        const tikzStr = generateTikz2(localBoard.g, 2);
                         // console.log(btoa(localBoard.graph.compressToString()))
                         const a = document.createElement("a");
                         a.href = window.URL.createObjectURL(new Blob([tikzStr], { type: "text/plain" }));
@@ -164,12 +163,12 @@ function setup() {
                 // new PreLauncher("import", "Load .gco file",  "", loadFile),
                 new PreLauncher("import", "Parse and import .dot file",  "", () => parseDot(localBoard, socket)),
             ]),
-            new PreFolder("index_none", [
-                new PreSwitch(false, "index_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
-                new PreSwitch(false, "index_alpha_unstable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)})
-            ]),
+            // new PreFolder("index_none", [
+            //     new PreSwitch(false, "index_number_stable", "[Stable numerical] Set automatically labels to numeric and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+            //     new PreSwitch(false, "index_number_unstable", "[Unstable numerical] Set automatically labels to numeric. Labels will be recomputed after vertices deletions so that there are between 0 and n-1.", () => {localBoard.setIndexType(INDEX_TYPE.NUMBER_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+            //     new PreSwitch(false, "index_alpha_stable", "[Stable alphabetical] Set automatically labels to alphabetic and maintain labels after vertices deletions.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_STABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)}),
+            //     new PreSwitch(false, "index_alpha_unstable", "[Unstable alphabetic] Set automatically labels to alphabetic. Labels will be recomputed after vertices deletions so that there are between a and z.", () => {localBoard.setIndexType(INDEX_TYPE.ALPHA_UNSTABLE)}, () => {localBoard.setIndexType(INDEX_TYPE.NONE)})
+            // ]),
             new PreLauncher("share", "Copy invitation url to clipboard", "", () => {
                 socket.emit("get_room_id", (room_id: string) => {
                     navigator.clipboard.writeText(location.origin + "/?room_id=" + room_id);
@@ -234,21 +233,21 @@ function setup() {
 function setupStanchionDrawer(board: ClientBoard){
 
 
-    board.afterVariableChange = () => {
-        const h = board.getVariableValue("h");
-        const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
-        const twistValue = board.getVariableValue("twistValue");
-        const durete = board.getVariableValue("durete");
-        const crossRatio = board.getVariableValue("crossRatio");
-        const width = board.getVariableValue("width");
-        const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
-        const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+    // board.afterVariableChange = () => {
+    //     const h = board.getVariableValue("h");
+    //     const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+    //     const twistValue = board.getVariableValue("twistValue");
+    //     const durete = board.getVariableValue("durete");
+    //     const crossRatio = board.getVariableValue("crossRatio");
+    //     const width = board.getVariableValue("width");
+    //     const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+    //     const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
 
-        board.draw();
-        if ( typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
-            board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
-        }
-    }
+    //     board.draw();
+    //     if ( typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
+    //         board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
+    //     }
+    // }
 
     board.addVariable("h", 0, 20, 50, 0.1, () => {
         board.afterVariableChange()
@@ -278,40 +277,40 @@ function setupStanchionDrawer(board: ClientBoard){
         board.afterVariableChange()
     });
 
-    window.addEventListener('keydown', function (e) {
-        if (e.key == "u"){
-            console.log("generate moebius stanchions SVG");
-            const h = board.getVariableValue("h");
-            const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
-            const twistValue = board.getVariableValue("twistValue");
-            const durete = board.getVariableValue("durete");
-            const crossRatio = board.getVariableValue("crossRatio");
-            const width = board.getVariableValue("width");
-            const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
-            const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+    // window.addEventListener('keydown', function (e) {
+    //     if (e.key == "u"){
+    //         console.log("generate moebius stanchions SVG");
+    //         const h = board.getVariableValue("h");
+    //         const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+    //         const twistValue = board.getVariableValue("twistValue");
+    //         const durete = board.getVariableValue("durete");
+    //         const crossRatio = board.getVariableValue("crossRatio");
+    //         const width = board.getVariableValue("width");
+    //         const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+    //         const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
 
-            if (typeof twistValue == "number" && typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean"){
-                board.graph.drawCombinatorialMap("", board.ctx, h,  crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
-            }
-        }
-        if (e.key == "v"){
-            console.log("generate moebius stanchions SVG");
-            const h = board.getVariableValue("h");
-            const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
-            const twistValue = board.getVariableValue("twistValue");
-            const durete = board.getVariableValue("durete");
-            const crossRatio = board.getVariableValue("crossRatio");
-            const width = board.getVariableValue("width");
-            const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
-            const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
+    //         if (typeof twistValue == "number" && typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean"){
+    //             board.graph.drawCombinatorialMap("", board.ctx, h,  crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
+    //         }
+    //     }
+    //     if (e.key == "v"){
+    //         console.log("generate moebius stanchions SVG");
+    //         const h = board.getVariableValue("h");
+    //         const adaptToEdgeLength = board.getVariableValue("adaptToEdgeLength");
+    //         const twistValue = board.getVariableValue("twistValue");
+    //         const durete = board.getVariableValue("durete");
+    //         const crossRatio = board.getVariableValue("crossRatio");
+    //         const width = board.getVariableValue("width");
+    //         const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
+    //         const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
 
-            if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
-                // board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
-                board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode)
-            }
-        }
+    //         if (typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
+    //             // board.graph.getCombinatorialMap(ctx, h, h2, crossRatio, adaptToEdgeLength, ratio, durete);
+    //             board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode)
+    //         }
+    //     }
 
-    })
+    // })
 }
 
 
