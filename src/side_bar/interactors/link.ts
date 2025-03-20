@@ -79,11 +79,11 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation, "", board.colorSelected), () => {} )
                 if (board.keyPressed.has("Control")){
                     linkInteractor.indexLastCreatedVertex = vertex.serverId;
-                    linkInteractor.lastVertexPos = vertex.center;
+                    linkInteractor.lastVertexPos = vertex.serverCenter;
                 }
             } else {
                 linkInteractor.indexLastCreatedVertex = vertex.serverId;
-                linkInteractor.lastVertexPos = vertex.center;
+                linkInteractor.lastVertexPos = vertex.serverCenter;
             }
         }
     })

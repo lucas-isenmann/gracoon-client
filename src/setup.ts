@@ -129,9 +129,9 @@ function setup() {
                 }),
             ]),
             new PreSwitch(true, "align", "Align vertices to other vertices", () => {
-                localBoard.is_aligning = true;
+                localBoard.isAligning = true;
             }, () => {
-                localBoard.is_aligning = false;
+                localBoard.isAligning = false;
             }),
             new PreLauncher("dark_mode", "Switch to dark/light mode", "", () => {
                 localBoard.toggle_dark_mode();

@@ -13,6 +13,11 @@ export class CanvasCoord extends Coord {
         super(Math.floor(x),Math.floor(y));
     }
 
+    setFromCoord(c: Coord, camera: Camera) {
+        this.x = c.x * camera.zoom + camera.camera.x
+        this.y = c.y * camera.zoom + camera.camera.y
+    }
+
     copy(): CanvasCoord {
         return new CanvasCoord(this.x, this.y);
     }

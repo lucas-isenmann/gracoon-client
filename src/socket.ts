@@ -71,7 +71,7 @@ export function setupHandlers(board: ClientBoard) {
             // console.log("Following......")
             board.camera.camera = new Coord(x, y);
             board.camera.zoom = zoom;
-            board.update_after_camera_change();
+            board.updateAfterCameraChange();
             board.requestDraw();
         }
         else{

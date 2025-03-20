@@ -6,10 +6,13 @@ import { Coord, is_segments_intersection } from "gramoloss";
 
 
 export interface BoardElement {
-    center: CanvasCoord;
+    cameraCenter: CanvasCoord;
+    serverCenter: Coord;
     serverId: number;
     boardElementType: BoardElementType;
     delete: () => void;
+
+    updateAfterCameraChange: () => void;
     
     setColor: (color: Color) => void;
     color: Color;
@@ -30,7 +33,8 @@ export interface BoardElement {
 
 
 export class VertexElement implements BoardElement {
-    center: CanvasCoord;
+    cameraCenter: CanvasCoord;
+    serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType;
@@ -42,7 +46,8 @@ export class VertexElement implements BoardElement {
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
-        this.center = new CanvasCoord(x,y);
+        this.cameraCenter = new CanvasCoord(x,y);
+        this.serverCenter = board.camera.createServerCoord(this.cameraCenter);
         this.color = color;
         this.boardElementType = BoardElementType.Vertex;
         this.serverId = id;
@@ -69,6 +74,13 @@ export class VertexElement implements BoardElement {
         board.resetGraph() 
     }
 
+    updateAfterCameraChange() {
+        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+
+        this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
+        this.disk.setAttribute("cy", `${this.cameraCenter.y}`);    
+    }
+
     setHighlight(value: number){
         this.highlight = value;
         this.disk.classList.add("highlight");
@@ -91,11 +103,11 @@ export class VertexElement implements BoardElement {
     }
 
     isNearby (pos: CanvasCoord,d: number) {
-        return pos.dist2(this.center) <= d*d 
+        return pos.dist2(this.cameraCenter) <= d*d 
     }
 
     isInRect (corner1: CanvasCoord, corner2: CanvasCoord) : boolean  {
-        return this.center.is_in_rect(corner1, corner2);
+        return this.cameraCenter.is_in_rect(corner1, corner2);
     }
 
     select(){
@@ -115,22 +127,24 @@ export class VertexElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.center.x += cshift.x;
-        this.center.y += cshift.y;
+        this.cameraCenter.x += cshift.x;
+        this.cameraCenter.y += cshift.y;
 
-        this.disk.setAttribute("cx", `${this.center.x}`);    // Center x coordinate
-        this.disk.setAttribute("cy", `${this.center.y}`);    // Center y coordinate
+        this.board.camera.setFromCanvas( this.serverCenter, this.cameraCenter)
+
+        this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
+        this.disk.setAttribute("cy", `${this.cameraCenter.y}`);    
 
         for (const element of this.board.elements.values()){
             if (element instanceof LinkElement){
                 const link = element;
                 if ( link.startVertex.serverId == this.serverId){
-                    link.line.setAttribute("x1", this.center.x.toString())
-                    link.line.setAttribute("y1", this.center.y.toString())
+                    link.line.setAttribute("x1", this.cameraCenter.x.toString())
+                    link.line.setAttribute("y1", this.cameraCenter.y.toString())
                 }
                 if ( link.endVertex.serverId == this.serverId){
-                    link.line.setAttribute("x2", this.center.x.toString())
-                    link.line.setAttribute("y2", this.center.y.toString())
+                    link.line.setAttribute("x2", this.cameraCenter.x.toString())
+                    link.line.setAttribute("y2", this.cameraCenter.y.toString())
                 }
             }
         }
@@ -140,7 +154,8 @@ export class VertexElement implements BoardElement {
 
 
 export class LinkElement implements BoardElement {
-    center: CanvasCoord;
+    cameraCenter: CanvasCoord;
+    serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType;
@@ -157,7 +172,8 @@ export class LinkElement implements BoardElement {
 
     constructor(board: ClientBoard, serverId: number, startVertex: VertexElement, endVertex: VertexElement, directed: boolean, label: string, color: Color){
         this.id = board.elementCounter;
-        this.center = new CanvasCoord(0,0);
+        this.cameraCenter = new CanvasCoord(0,0);
+        this.serverCenter = new Coord(0,0);
         this.color = color;
         this.boardElementType = BoardElementType.Link;
         this.serverId = serverId;
@@ -170,10 +186,10 @@ export class LinkElement implements BoardElement {
         board.svgContainer.appendChild(this.line);
 
         // Set line attributes
-        this.line.setAttribute("x1", startVertex.center.x.toString());
-        this.line.setAttribute("y1", startVertex.center.y.toString());
-        this.line.setAttribute("x2", endVertex.center.x.toString());
-        this.line.setAttribute("y2", endVertex.center.y.toString());
+        this.line.setAttribute("x1", startVertex.cameraCenter.x.toString());
+        this.line.setAttribute("y1", startVertex.cameraCenter.y.toString());
+        this.line.setAttribute("x2", endVertex.cameraCenter.x.toString());
+        this.line.setAttribute("y2", endVertex.cameraCenter.y.toString());
         this.line.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
         this.line.setAttribute("stroke-width", "2");
         this.line.classList.add("link")
@@ -186,14 +202,26 @@ export class LinkElement implements BoardElement {
     
 
 
-        this.center.x = (startVertex.center.x + endVertex.center.x)/2
-        this.center.y = (startVertex.center.y + endVertex.center.y)/2;
+        this.cameraCenter.x = (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2
+        this.cameraCenter.y = (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2;
+
+        this.serverCenter.x = (startVertex.serverCenter.x + endVertex.serverCenter.x)/2
+        this.serverCenter.y = (startVertex.serverCenter.y + endVertex.serverCenter.y)/2;
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
 
         board.resetGraph() 
+    }
+
+    updateAfterCameraChange() {
+        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+
+        this.line.setAttribute("x1", this.startVertex.cameraCenter.x.toString());
+        this.line.setAttribute("y1", this.startVertex.cameraCenter.y.toString());
+        this.line.setAttribute("x2", this.endVertex.cameraCenter.x.toString());
+        this.line.setAttribute("y2", this.endVertex.cameraCenter.y.toString());
     }
 
     setHighlight(value: number){
@@ -260,7 +288,7 @@ export class LinkElement implements BoardElement {
         // }
 
 
-        return pos.dist2(this.center) <= d*d 
+        return pos.dist2(this.cameraCenter) <= d*d 
     }
 
     translate (cshift: CanvasVect){
@@ -295,7 +323,8 @@ export class LinkElement implements BoardElement {
 
 
 export class ShapeElement implements BoardElement {
-    center: CanvasCoord;
+    cameraCenter: CanvasCoord;
+    serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType;
@@ -311,24 +340,28 @@ export class ShapeElement implements BoardElement {
     canvas_corner_top_right : CanvasCoord;
     c1: Coord;
     c2: Coord;
+    canvasC1: CanvasCoord;
+    canvasC2: CanvasCoord;
     
 
 
     constructor(board: ClientBoard, serverId: number, c1: Coord, c2: Coord, color: Color){
         this.id = board.elementCounter;
-        this.center = new CanvasCoord(0,0);
+        this.serverCenter = new Coord(0,0);
         this.color = color;
         this.boardElementType = BoardElementType.Rectangle;
         this.serverId = serverId;
 
         this.c1 = c1.copy();
         this.c2 = c2.copy();
+        this.canvasC1 = board.camera.create_canvas_coord(c1);
+        this.canvasC2 = board.camera.create_canvas_coord(c2);
 
 
-        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
-        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
-        this.canvas_corner_top_left = new CanvasCoord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
-        this.canvas_corner_top_right = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
+        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
+        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
+        this.canvas_corner_top_left = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
+        this.canvas_corner_top_right = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
 
         
         this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -346,13 +379,36 @@ export class ShapeElement implements BoardElement {
         this.shape.classList.add("shape", "deselected")
         this.shape.style.transformBox = "fill-box";
 
+        
 
-        this.center.x = (c1.x + c2.x)/2;
-        this.center.y = (c1.y + c2.y)/2;
+        this.serverCenter.x = (c1.x + c2.x)/2;
+        this.serverCenter.y = (c1.y + c2.y)/2;
+
+        this.cameraCenter = board.camera.create_canvas_coord(this.serverCenter)
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
+    }
+
+    updateAfterCameraChange() {
+        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.canvasC1.setFromCoord(this.c1, this.board.camera);
+        this.canvasC2.setFromCoord(this.c2, this.board.camera);
+
+        this.canvas_corner_top_right.x = Math.max(this.canvasC1.x, this.canvasC2.x);
+        this.canvas_corner_top_right.y = Math.min(this.canvasC1.y, this.canvasC2.y);
+        this.canvas_corner_top_left.x = Math.min(this.canvasC1.x, this.canvasC2.x);
+        this.canvas_corner_top_left.y = Math.min(this.canvasC1.y, this.canvasC2.y);
+        this.canvas_corner_bottom_right.x = Math.max(this.canvasC1.x, this.canvasC2.x);
+        this.canvas_corner_bottom_right.y = Math.max(this.canvasC1.y, this.canvasC2.y);
+        this.canvas_corner_bottom_left.x = Math.min(this.canvasC1.x, this.canvasC2.x);
+        this.canvas_corner_bottom_left.y = Math.max(this.canvasC1.y, this.canvasC2.y);
+
+        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
+        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
+        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
+        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
     }
 
     delete(){
@@ -361,6 +417,11 @@ export class ShapeElement implements BoardElement {
 
     setCorners(c1:CanvasCoord, c2:CanvasCoord){
         console.log("setCorner")
+
+        this.cameraCenter.x = (c1.x + c2.x)/2;
+        this.cameraCenter.y = (c1.y + c2.y)/2;
+
+        this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
 
         this.c1.copy_from(c1);
         this.c2.copy_from(c2);
@@ -435,8 +496,10 @@ export class ShapeElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.center.x += cshift.x;
-        this.center.y += cshift.y;
+        this.cameraCenter.x += cshift.x;
+        this.cameraCenter.y += cshift.y;
+
+        this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
 
         this.canvas_corner_bottom_left.translate_by_canvas_vect(cshift);
         this.canvas_corner_bottom_right.translate_by_canvas_vect(cshift);

@@ -74,10 +74,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }else if ( pointed.data.element instanceof VertexElement){
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
-                board.grid.polarCenter.copy_from(v.center);
+                board.grid.polarCenter.copy_from(v.serverCenter);
                 board.draw();
             }
-            vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.center);
+            vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
         } else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             const element = pointed.data.element;
             switch(pointed.data.resizeType){
@@ -235,7 +235,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             
             const vertexMoved = pointed.data.element;
             for( const v of board.elements.values()){
-                if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.center, 10)){
+                if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.cameraCenter, 10)){
                     board.emitVerticesMerge(v.serverId, pointed.data.element.serverId);
                     break;
                 }

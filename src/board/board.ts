@@ -123,11 +123,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     private agregId: string;
 
     // Display parameters
-    private indexType: INDEX_TYPE;
     private darkMode: boolean;
     isDrawingInteractor: boolean;
     grid: Grid;
-    is_aligning: boolean;
+    isAligning: boolean;
     alignement_horizontal_y: Option<number>;
     alignement_vertical_x: Option<number>;
 
@@ -157,11 +156,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.clipboard = new Array();
         
         // Display parameters
-        this.indexType = INDEX_TYPE.NONE;
         this.darkMode = true;
         this.isDrawingInteractor = true;
         this.grid = new Grid();
-        this.is_aligning = false;
+        this.isAligning = false;
 
 
 
@@ -469,19 +467,19 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
     alignPosition(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
         const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
-        if (this.is_aligning) {
+        if (this.isAligning) {
             this.alignement_horizontal_y = undefined;
             this.alignement_vertical_x = undefined;
             for (const element of this.elements.values()){
                 if (excluded_indices.has(element.serverId) == false) {
-                    if (Math.abs(element.center.y - pos_to_align.y) <= 15) { // TODO element.canvasCenter
-                        aligned_pos.y = element.center.y;
-                        this.alignement_horizontal_y = camera.canvasCoordY(element.center);
+                    if (Math.abs(element.cameraCenter.y - pos_to_align.y) <= 15) { 
+                        aligned_pos.y = element.serverCenter.y;
+                        this.alignement_horizontal_y = camera.canvasCoordY(element.serverCenter);
                         break
                     }
-                    if (Math.abs(element.center.x - pos_to_align.x) <= 15) { // TODO element.canvasCenter
-                        aligned_pos.x = element.center.x;
-                        this.alignement_vertical_x = camera.canvasCoordX(element.center);
+                    if (Math.abs(element.cameraCenter.x - pos_to_align.x) <= 15) {
+                        aligned_pos.x = element.serverCenter.x;
+                        this.alignement_vertical_x = camera.canvasCoordX(element.serverCenter);
                         break;
                     }
                 }
@@ -886,15 +884,20 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     translateCamera(shift: CanvasVect){
         this.camera.translate_camera(shift);
-        this.update_after_camera_change();
+        this.updateAfterCameraChange();
         if(typeof this.selfUser.following != "undefined"){
             this.selfUser.unfollow(this.selfUser.following);
         }
         socket.emit("my_view", this.camera.camera.x, this.camera.camera.y, this.camera.zoom);
     }
 
-    update_after_camera_change(){
+    updateAfterCameraChange(){
         this.grid.updateToZoom(this.camera.zoom);
+
+        for (const element of this.elements.values()){
+            element.updateAfterCameraChange()
+        }
+
         for (const stroke of this.strokes.values()){
             stroke.update_after_camera_change(this.camera);
         }
@@ -903,9 +906,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
         for (const rep of this.representations.values()){
             rep.update_after_camera_change(this.camera);
-        }
-        for (const rect of this.rectangles.values()){
-            rect.update_after_camera_change(this.camera);
         }
         for (const area of this.areas.values()){
             area.update_after_camera_change(this.camera);
@@ -1459,7 +1459,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     centerCameraOnRectangle(c1: CanvasCoord, c2: CanvasCoord){
         this.camera.centerOnRectangle(c1, c2, this.canvas);
-        this.update_after_camera_change();
+        this.updateAfterCameraChange();
     }
 
 

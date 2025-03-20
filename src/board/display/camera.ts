@@ -4,6 +4,7 @@ import { CanvasVect } from "./canvasVect";
 
 
 export class Camera {
+    
     camera: Coord;
     zoom: number;
 
@@ -34,6 +35,11 @@ export class Camera {
 
     createServerCoord(c: CanvasCoord){
         return new Coord( (c.x - this.camera.x)/ this.zoom, (c.y - this.camera.y)/ this.zoom);
+    }
+
+    setFromCanvas(serverCenter: Coord, pos: CanvasCoord) {
+        serverCenter.x =  (pos.x - this.camera.x)/ this.zoom;
+        serverCenter.y = (pos.y - this.camera.y)/ this.zoom;
     }
 
     create_server_coord_from_subtranslated(c: CanvasCoord, shift: CanvasVect): Coord{

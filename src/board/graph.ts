@@ -160,7 +160,7 @@ export class ClientGraph extends BasicGraph<ClientVertexData, ClientLinkData> {
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
     alignPosition(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
         const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
-        if (this.board.is_aligning) {
+        if (this.board.isAligning) {
             this.board.alignement_horizontal_y = undefined;
             this.board.alignement_vertical_x = undefined;
             this.vertices.forEach((vertex: ClientVertex, index) => {

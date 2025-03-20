@@ -77,13 +77,13 @@ export function setupInteractions(board: ClientBoard) {
         }
     })
 
-    board.canvas.addEventListener("wheel", function (e) {
+    board.svgContainer.addEventListener("wheel", function (e) {
         if (e.deltaY > 0) {
             board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY), 1 / 1.1);
         } else {
             board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY), 1.1);
         }
-        board.update_after_camera_change();
+        board.updateAfterCameraChange();
 
 
         if ( typeof board.selfUser.following != "undefined") {
