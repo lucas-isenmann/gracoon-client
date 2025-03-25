@@ -1,9 +1,13 @@
 @import url('elements/vertex.css');
 @import url('elements/link.css');
 @import url('elements/shape.css');
+@import url('code_editor.css');
 
 html,
 body {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
     /* overflow: scroll; */
     margin: 0;
     padding: 0;
@@ -11,6 +15,15 @@ body {
     /* height: 100vh; */
     background-color: var(--background_color_page);
 }
+
+#board-container {
+    flex: 1;
+    overflow: hidden;
+}
+
+
+
+
 
 #clientVersion, #serverVersion {
     position: fixed;

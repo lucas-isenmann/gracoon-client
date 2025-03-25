@@ -38,32 +38,42 @@
 </head>
 
 <body>
-    <!-- <div id="border">
-        <canvas id="main"></canvas>
-    </div> -->
-    <div id="top_left_container">
 
-        <div id="users_div">
-            <div id="self_user">
-                <div id="self_user_color"></div>
-                <div contenteditable="true" spellcheck="false" id="self_user_label"></div>
+    
+    <div id="board-container">
+        <div id="top_left_container">
+            <div id="users_div">
+                <div id="self_user">
+                    <div id="self_user_color"></div>
+                    <div contenteditable="true" spellcheck="false" id="self_user_label"></div>
+                </div>
+                <div id="user_list"></div>
             </div>
-            <div id="user_list"></div>
+        </div>
+    
+        <div id="interaction_mode_selector"></div>
+     
+        <div id="area_list_container"></div>
+    
+        <div id="info_parametor_container">
+            <div id="info_closing_button"> <img src="/img/parametor/plus.svg" alt=""></div>
+            <div id="info_content"></div>
+        </div>
+    
+        <div id="params_loaded">
+            <div id="params_loaded_button" class="div_button">+</div>
+            <div id="subgraph_list"></div>
         </div>
     </div>
 
-    <div id="interaction_mode_selector"></div>
+    <div id="editor-container">
 
+    </div>
    
 
+    <div id="editor-displayer-button" onclick="document.getElementById('editor-container').classList.toggle('hidden')">Editor</div>
 
- 
-    <div id="area_list_container"></div>
 
-    <div id="info_parametor_container">
-        <div id="info_closing_button"> <img src="/img/parametor/plus.svg" alt=""></div>
-        <div id="info_content"></div>
-    </div>
 
     <div id="help-popup" class="popup">
         <h2 class="popup_title"><img src="/img/icons/help.svg" class="help" /> Gracoon: Graph Collaborating Online</h2>
@@ -177,10 +187,7 @@
         
     </div>
 
-    <div id="params_loaded">
-        <div id="params_loaded_button" class="div_button">+</div>
-        <div id="subgraph_list"></div>
-    </div>
+    
 </body>
 
 </html>

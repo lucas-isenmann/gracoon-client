@@ -131,15 +131,15 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     alignement_vertical_x: Option<number>;
 
 
-    constructor(){
+    constructor(container: HTMLElement){
         super();
 
         this.g = new Graph2();
 
         this.elements = new Map();
         this.svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        document.body.appendChild(this.svgContainer);
-        this.svgContainer.style.position = 'absolute';
+        container.appendChild(this.svgContainer);
+        // this.svgContainer.style.position = 'absolute';
         this.svgContainer.setAttribute("width", "100vw");
         this.svgContainer.setAttribute("height", "100vh");
         this.svgContainer.setAttribute("viewBox", " 0 100 100");
@@ -164,17 +164,19 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
         this.canvas = document.createElement("canvas");
-        document.body.appendChild(this.canvas);
+        container.appendChild(this.canvas);
         this.canvas.id = "main";
         const ctx = this.canvas.getContext('2d');
         if (ctx == null) throw Error("Cannot get context 2d of canvas");
         this.ctx = ctx; 
         
+
+        // Init arrow head markers
+        // One for each color
         const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
 
         for (const color of colorsData){
             const markerId = `arrow-head-${color[0]}`;
-            console.log("init", markerId)
             const arrowMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
             
             arrowMarker.setAttribute("id", markerId);
@@ -205,7 +207,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         this.variables = new Map();
         this.variablesDiv = document.createElement("div");
-        this.variablesDiv.id = "variablesDiv";
+        this.variablesDiv.id = "variables-div";
         document.body.appendChild(this.variablesDiv);
 
         // setup the div of the loaded params of the whole graph

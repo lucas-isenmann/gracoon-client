@@ -10,7 +10,7 @@ import { createAreaInteractor } from "./side_bar/interactors/area";
 import { createPopup, initEscapeEvent } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
-import { ORIENTATION } from "gramoloss";
+import { EmbeddedGraph, generateCliqueCircle, ORIENTATION } from "gramoloss";
 import { colorsData, getCanvasColor } from "./board/display/colors_v2";
 import { EraserInteractor } from "./side_bar/interactors/eraser";
 import { createTextInteractor } from "./side_bar/interactors/text";
@@ -26,6 +26,7 @@ import { launchHelpPopUp } from "./actions/help";
 import { CrossMode, TwistMode } from "./board/stanchion";
 import { parseDot } from "./actions/importFile";
 import { generateTikz2 } from "./board/tikz2";
+import { createEditor } from "./editor/editor";
 
 
 
@@ -60,8 +61,20 @@ function setupClientVersionDiv(){
     }
 }
 
+
+
 function setup() {
-    const localBoard = new ClientBoard();
+
+    const boardContainer = document.getElementById("board-container");
+    if (!boardContainer) return;
+
+    const editorContainer = document.getElementById("editor-container");
+    if (!editorContainer) return;
+
+
+    const localBoard = new ClientBoard(boardContainer);
+
+    createEditor(editorContainer, localBoard);
 
 
     // setupStanchionDrawer(localBoard);
