@@ -10,7 +10,6 @@ import { ClientRectangle } from "./rectangle";
 import { ClientRepresentation } from "./representations/client_representation";
 import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
 import { ClientStroke } from "./stroke";
-import { ClientTextZone } from "./text_zone";
 import { CanvasVect } from "./display/canvasVect";
 import { ClientVertex, ClientVertexData, ShapeData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
@@ -28,6 +27,7 @@ import { makeid } from "../utils";
 import { CrossMode, TwistMode } from "./stanchion";
 import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
 import { Graph2, VertexData2 } from "./graph2";
+import { TextZoneElement } from "./elements/textZone";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -50,7 +50,8 @@ export enum BoardElementType {
     Area = "Area",
     Stroke = "Stroke",
     Rectangle = "Rectangle",
-    Representation = "Representation"
+    Representation = "Representation",
+    Local = "Local"
 }
 
 export function boardElementType(element: ClientVertex | ClientLink){
@@ -91,7 +92,7 @@ export enum INDEX_TYPE {
 }
 
 
-export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, ClientTextZone, ClientRepresentation, ClientRectangle> {
+export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, TextZone, ClientRepresentation, ClientRectangle> {
     camera: Camera;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
@@ -769,6 +770,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.ctx.fill();
     }
 
+    deleteTextZone(serverId: number){
+        for (const [key, element] of this.elements){
+            if (element instanceof TextZoneElement && element.serverId == serverId){
+                element.delete();
+                this.elements.delete(key);
+            }
+        }
+    }
 
     deleteVertex(serverId: number){
         console.log("Board: delete vertex", serverId)
@@ -877,10 +886,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
         
         this.clearAreas();
-        for( const text_zone of this.text_zones.values()){
-            text_zone.div.remove();
-        }
-        this.text_zones.clear();
         this.rectangles.clear();
     }
 
@@ -903,15 +908,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         for (const stroke of this.strokes.values()){
             stroke.update_after_camera_change(this.camera);
         }
-        for ( const text_zone of this.text_zones.values()){
-            text_zone.update_after_camera_change(this.camera);
-        }
+        
         for (const rep of this.representations.values()){
             rep.update_after_camera_change(this.camera);
         }
-        for (const area of this.areas.values()){
-            area.update_after_camera_change(this.camera);
-        }
+        
 
         // for (const v of this.graph.vertices.values()) {
         //     v.update_after_view_modification(this.camera);
@@ -935,16 +936,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
-    create_text_zone(canvas_pos: CanvasCoord): number{
-        let index = 0;
-        while (this.text_zones.has(index)) {
-            index += 1;
-        }
-        const pos = this.camera.createServerCoord(canvas_pos);
-        const text_zone = new ClientTextZone(pos, 200, "salut", this, index);
-        this.text_zones.set(index, text_zone);
-        return index;
-    }
 
     
     /**
@@ -1506,7 +1497,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             //     (div as HTMLDivElement).style.color = "black";
             // })
         }
-        this.draw();
     }
 
 

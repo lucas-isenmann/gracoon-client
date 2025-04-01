@@ -1,17 +1,17 @@
 import { Coord } from "gramoloss";
-import { CanvasCoord } from "./display/canvas_coord";
-import { BoardElement } from "./element";
-import { BoardElementType, ClientBoard } from "./board";
-import { Color } from "./display/colors_v2";
-import { INTERACTOR_TYPE } from "../interactors/interactor";
-import { CanvasVect } from "./display/canvasVect";
-import { Camera } from "./display/camera";
+import { CanvasCoord } from "../display/canvas_coord";
+import { BoardElement } from "../element";
+import { BoardElementType, ClientBoard } from "../board";
+import { Color } from "../display/colors_v2";
+import { INTERACTOR_TYPE } from "../../interactors/interactor";
+import { CanvasVect } from "../display/canvasVect";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import renderMathInElement from "../katex-auto-render/auto-render";
+import renderMathInElement from "../../katex-auto-render/auto-render";
 
 
 export class TextZoneElement implements BoardElement {
+    id: number;
     cameraCenter: CanvasCoord = new CanvasCoord(0,0);
     serverCenter: Coord = new Coord(0,0);
     serverId: number;
@@ -33,6 +33,13 @@ export class TextZoneElement implements BoardElement {
         this.color = Color.Neutral;
 
         this.serverId = serverId;
+
+        this.id = board.elementCounter;
+        board.elements.set(this.id, this);
+        board.elementCounter += 1;
+        this.board = board;
+
+
 
         this.div = document.createElement("div");
         this.div.id = "text_zone_" + serverId;
@@ -158,11 +165,24 @@ export class TextZoneElement implements BoardElement {
 
         this.updateText(text);
     }
-    delete: () => void;
-    setColor: (color: Color) => void;
-    select: () => void;
-    deselect: () => void;
-    isInRect: (corner1: CanvasCoord, corner2: CanvasCoord) => boolean;
+
+
+    delete(){
+        this.div.remove();
+    }
+
+    setColor (color: Color){
+
+    }
+    select() {
+    }
+
+    deselect() {
+    }
+
+    isInRect (corner1: CanvasCoord, corner2: CanvasCoord) {
+        return false;
+    }
 
     translate(cshift: CanvasVect) {
         this.cameraCenter.translate_by_canvas_vect(cshift);

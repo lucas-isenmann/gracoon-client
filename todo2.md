@@ -1,5 +1,6 @@
 ## Vertex
 - innerLabel
+- autoNumerotation
 - outerLabel
 - doubleclick on it
 
@@ -8,10 +9,10 @@
 - loop
 - multi
 - control Points
+- styles
 
 ## Shape
 - ellipse
-- translate
 
 ## Stroke
 
@@ -25,7 +26,7 @@
 
 ## Latex
 
-## SVG Generator
+## Tikz / SVG Generator
 
 ## Induced Graph of Board
 

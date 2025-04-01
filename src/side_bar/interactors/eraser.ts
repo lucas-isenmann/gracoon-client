@@ -1,22 +1,33 @@
 import { Option } from "gramoloss";
 import { ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { drawCircle } from "../../board/display/draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
+import { TargetPoint } from "../../board/elements/targetPoint";
 
 // INTERACTOR ERASER
+
 
 export class EraserInteractor extends PreInteractor {
     isErasing: boolean;
     ERASE_DISTANCE: number;
+    disk: TargetPoint;
+    
 
     constructor(board: ClientBoard)
     {
         super(INTERACTOR_TYPE.ERASER, "Erase objects", "r", "eraser", 'url("../img/cursors/eraser.svg"), auto', new Set([DOWN_TYPE.STROKE, DOWN_TYPE.RECTANGLE]));
         this.isErasing = false;
         this.ERASE_DISTANCE = 8;
+
+        this.disk = new TargetPoint(board, new CanvasCoord(0,0));
+        this.disk.disk.setAttribute("r", this.ERASE_DISTANCE.toString()); 
+        this.disk.disk.setAttribute("stroke", "#fff");    
+        this.disk.disk.setAttribute("stroke-width", "1");    
+        this.disk.disk.setAttribute("fill-opacity", "0.2");
+        this.disk.show();
+
 
         const interactor = this;
 
@@ -30,6 +41,7 @@ export class EraserInteractor extends PreInteractor {
             if (interactor.isErasing) {
                 board.eraseAt(e, interactor.ERASE_DISTANCE);
             }
+            interactor.disk.setCanvasPos(e);
             return true;
         })
 
@@ -37,10 +49,15 @@ export class EraserInteractor extends PreInteractor {
             interactor.isErasing = false;
         })
 
+        interactor.onleave = () => {
+            interactor.disk.hide();
+        }
+
+        interactor.trigger = (_, mousePos: Option<CanvasCoord>) => {
+            interactor.disk.show();
+        }
+
         interactor.draw = ((board: ClientBoard, mousePos: Option<CanvasCoord>) => {
-            if ( typeof mousePos != "undefined"){
-                drawCircle(mousePos, "white", interactor.ERASE_DISTANCE, 0.4, board.ctx);
-            }
         })
     }
 }

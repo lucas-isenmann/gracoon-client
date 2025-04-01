@@ -4,6 +4,7 @@ import { initWeightDiv } from "../../board/weightable";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
+import { TextZoneElement } from "../../board/elements/textZone";
 
 
 
@@ -40,10 +41,13 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
             const coord = board.camera.createServerCoord(pointed.pointedPos);
             board.emitAddElement(new TextZone(coord, 100, "", board.get_next_available_index_text_zone()),(response: number) => { 
                 setTimeout(() => {
-                    const textZone = board.text_zones.get(response);
-                    if ( typeof textZone != "undefined" ){
-                        textZone.contentDiv.focus();
+                    for (const element of board.elements.values()){
+                        if (element instanceof TextZoneElement && element.serverId == response){
+                            element.contentDiv.focus();
+                            break;
+                        }
                     }
+                    
                 }, 50);
             } );
         }

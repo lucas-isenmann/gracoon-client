@@ -44,6 +44,10 @@ export class VertexElement implements BoardElement {
     board: ClientBoard;
     highlight: number | undefined;
 
+    innerLabel: string;
+    outerLabel: string;
+    innerLabelSVG: SVGTextElement;
+
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
         this.cameraCenter = new CanvasCoord(x,y);
@@ -52,6 +56,9 @@ export class VertexElement implements BoardElement {
         this.boardElementType = BoardElementType.Vertex;
         this.serverId = id;
         this.board = board;
+
+        this.innerLabel = innerLabel;
+        this.outerLabel = outerLabel;
         
         // Create circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -68,6 +75,17 @@ export class VertexElement implements BoardElement {
         this.disk = circle;
         this.disk.classList.add("vertex");
 
+        // InnerLabel
+        const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        board.svgContainer.appendChild(innerLabelSVG);
+        innerLabelSVG.setAttribute("x", `${x}`);
+        innerLabelSVG.setAttribute("y", `${y}`);
+        innerLabelSVG.textContent = "1";
+        innerLabelSVG.setAttribute("text-anchor", "middle");
+        innerLabelSVG.setAttribute("dominant-baseline", "middle");
+        this.innerLabelSVG = innerLabelSVG;
+        this.innerLabelSVG.classList.add("vertexInnerLabel")
+
         board.elements.set(this.id, this);
         board.elementCounter += 1;
 
@@ -78,7 +96,9 @@ export class VertexElement implements BoardElement {
         this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
 
         this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
-        this.disk.setAttribute("cy", `${this.cameraCenter.y}`);    
+        this.disk.setAttribute("cy", `${this.cameraCenter.y}`);   
+        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
+        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
     }
 
     setHighlight(value: number){
@@ -100,6 +120,7 @@ export class VertexElement implements BoardElement {
 
     delete(){
         this.disk.remove();
+        this.innerLabelSVG.remove();
     }
 
     isNearby (pos: CanvasCoord,d: number) {
@@ -134,6 +155,8 @@ export class VertexElement implements BoardElement {
 
         this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
         this.disk.setAttribute("cy", `${this.cameraCenter.y}`);    
+        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
+        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
 
         for (const element of this.board.elements.values()){
             if (element instanceof LinkElement){

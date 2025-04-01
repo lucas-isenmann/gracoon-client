@@ -13,23 +13,23 @@ import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION,
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
 import { VertexElement } from "../../board/element";
+import { Segment } from "../../board/elements/segment";
+import { Color } from "../../board/display/colors_v2";
+import { Rectangle } from "../../board/elements/rectangle";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
-    let previous_shift: Vect = new Vect(0,0);
-    let previous_canvas_shift = new CanvasVect(0,0);
-    let vertex_center_shift = new CanvasVect(0,0);
-    let opposite_coord = 0;
-    let opposite_corner: CanvasCoord;
-    let vertices_contained = new Set<number>();
+    let previousShift: Vect = new Vect(0,0);
+    let previousCanvasShift = new CanvasVect(0,0);
+    let previousCenterShift = new CanvasVect(0,0);
     let hasMoved = false;
 
-    let isRectangularSelecting = false; // could be refactored as follows: an Option{c1: CanvasCoord, c2: CanvasCoord}
-    let rectSelectC1: Option<CanvasCoord> = undefined;
-    let rectSelectC2: Option<CanvasCoord> = undefined;
     const selectedElements = Array<[BoardElementType,number]>();
 
+    let isRectangularSelecting = false;
+    const rectSelection = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Red);
+    rectSelection.hide();
 
 
     const selectionV2 = new PreInteractor(INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
@@ -56,8 +56,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         
         blurProperties();
         hasMoved = false;
-        previous_shift = new Vect(0,0);
-        previous_canvas_shift = new CanvasVect(0,0);
+        previousShift = new Vect(0,0);
+        previousCanvasShift = new CanvasVect(0,0);
+
+        // Mouse down on nothing
         if ( typeof pointed.data === "undefined") {
             if (pointed.buttonType == 2){
                 showProperties(board.grid, pointed.pointedPos, board);
@@ -68,17 +70,23 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
             if (board.keyPressed.has("Control")) {
                 isRectangularSelecting = true;
-                rectSelectC1 = pointed.pointedPos.copy(); 
-                rectSelectC2 = pointed.pointedPos.copy();
+                rectSelection.setStartPoint(pointed.pointedPos);
+                rectSelection.setEndPoint(pointed.pointedPos);
+                rectSelection.show();
+
             }
-        }else if ( pointed.data.element instanceof VertexElement){
+        } 
+        // Mouse down on Vertex
+        else if ( pointed.data.element instanceof VertexElement){
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter.copy_from(v.serverCenter);
                 board.draw();
             }
-            vertex_center_shift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
-        } else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
+            previousCenterShift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
+        } 
+        /*
+        else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             const element = pointed.data.element;
             switch(pointed.data.resizeType){
                 case RESIZE_TYPE.BOTTOM:{
@@ -114,7 +122,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                     break;
                 }
                 case undefined: {
-                    previous_canvas_shift = new CanvasVect(0,0);
+                    previousCanvasShift = new CanvasVect(0,0);
                     if (pointed.data instanceof ELEMENT_DATA_AREA){
                         vertices_contained = new Set();
                         for (const [vertex_index, vertex] of board.graph.vertices.entries()){
@@ -125,7 +133,9 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                     }
                 }
             }
+            
         }
+            */
     })
 
     // Mouse Move
@@ -136,27 +146,27 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
         // Translate
         if (typeof pointed.data != "undefined"){
-            e.translate_by_canvas_vect(vertex_center_shift);
+            e.translate_by_canvas_vect(previousCenterShift);
             // e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
             // e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
-            e.translate_by_canvas_vect(vertex_center_shift.opposite());
+            e.translate_by_canvas_vect(previousCenterShift.opposite());
             
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
-            board.emit_translate_elements(selectedElements, shift.sub(previous_shift));
-            previous_shift.set_from(shift);
+            board.emit_translate_elements(selectedElements, shift.sub(previousShift));
+            previousShift.set_from(shift);
             
-            previous_canvas_shift.set_from(shift);
+            previousCanvasShift.set_from(shift);
             return true;
         }
 
-        
+        // Translate Camera or Rectangular selection
         if ( typeof pointed.data == "undefined"){
             if (isRectangularSelecting) {
-                rectSelectC2 = e; // peut etre faut copier
+                rectSelection.setEndPoint(e);
             } else {
                 const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
-                board.translateCamera(shift.sub(previous_canvas_shift));
-                previous_canvas_shift.set_from(shift);
+                board.translateCamera(shift.sub(previousCanvasShift));
+                previousCanvasShift.set_from(shift);
             }
             return true;
         }
@@ -169,13 +179,13 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
         //         // TODO: voir fichier todo sur le translate
         //         if ( pointed.data instanceof ELEMENT_DATA_AREA){
-        //             board.translate_area(shift.sub(previous_canvas_shift), pointed.data.element, vertices_contained);
+        //             board.translate_area(shift.sub(previousCanvasShift), pointed.data.element, vertices_contained);
         //         } else {
-        //             element.translate_by_canvas_vect(shift.sub(previous_canvas_shift), board.camera );
-        //             translate_by_canvas_vect(element, shift.sub(previous_canvas_shift), board.camera);
+        //             element.translate_by_canvas_vect(shift.sub(previousCanvasShift), board.camera );
+        //             translate_by_canvas_vect(element, shift.sub(previousCanvasShift), board.camera);
         //         }
                 
-        //         previous_canvas_shift.set_from(shift);
+        //         previousCanvasShift.set_from(shift);
         //         return true;
         //     } 
         //     else { // Resize the element
@@ -198,9 +208,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         if (typeof pointed == "undefined") return false;
 
         if ( typeof pointed.data == "undefined"){
-            if (isRectangularSelecting && typeof rectSelectC1 != "undefined" && typeof rectSelectC2 != "undefined") {
+            if (isRectangularSelecting) {
                 isRectangularSelecting = false;
-                board.selectElementsInRect(rectSelectC1, rectSelectC2);
+                board.selectElementsInRect(new CanvasCoord(rectSelection.x1, rectSelection.y1), new CanvasCoord(rectSelection.x2, rectSelection.y2));
+                rectSelection.hide();
             } else {
                 board.clearAllSelections();
             }
@@ -255,20 +266,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
 
     selectionV2.draw = (board) => {
-        if ( isRectangularSelecting && typeof rectSelectC1 != "undefined" && typeof rectSelectC2 != "undefined") {
-            board.ctx.beginPath();
-            board.ctx.setLineDash([2, 5]); 
-            board.ctx.strokeStyle = SELECTION_COLOR;
-            board.ctx.rect(rectSelectC1.x, rectSelectC1.y, rectSelectC2.x - rectSelectC1.x, rectSelectC2.y - rectSelectC1.y);
-            board.ctx.stroke();
-            board.ctx.setLineDash([])
-
-            board.ctx.globalAlpha = 0.07;
-            board.ctx.fillStyle = SELECTION_COLOR;
-            board.ctx.fill();
-
-            board.ctx.globalAlpha = 1;
-        }
+       
     }
 
     return selectionV2;

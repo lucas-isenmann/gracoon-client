@@ -5,10 +5,12 @@ import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { ClientVertexData } from "../../board/vertex";
 import { LinkPreData } from "../../board/link";
-import { getCanvasColor } from "../../board/display/colors_v2";
+import { Color, getCanvasColor } from "../../board/display/colors_v2";
 import { BoardElementType, ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { VertexElement } from "../../board/element";
+import { TargetPoint } from "../../board/elements/targetPoint";
+import { Segment } from "../../board/elements/segment";
 
 
 
@@ -27,6 +29,7 @@ class LinkInteractor extends PreInteractor {
         super(id, info, shortcut, iconSrc, cursorStyle, interactableElementTypes);
         this.indexLastCreatedVertex = undefined;
         this.lastVertexPos = undefined;
+        
     }
 }
 
@@ -36,6 +39,11 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const shortcutLetter = orientation == ORIENTATION.UNDIRECTED ? "e" : "a";
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
     const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
+    const targetPoint = new TargetPoint(board, new CanvasCoord(0,0));
+    targetPoint.hide();
+    const constructionSegment = new Segment(board, new CanvasCoord(0,0), new CanvasCoord(0,0), Color.Neutral);
+    constructionSegment.hide();
+
 
     // Mouse down
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
@@ -47,6 +55,10 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                 board.emitAddElement(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
+                    constructionSegment.show();
+                    constructionSegment.setStartPoint(pointed.magnetPos);
+                    constructionSegment.setEndPoint(pointed.magnetPos);
+
                     if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                         board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
                     }
@@ -58,6 +70,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 });
             } else {
                 board.emitAddElement(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
+                    constructionSegment.show();
+                    constructionSegment.setStartPoint(pointed.magnetPos);
+                    constructionSegment.setEndPoint(pointed.magnetPos);
                     linkInteractor.indexLastCreatedVertex = response;
                     linkInteractor.lastVertexPos = server_pos;
                 } );
@@ -75,6 +90,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         } 
         else if ( pointed.data instanceof ELEMENT_DATA_VERTEX) {
             const vertex = pointed.data.element;
+            constructionSegment.show()
+            constructionSegment.setStartPoint(vertex.cameraCenter);
+            constructionSegment.setEndPoint(vertex.cameraCenter);
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                 board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation, "", board.colorSelected), () => {} )
                 if (board.keyPressed.has("Control")){
@@ -91,13 +109,16 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     // Mouse move
     linkInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
-        return true;
+        targetPoint.setCanvasPos(e);
+        constructionSegment.setEndPoint(e);
+        return false;
     })
 
     // Mouse up
     linkInteractor.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         console.log("mouseup")
-        console.log(pointed)
+
+
         // if (typeof pointed == "undefined") return false;
 
         if ( typeof linkInteractor.indexLastCreatedVertex == "undefined"){
@@ -106,6 +127,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         if ( board.keyPressed.has("Control")){
             return;
         }
+        constructionSegment.hide();
 
         const firstVertexIndex = (typeof pointed != "undefined" && pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.serverId : linkInteractor.indexLastCreatedVertex;
         
@@ -121,15 +143,12 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             if (typeof link == "undefined"){
                 const aligned_mouse_pos = board.alignPosition(e, new Set(), board.canvas, board.camera);
                 const serverPos = aligned_mouse_pos.toCoord(board.camera);
-                console.log("emit add Vertex")
                 board.emitAddElement(new ClientVertexData(serverPos.x, serverPos.y, "", board.camera, board.colorSelected), (response) => { 
                     
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
                         linkInteractor.lastVertexPos = aligned_mouse_pos;
                     }
-                    console.log("receive add vertex")
-                    console.log("emit add Element")
                     board.emitAddElement( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
                 });
             }
@@ -147,24 +166,16 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     // Trigger
     linkInteractor.trigger = (board: ClientBoard, mousePos: Option<CanvasCoord>) => {
+        targetPoint.show();
+    }
+
+    linkInteractor.onleave = () => {
+        constructionSegment.hide();
+        targetPoint.hide();
     }
 
     // Canvas Draw
     linkInteractor.draw = (board: ClientBoard) => {
-
-        if (typeof board.selfUser.canvasPos != "undefined"){
-            const color = getCanvasColor(board.colorSelected, board.isDarkMode());
-            const p1 = board.selfUser.canvasPos;
-            const pos = board.alignPosition(p1, new Set(), board.canvas, board.camera);
-            board.drawCanvasCircle( pos, 10, color, 0.5);
-            if ( typeof linkInteractor.indexLastCreatedVertex != "undefined" && typeof linkInteractor.lastVertexPos != "undefined" ) {
-                board.drawLineUnscaled(linkInteractor.lastVertexPos, pos.toCoord(board.camera), color ,4);
-                if ( orientation == ORIENTATION.DIRECTED) {
-                    drawHead(board.ctx, board.camera.create_canvas_coord(linkInteractor.lastVertexPos), pos,  VERTEX_RADIUS);
-                }
-            }
-        }
-        
     }
 
     return linkInteractor;

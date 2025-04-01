@@ -5,7 +5,6 @@ import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { SENSIBILITY } from "./parametors/parametor";
 import {  Coord,  ORIENTATION, Vect } from "gramoloss";
-import { ClientTextZone } from "./board/text_zone";
 import { BoardElementType, ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
 import { handleErrorLog } from "./handlers/errorLog";
@@ -16,6 +15,7 @@ import { Color } from "./board/display/colors_v2";
 import { translate_by_canvas_vect } from "./board/resizable";
 import { LinkElement, ShapeElement, VertexElement } from "./board/element";
 import { setCurrentShape } from "./side_bar/interactors/rectangle";
+import { TextZoneElement } from "./board/elements/textZone";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -165,7 +165,6 @@ export function setupHandlers(board: ClientBoard) {
 
     // GRAPH 
     socket.on("graph", handleResetGraph); // ALL
-    socket.on("areas", handleAreas); // AREA
     socket.on("strokes", handleStrokes); // STROKES
     socket.on("reset_board", handleResetBoard);
 
@@ -188,10 +187,7 @@ export function setupHandlers(board: ClientBoard) {
                 //     translate_by_canvas_vect(rectangle, cshift, board.camera);
                 // }
             } else if ( kind == "TextZone"){
-                const text_zone = board.text_zones.get(index);
-                if (typeof text_zone != "undefined") {
-                    text_zone.translate(cshift, board.camera);
-                }
+                board.translateElement(BoardElementType.TextZone, index, cshift);
             } else if ( kind == "Stroke"){
                 const stroke = board.strokes.get(index);
                 if (typeof stroke != "undefined"){
@@ -236,8 +232,8 @@ export function setupHandlers(board: ClientBoard) {
             }
         }
         
-        board.requestDraw();
-        board.resetGraph()
+        board.resetGraph() // TODO do not reset
+        // Use the same position for the graph and the BoardVertex
     }
 
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
@@ -267,18 +263,17 @@ export function setupHandlers(board: ClientBoard) {
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
                 const width = data.element.width as number;
                 const text = data.element.text as string;
-                const new_text_zone = new ClientTextZone(pos, width, text , board, data.index);
-                board.text_zones.set(data.index, new_text_zone);
+                new TextZoneElement(pos, width, text, board, data.index);
             } 
-            else if (data.kind == "Area"){
-                const c1 = new Coord(data.element.c1.x, data.element.c1.y);
-                const c2 = new Coord(data.element.c2.x,data.element.c2.y);
-                const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board, data.index);
-                board.areas.set(data.index, new_area);
-                //TO CHECK: I added this line here because the panels were not updated when creating a new area. Is it still how we are supposed to do it now ? 
-                update_options_graphs(board);
+            // else if (data.kind == "Area"){
+            //     const c1 = new Coord(data.element.c1.x, data.element.c1.y);
+            //     const c2 = new Coord(data.element.c2.x,data.element.c2.y);
+            //     const new_area = new ClientArea( data.element.label, c1, c2, data.element.color, board, data.index);
+            //     board.areas.set(data.index, new_area);
+            //     //TO CHECK: I added this line here because the panels were not updated when creating a new area. Is it still how we are supposed to do it now ? 
+            //     update_options_graphs(board);
        
-            } 
+            // } 
             else if (data.kind == "Vertex"){
                 const x = data.element.data.pos.x as number;
                 const y = data.element.data.pos.y as number;
@@ -335,11 +330,7 @@ export function setupHandlers(board: ClientBoard) {
             } else if ( kind == "Stroke"){
                 board.strokes.delete(index);
             } else if (kind == "TextZone"){
-                const textZone = board.text_zones.get(index);
-                if( typeof textZone != "undefined"){
-                    textZone.div.remove();
-                }
-                board.text_zones.delete(index);
+                board.deleteTextZone(index);
             } else if (kind == "Area"){
                 board.delete_area(index);
             } else if (kind == "Vertex"){
@@ -360,18 +351,20 @@ export function setupHandlers(board: ClientBoard) {
         // console.log("handleUpdateElement", data);
         let weightUpdate = false;
         if (data.kind == "TextZone"){
-            const textZone = board.text_zones.get(data.index);
-            if (typeof textZone == "undefined") return;
-            if (data.param == "width"){
-                const width = data.value as number;
-                textZone.width = width;
-                textZone.div.style.width = String(width) + "px";
-            }
-            else if (data.param == "text"){
-                if (document.activeElement != null && document.activeElement.id != ("text_zone_content_" + data.index)){
-                    console.log("update text zone : ", data.index);
-                    const text = data.value as string;
-                    textZone.updateText(text);
+            for (const element of board.elements.values()){
+                if (element instanceof TextZoneElement && element.serverId == data.index){
+                    if (data.param == "width"){
+                        const width = data.value as number;
+                        element.width = width;
+                        element.div.style.width = String(width) + "px";
+                    }
+                    else if (data.param == "text"){
+                        if (document.activeElement != null && document.activeElement.id != ("text_zone_content_" + data.index)){
+                            const text = data.value as string;
+                            element.updateText(text);
+                        }
+                    }
+                    break;
                 }
             }
         } else if (data.kind == "Vertex"){
@@ -457,26 +450,20 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
         console.log("[Handle] reset board");
-        // board.clear();
-        // for (const data of rawTextZones) {
-        //     const pos = new Coord(data[1].pos.x, data[1].pos.y);
-        //     const width = data[1].width as number;
-        //     const text = data[1].text as string;
-        //     const text_zone = new ClientTextZone(pos, width, text, board, data[0] )
-        //     board.text_zones.set(data[0], text_zone);
-        // }
+
+        for (const data of rawTextZones) {
+            const pos = new Coord(data[1].pos.x, data[1].pos.y);
+            const width = data[1].width as number;
+            const text = data[1].text as string;
+            new TextZoneElement(pos, width, text, board, data[0]);
+        }
 
         for (const rectangle of rawRectangles){
             const c1 = new Coord(rectangle.c1.x, rectangle.c1.y);
             const c2 = new Coord(rectangle.c2.x, rectangle.c2.y);
             const color = rectangle.color as Color;
             new ShapeElement(board, rectangle.index, c1, c2, color)
-            console.log(c1, c2)
-            // board.rectangles.set(rectangle.index, new ClientRectangle(c1, c2, color, board, rectangle.index));
         }
-
-
-        // board.requestDraw();
     }
 
 
@@ -498,21 +485,7 @@ export function setupHandlers(board: ClientBoard) {
 
 
 
-    function handleAreas(data: [[number, {c1: {x: number, y: number}, c2: {x: number, y: number}, color: string, label: string}]]){
-        console.log("[Handle] reset areas")
-        // board.clearAreas();
-        // for(const [index,rawArea] of data){
-        //     const c1 = new Coord(rawArea.c1.x, rawArea.c1.y);
-        //     const c2 = new Coord(rawArea.c2.x, rawArea.c2.y);
-        //     const new_area = new ClientArea( rawArea.label, c1, c2, rawArea.color, board, index);
-        //     board.areas.set(index, new_area);
-        // }
-        
-        // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT, SENSIBILITY.COLOR, SENSIBILITY.GEOMETRIC]), false);
-        // update_options_graphs(board);
-        // // console.log("update???")
-        // board.requestDraw();
-    }
+
 
 
 
@@ -596,7 +569,7 @@ export function setupHandlers(board: ClientBoard) {
         sensi2.add(SENSIBILITY.ELEMENT)
         // update_params_loaded(g, sensi2, true);
         console.timeEnd('resetGraph')
-        board.requestDraw();
+
         board.resetGraph()
     }
 
