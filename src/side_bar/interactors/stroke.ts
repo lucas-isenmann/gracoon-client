@@ -5,28 +5,29 @@ import { PreInteractor } from "../pre_interactor";
 import { ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
+import { StrokeElement } from "../../board/elements/stroke2";
 
-let lastStroke: Option<ClientStroke> = undefined;
+let lastStroke: Option<StrokeElement> = undefined;
 let indexLastStroke: Option<number> = undefined;
 let pointsCounter = 0;
 const SAMPLE_PERIOD = 2; // >=1,  number of frames between two points, skipping the others; 3 is empirically a good value
 
 export function createStrokeInteractor(board: ClientBoard){
 
-    const stroke_interactorV2 = new PreInteractor(INTERACTOR_TYPE.PEN, "Pen", "p", "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
+    const strokeInteractorV2 = new PreInteractor(INTERACTOR_TYPE.PEN, "Pen", "p", "stroke", "default", new Set([DOWN_TYPE.VERTEX]));
 
-    stroke_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+    strokeInteractorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
         const server_pos = board.camera.createServerCoord(pointed.pointedPos);
-        indexLastStroke = board.get_next_available_index_strokes();
-        lastStroke = new ClientStroke([server_pos], board.colorSelected, 2, board.camera, indexLastStroke);
-        board.strokes.set(indexLastStroke, lastStroke);
+        lastStroke = new StrokeElement(board,  board.colorSelected, pointed.pointedPos, 2);
+        indexLastStroke = lastStroke.id;
+
     })
     
-    stroke_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+    strokeInteractorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if( typeof lastStroke != "undefined"){
             pointsCounter++ ;
             if(pointsCounter % SAMPLE_PERIOD === 0){
-                lastStroke.push(e, board.camera);
+                lastStroke.push(e);
                 return true;
             }
         }
@@ -34,14 +35,15 @@ export function createStrokeInteractor(board: ClientBoard){
     
     })
     
-    stroke_interactorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
+    strokeInteractorV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof lastStroke != "undefined"){
-            lastStroke.push(e, board.camera);
-            const serializedArray = JSON.stringify(lastStroke.positions);
-            const memorySize = new Blob([serializedArray]).size;
-            console.log(`Memory size: ${memorySize} bytes`);
+            lastStroke.push(e);
+            // const serializedArray = JSON.stringify(lastStroke.positions);
+            // const memorySize = new Blob([serializedArray]).size;
+            // console.log(`Memory size: ${memorySize} bytes`);
     
-            board.emitAddElement( lastStroke, (response: number) => { })
+            board.emitAddElement( lastStroke, (response: number) => {
+             })
         
             lastStroke = undefined;
             indexLastStroke = undefined;
@@ -50,5 +52,5 @@ export function createStrokeInteractor(board: ClientBoard){
        
     })
 
-    return stroke_interactorV2;
+    return strokeInteractorV2;
 }

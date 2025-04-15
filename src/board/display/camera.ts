@@ -42,6 +42,11 @@ export class Camera {
         serverCenter.y = (pos.y - this.camera.y)/ this.zoom;
     }
 
+    setFromServer(canvasPos: CanvasCoord, pos: Coord) {
+        canvasPos.x = pos.x*this.zoom + this.camera.x;
+        canvasPos.y = pos.y*this.zoom + this.camera.y;
+    }
+
     create_server_coord_from_subtranslated(c: CanvasCoord, shift: CanvasVect): Coord{
         const c2 = new CanvasCoord(c.x - shift.x, c.y - shift.y);
         return this.createServerCoord(c2);

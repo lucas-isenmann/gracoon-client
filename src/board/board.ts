@@ -28,6 +28,7 @@ import { CrossMode, TwistMode } from "./stanchion";
 import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
 import { Graph2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
+import { StrokeElement } from "./elements/stroke2";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -733,8 +734,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.drawBackground();
         this.grid.draw(this.canvas, this.ctx, this.camera);
         this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
-        // this.rectangles.forEach(rectangle => rectangle.draw());
-        this.strokes.forEach(stroke => stroke.draw(this));
         this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
 
@@ -905,9 +904,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             element.updateAfterCameraChange()
         }
 
-        for (const stroke of this.strokes.values()){
-            stroke.update_after_camera_change(this.camera);
-        }
         
         for (const rep of this.representations.values()){
             rep.update_after_camera_change(this.camera);
@@ -923,16 +919,13 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.updateOtherUsersCanvasPos()
     }
 
-    selectElementsInRect(corner1: CanvasCoord, corner2: CanvasCoord) {
 
+    selectElementsInRect(corner1: CanvasCoord, corner2: CanvasCoord) {
         for (const element of this.elements.values()) {
             if (element.isInRect(corner1, corner2)) {
                 element.select();
             }
         }
-
-
-       
     }
 
 
@@ -1029,6 +1022,13 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                     return new ELEMENT_DATA_RECTANGLE(element, undefined);
                 }
             }
+
+            if (interactable_element_type.has(DOWN_TYPE.STROKE) && element instanceof StrokeElement){
+                if (element.isNearby(pos, 15)){
+                    return new ELEMENT_DATA_STROKE(element);
+                }
+            }
+
         }
        
         // for (const [index, link] of this.graph.links.entries()) {
@@ -1074,11 +1074,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         return undefined;
     }
 
-    deselect_all_strokes() {
-        this.strokes.forEach(s => {
-            s.isSelected = false;
-        });
-    }
+ 
 
     selectConnectedComponent(vIndex: number){
         const c = this.graph.getConnectedComponentOf(vIndex);
@@ -1290,7 +1286,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emitAddElement(element: ClientVertexData | LinkPreData | ClientStroke | Area | TextZone | ShapeData, callback: (response: number) => void  ){
+    emitAddElement(element: ClientVertexData | LinkPreData | StrokeElement | Area | TextZone | ShapeData, callback: (response: number) => void  ){
         if (element instanceof ShapeData){
             socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.pos, c2: element.pos, color: element.color}, callback);
         }
@@ -1305,9 +1301,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Link, {start_index: data.startIndex, end_index: data.endIndex, orientation: data.orientation, weight: data.weight, color: data.color}, callback);
                 break;
             }
-            case ClientStroke: {
-                const stroke = element as ClientStroke;
-                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Stroke, {points: [... stroke.positions.entries()], color: stroke.color, width: stroke.width}, callback);
+            case StrokeElement: {
+                const stroke = element as StrokeElement;
+                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Stroke, {points: [... stroke.serverPositions.entries()], color: stroke.color, width: stroke.thickness}, callback);
                 break;
             }
             case TextZone: {

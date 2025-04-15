@@ -16,6 +16,7 @@ import { translate_by_canvas_vect } from "./board/resizable";
 import { LinkElement, ShapeElement, VertexElement } from "./board/element";
 import { setCurrentShape } from "./side_bar/interactors/rectangle";
 import { TextZoneElement } from "./board/elements/textZone";
+import { StrokeElement } from "./board/elements/stroke2";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -189,9 +190,9 @@ export function setupHandlers(board: ClientBoard) {
             } else if ( kind == "TextZone"){
                 board.translateElement(BoardElementType.TextZone, index, cshift);
             } else if ( kind == "Stroke"){
-                const stroke = board.strokes.get(index);
+                const stroke = board.elements.get(index);
                 if (typeof stroke != "undefined"){
-                    stroke.translate_by_canvas_vect(cshift, board.camera);
+                    stroke.translate(cshift);
                 }
             } 
             // else if ( kind == "Area"){
@@ -237,7 +238,7 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
-        // console.log("handleAddElements", datas);
+        console.log("handleAddElements", datas);
         for(const data of datas){
             if (data.kind == "Rectangle"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
@@ -256,8 +257,10 @@ export function setupHandlers(board: ClientBoard) {
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const new_stroke = new ClientStroke(positions, data.element.color, data.element.width, board.camera, data.index);
-                board.strokes.set(data.index, new_stroke);
+                const stroke = new StrokeElement(board, data.element.color, board.camera.create_canvas_coord(positions[0]), data.element.width )
+                for (let i = 1; i < positions.length; i ++){
+                    stroke.push(board.camera.create_canvas_coord(positions[i]));
+                }
             } 
             else if (data.kind == "TextZone"){
                 const pos = new Coord(data.element.pos.x, data.element.pos.y);
@@ -470,17 +473,24 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleStrokes(data: [[number, {positions: [{x: number, y: number}], color: string, width: number}]]){
         // console.log(data);
-        board.strokes.clear();
+        console.log("handle Strokes")
+        console.log(data.length);
         for(const [index, rawStroke] of data){
-            const positions = new Array<Coord>();
-            rawStroke.positions.forEach(e => {
-                positions.push(new Coord(e.x, e.y));
-            });
-            const new_stroke = new ClientStroke(positions, rawStroke.color as Color, rawStroke.width, board.camera, index);
-            board.strokes.set(index, new_stroke);
+            const stroke = board.elements.get(index);
+            if (typeof stroke == "undefined"){
+
+            } else {
+                console.log("stroke",index, "does not exist")
+                const positions = new Array<Coord>();
+                rawStroke.positions.forEach((e: { x: number; y: number; }) => {
+                    positions.push(new Coord(e.x, e.y));
+                });
+                const stroke = new StrokeElement(board, rawStroke.color as Color, board.camera.create_canvas_coord(positions[0]), rawStroke.width )
+                for (let i = 1; i < positions.length; i ++){
+                    stroke.push(board.camera.create_canvas_coord(positions[i]));
+                }
+            }
         }
-        // update_params_loaded(g,false);
-        board.requestDraw();
     }
 
 

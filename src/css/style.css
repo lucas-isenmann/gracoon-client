@@ -1,6 +1,7 @@
 @import url('elements/vertex.css');
 @import url('elements/link.css');
 @import url('elements/shape.css');
+@import url('elements/stroke.css');
 @import url('code_editor.css');
 
 html,

@@ -1,0 +1,15 @@
+
+.stroke{
+    transform-origin: center;
+    
+}
+
+.stroke:hover {
+    stroke: rgb(22, 235, 181);
+    stroke-width: 10px;
+}
+
+.stroke.selected {
+    stroke: rgb(214, 245, 38);
+    stroke-width: 10px;
+}
