@@ -1,0 +1,10 @@
+
+.vertices-subset {
+    
+}
+
+.vertices-subset:hover {
+    stroke-width: 4;
+    opacity: 0.2;
+}
+

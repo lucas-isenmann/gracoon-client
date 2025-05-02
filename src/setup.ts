@@ -155,6 +155,9 @@ function setup() {
                     }
                 } 
             }),
+            new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {
+                localBoard.addVerticesSubsetFromSelection();
+            }),
             new PreFolder("export", [
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
                         // const tikzStr = TikZ_create_file_data(localBoard.graph);

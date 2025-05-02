@@ -1,43 +1,132 @@
 import { CanvasCoord } from "./display/canvas_coord";
 import { Color, getCanvasColor } from "./display/colors_v2";
-import { ClientBoard, SELECTION_COLOR } from "./board";
-import { ClientVertex } from "./vertex";
+import { BoardElementType, ClientBoard, SELECTION_COLOR } from "./board";
+import { BoardElement, VertexElement } from "./element";
+import { Coord } from "gramoloss";
+import { CanvasVect } from "./display/canvasVect";
 
-export class VerticesSubset {
+export class VerticesSubset implements BoardElement{
     id: number;
     color: Color;
     colorString: string;
     isSelected: boolean;
-    margin: number;
     board: ClientBoard;
-    vertices: Array<ClientVertex>;
-    points: Array<CanvasCoord>;
+    cameraCenter: CanvasCoord;
+    serverCenter: Coord;
+    serverId: number;
+    boardElementType: BoardElementType = BoardElementType.Local;
     
-    constructor(board: ClientBoard, vertices: Array<ClientVertex>, id: number, margin: number){
-        this.id = id;
-        this.color = Color.Blue;
+    points: Array<Coord>;
+    convexHullPoints: Array<Coord>;
+
+    svg: SVGElement;
+    thickness: number
+    margin: number;
+
+
+    
+    
+    constructor(board: ClientBoard, vertices: Array<number>, thickness: number){
+        this.id = board.elementCounter;
+        board.elements.set(this.id, this);
+        board.elementCounter += 1;
+
+        this.cameraCenter = new CanvasCoord(0,0);
+        this.serverCenter = new Coord(0,0);
+
+        this.serverId = this.id;
+        this.color = board.colorSelected;
         this.colorString = getCanvasColor(this.color, board.isDarkMode());
         this.margin = 10;
         this.isSelected = false;
         this.board = board;
-        this.vertices = vertices;
         this.points = new Array();
-        for (const v of this.vertices ){
-            this.points.push(v.data.canvas_pos);
+
+
+
+        for (const vId of vertices){
+            const element = this.board.elements.get(vId);
+            if (element instanceof VertexElement){
+                this.points.push(element.serverCenter)
+            }
         }
+
+        this.convexHullPoints = findConvexHullCycle(this.points);
+
+
+        this.thickness = thickness;
+
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this.svg.classList.add("vertices-subset");
+        board.svgContainer.appendChild(this.svg);
+        this.svg.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
+        this.svg.setAttribute("stroke-opacity", "0.1")
+        this.svg.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode()));
+        this.svg.setAttribute("fill-opacity", "0.1")
+        this.svg.setAttribute("stroke-width", thickness.toString());
+        this.updatePathData();
+
+    }
+
+   
+
+    updatePathData(){
+        // Generate SVG path command
+        let pathData = this.convexHullPoints.reduce((path, point, index) => {
+            const canvasPos = this.board.camera.create_canvas_coord(point);
+            const command = index === 0 ? 'M' : 'L';
+            return `${path} ${command} ${canvasPos.x},${canvasPos.y}`;
+        }, '');
+        pathData += "Z";
+
+        this.svg.setAttribute('d', pathData);
+    }
+
+    
+    delete (){
+        this.svg.remove();
+    }
+
+    updateAfterCameraChange(){
+
+    }
+
+    setColor(color: Color){
+
+    }
+
+    translate(cshift: CanvasVect){
+
+    }
+
+    select(){
+
+    }
+
+    deselect(){
+
+    }
+
+    isInRect(corner1: CanvasCoord, corner2: CanvasCoord){
+        return false;
+    };
+
+    isNearby(pos: CanvasCoord, d: number){
+        return false
     }
 
 
-    draw(){
-        drawConvexHull(this.board.ctx, this.points, this.colorString )
-    }
+   
 
 
 }
 
 
-function findConvexHullCycle(points: CanvasCoord[]): CanvasCoord[] {
+function findConvexHullCycle(points: Coord[]): Coord[] {
     const n = points.length;
+    if (n <= 2){
+        return points;
+    }
     
     // Find the leftmost point
     let start = 0;
@@ -49,12 +138,20 @@ function findConvexHullCycle(points: CanvasCoord[]): CanvasCoord[] {
     }
 
     // Initialize stack with first point
-    const stack: CanvasCoord[] = [points[start]];
+    const stack: Coord[] = [points[start]];
 
     // Process remaining points
     let p = start;
     let q = 0;
-    while (q < n - 1) {
+    if (q == start){
+        q = 1;
+    }
+    let counter = 0;
+    while (true  ) {
+        counter += 1;
+        if (counter >= n){ // Avoid infinite loops
+            break;
+        }
         // Find next point on convex hull
         for (let i = 0; i < n; i++) {
             if (i !== p && isPointOnLeft(points[p], points[i], points[q])) {
@@ -62,44 +159,25 @@ function findConvexHullCycle(points: CanvasCoord[]): CanvasCoord[] {
             }
         }
 
+        if (q == start){
+            break;
+        }
         stack.push(points[q]);
         p = q;
+        q = 0;
+        if (q == p){
+            q = 1;
+        }
     }
 
     return stack;
 }
 
-function isPointOnLeft(p1: CanvasCoord, p2: CanvasCoord, p3: CanvasCoord): boolean {
+
+function isPointOnLeft(p1: Coord, p2: Coord, p3: Coord): boolean {
     const val = (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y);
     return val > 0 || (val === 0 && (p2.x - p1.x) * (p2.y - p3.y) + (p3.x - p2.x) * (p2.y - p1.y) >= 0);
 }
 
 
 
-
-function drawConvexHull(ctx: CanvasRenderingContext2D, points: Array<CanvasCoord>, color: string){
-
-    ctx.beginPath();
-
-    const hullPoints = findConvexHullCycle(points);
-
-    // Add all points to the path
-    for (let i = 0; i < hullPoints.length; i++) {
-        const point = hullPoints[i];
-        ctx.moveTo(point.x, point.y);
-
-        if (i === hullPoints.length - 1) {
-            ctx.lineTo(hullPoints[0].x, hullPoints[0].y);
-        } else {
-            ctx.lineTo(hullPoints[i + 1].x, hullPoints[i + 1].y);
-        }
-    }
-
-    // Close the path
-    ctx.closePath();
-
-    // Set stroke style
-    ctx.strokeStyle = color;
-
-    ctx.stroke();
-}

@@ -29,6 +29,7 @@ import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./elemen
 import { Graph2, LinkData2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
 import { StrokeElement } from "./elements/stroke2";
+import { VerticesSubset } from "./vertices_subset";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -949,6 +950,23 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             if (element.isInRect(corner1, corner2)) {
                 element.select();
             }
+        }
+    }
+
+    /**
+     * 
+     */
+    addVerticesSubsetFromSelection(){
+        const selectedVertices = [];
+        for (const element of this.elements.values()){
+            if (element instanceof VertexElement && element.isSelected){
+                selectedVertices.push(element.id);
+            }
+        }
+        if (selectedVertices.length > 0){
+            new VerticesSubset(this, selectedVertices, 30);
+
+            
         }
     }
 
