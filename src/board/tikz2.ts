@@ -1,7 +1,6 @@
-import { Coord, EmbeddedGraph, ORIENTATION } from "gramoloss";
-import { ClientGraph } from "./graph";
+import { ORIENTATION } from "gramoloss";
 import { Color } from "./display/colors_v2";
-import { ClientBoard } from "./board";
+import { Graph2 } from "./graph2";
 
 
 
@@ -41,7 +40,7 @@ import { ClientBoard } from "./board";
 */
 
 
-function genHeader(g: EmbeddedGraph) {
+function genHeader(g: Graph2) {
 
     let hasArc = false;
     for (const link of g.links.values()){
@@ -58,8 +57,8 @@ function genHeader(g: EmbeddedGraph) {
 
     return `% LaTeX code generated using http://graccoon.com
 % Add the following packages in the preamble of your document:
-% usepackage{tikz}
-% usetikzpackage{calc, meta.arrays}
+% \\usepackage{tikz}
+% \\usetikzlibrary{calc, arrows.meta}
 \\begin{tikzpicture}
     [
         yscale=-1,
@@ -80,7 +79,7 @@ function genHeader(g: EmbeddedGraph) {
     \node[node_style] (v) at (4.2, 2.8) {$v$};
     \node[node_style] (a) at (4.2, 3.2) {$a$};
  */
-function defineNodes(g: EmbeddedGraph, figSize: number) {
+function defineNodes(g: Graph2, figSize: number) {
 
     figSize /= 2;
 
@@ -107,8 +106,8 @@ function defineNodes(g: EmbeddedGraph, figSize: number) {
     let str = `\t% Draw nodes\n`
     for (const [id, v] of g.vertices) {
         let label = "{}";
-        if (v.data.indexString != ""){
-            label = `{$${v.data.indexString}$}`
+        if (v.data.innerLabel != ""){
+            label = `{$${v.data.innerLabel}$}`
         }
         let x = (v.data.pos.x - minX)/w - 0.5
         let y = (v.data.pos.y - minY)/h - 0.5
@@ -129,8 +128,8 @@ function defineNodes(g: EmbeddedGraph, figSize: number) {
         }
 
         let outLabel = "";
-        if (v.data.weight != ""){
-            outLabel = `, label={above:${v.data.weight}}`
+        if (v.data.outerLabel != ""){
+            outLabel = `, label={above:${v.data.outerLabel}}`
         }
 
         str += `\t \\node[node_style${color}${outLabel}] (${id}) at ($\\fscale*(${x}, ${y})$) ${label};\n`;
@@ -149,7 +148,7 @@ function defineNodes(g: EmbeddedGraph, figSize: number) {
     \draw[arc_style] (v) to[bend left=30] node[midway, left] {1} (a);
     \draw[arc_style] (a) to[bend left=30] node[midway, right] {1/2} (v);
  */
-function createLinks(g: EmbeddedGraph) {
+function createLinks(g: Graph2) {
     let str = "\t% Draw edges and arcs\n";
     for (const link of g.links.values()) {
 
@@ -166,20 +165,20 @@ function createLinks(g: EmbeddedGraph) {
         }
 
         let bend = "";
-        if ( link.data.cp instanceof Coord){
-            // Left or right ?
-            let orientation = "left"
-            const a = link.startVertex.data.pos.vectorTo(link.endVertex.data.pos)
-            a.rotate(Math.PI/2)
-            if (a.dot(link.startVertex.data.pos.vectorTo(link.data.cp)) < 0){
-                orientation = "right"
-            }
-            bend = `[bend ${orientation}=50]`;
-        }
+        // if ( link.data.cp instanceof Coord){
+        //     // Left or right ?
+        //     let orientation = "left"
+        //     const a = link.startVertex.data.pos.vectorTo(link.endVertex.data.pos)
+        //     a.rotate(Math.PI/2)
+        //     if (a.dot(link.startVertex.data.pos.vectorTo(link.data.cp)) < 0){
+        //         orientation = "right"
+        //     }
+        //     bend = `[bend ${orientation}=50]`;
+        // }
 
         let weight = "";
-        if (link.data.weight != ""){
-            weight = `node[midway, right] {${link.data.weight}}`
+        if (link.data.label != ""){
+            weight = `node[midway, right] {${link.data.label}}`
         }
         
 
@@ -201,7 +200,7 @@ function createLinks(g: EmbeddedGraph) {
  * @param figSize 
  * @returns 
  */
-export function generateTikz2(g: EmbeddedGraph, figSize: number) {
+export function generateTikz2(g: Graph2, figSize: number) {
     let latex = "";
     latex += genHeader(g);
     latex += defineNodes(g, figSize) + "\n";

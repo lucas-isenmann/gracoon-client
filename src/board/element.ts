@@ -44,6 +44,7 @@ export class VertexElement implements BoardElement {
     board: ClientBoard;
     highlight: number | undefined;
 
+    posBeforeRotate: Coord =new Coord(0,0);
     innerLabel: string;
     outerLabel: string;
     innerLabelSVG: SVGTextElement;
@@ -62,7 +63,7 @@ export class VertexElement implements BoardElement {
         
         // Create circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        board.svgContainer.appendChild(circle);
+        board.verticesGroup.appendChild(circle);
         
         // Set circle attributes
         circle.setAttribute("cx", `${x}`);    // Center x coordinate
@@ -77,10 +78,10 @@ export class VertexElement implements BoardElement {
 
         // InnerLabel
         const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        board.svgContainer.appendChild(innerLabelSVG);
+        board.verticesGroup.appendChild(innerLabelSVG);
         innerLabelSVG.setAttribute("x", `${x}`);
         innerLabelSVG.setAttribute("y", `${y}`);
-        innerLabelSVG.textContent = "1";
+        innerLabelSVG.textContent =  this.serverId.toString();
         innerLabelSVG.setAttribute("text-anchor", "middle");
         innerLabelSVG.setAttribute("dominant-baseline", "middle");
         this.innerLabelSVG = innerLabelSVG;
@@ -92,13 +93,16 @@ export class VertexElement implements BoardElement {
         board.resetGraph() 
     }
 
-    updateAfterCameraChange() {
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
-
+    updateSVGposition(){
         this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
         this.disk.setAttribute("cy", `${this.cameraCenter.y}`);   
         this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
         this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
+    }
+
+    updateAfterCameraChange() {
+        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.updateSVGposition();
     }
 
     setHighlight(value: number){
@@ -147,17 +151,29 @@ export class VertexElement implements BoardElement {
 
     }
 
-    translate (cshift: CanvasVect){
-        this.cameraCenter.x += cshift.x;
-        this.cameraCenter.y += cshift.y;
+    startRotate(){
+        this.posBeforeRotate.copy_from(this.serverCenter)
+    }
 
-        this.board.camera.setFromCanvas( this.serverCenter, this.cameraCenter)
+    setAngle(center: Coord, angle: number){
+        this.serverCenter.x = center.x + (this.posBeforeRotate.x - center.x) * Math.cos(angle) - (this.posBeforeRotate.y - center.y) * Math.sin(angle);
+        this.serverCenter.y = center.y + (this.posBeforeRotate.x - center.x) * Math.sin(angle) + (this.posBeforeRotate.y - center.y) * Math.cos(angle);
 
-        this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
-        this.disk.setAttribute("cy", `${this.cameraCenter.y}`);    
-        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
-        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
+        this.board.camera.setFromServer( this.cameraCenter, this.serverCenter)
+        this.updateSVGposition();
+        this.updateIncidentLinks();
+    }
 
+    applyScale(center: Coord, ratio: number){
+        this.serverCenter.x = center.x + (this.posBeforeRotate.x - center.x) * ratio;
+        this.serverCenter.y = center.y + (this.posBeforeRotate.y - center.y) * ratio;
+
+        this.board.camera.setFromServer( this.cameraCenter, this.serverCenter)
+        this.updateSVGposition();
+        this.updateIncidentLinks();
+    }
+
+    updateIncidentLinks(){
         for (const element of this.board.elements.values()){
             if (element instanceof LinkElement){
                 const link = element;
@@ -171,6 +187,16 @@ export class VertexElement implements BoardElement {
                 }
             }
         }
+    }
+
+    translate (cshift: CanvasVect){
+        this.cameraCenter.x += cshift.x;
+        this.cameraCenter.y += cshift.y;
+
+        this.board.camera.setFromCanvas( this.serverCenter, this.cameraCenter)
+        this.updateSVGposition();
+        this.updateIncidentLinks();
+        
     }
 }
 
@@ -206,7 +232,7 @@ export class LinkElement implements BoardElement {
 
         
         this.line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        board.svgContainer.appendChild(this.line);
+        board.linksGroup.appendChild(this.line);
 
         // Set line attributes
         this.line.setAttribute("x1", startVertex.cameraCenter.x.toString());
@@ -388,7 +414,7 @@ export class ShapeElement implements BoardElement {
 
         
         this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        board.svgContainer.appendChild(this.shape);
+        board.shapesGroup.appendChild(this.shape);
 
         // Set SVG Element attributes
         this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());

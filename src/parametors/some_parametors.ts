@@ -321,15 +321,12 @@ paramHasCycle.compute= ((g: Graph2, verbose: boolean) => {
 paramHasCycle.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = 0;
-        }
+        board.highlightVertex(vId, 0)
 
         const nextId = cycle[(i+1)%cycle.length];
-        for (const link of g.links.values()){
+        for (const link of board.g.links.values()){
             if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
-                link.data.highlight = 0;
+                board.highlightLink(link.index, 0)
                 break;
             }
         }
@@ -352,15 +349,12 @@ paramGirth.compute= ((g: Graph2, verbose: boolean) => {
 paramGirth.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = 0;
-        }
+        board.highlightVertex(vId, 0);
 
         const nextId = cycle[(i+1)%cycle.length];
-        for (const link of g.links.values()){
+        for (const link of board.g.links.values()){
             if (link.signatureEquals(vId, nextId, ORIENTATION.UNDIRECTED)){
-                link.data.highlight = 0;
+                board.highlightLink(link.index, 0)
                 break;
             }
         }
@@ -384,15 +378,12 @@ paramHasDirectedCycle.compute= ((g: Graph2) => {
 paramHasDirectedCycle.showCertificate = (board: ClientBoard, cycle: Array<number>) => {
     for (let i = 0; i < cycle.length; i ++){
         const vId = cycle[i];
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vId, 1);
 
         const nextId = cycle[(i+1)%cycle.length];
-        for (const link of g.links.values()){
+        for (const link of board.g.links.values()){
             if (link.signatureEquals(nextId, vId, ORIENTATION.DIRECTED)){
-                link.data.highlight = 1;
+                board.highlightLink(link.index, 1)
                 break;
             }
         }
@@ -628,10 +619,7 @@ paramMaxDegree.compute= ((g: Graph2, verbose: boolean) => {
 
 paramMaxDegree.showCertificate = (board: ClientBoard, certificate: Set<number>) =>  {
     for (const vId of certificate){
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = 0;
-        }
+        board.highlightVertex(vId, 1);
     }
 }
 
@@ -677,7 +665,7 @@ paramIsProperColoring.compute= ((g: Graph2) => {
 
 paramIsProperColoring.showCertificate = (board: ClientBoard, certificate: Array<ClientVertex>) => {
     for (const v of certificate){
-        v.data.highlight = 0;
+        board.highlightVertex(v.index, 1);
     }
 }
 
@@ -1439,12 +1427,9 @@ paramDS.compute= ((g: Graph2) => {
     return [minDS.size.toString(), minDS];
 })
 
-paramDS.showCertificate= ((g: Graph2, minDS: Set<number>) => {
+paramDS.showCertificate= ((board: ClientBoard, minDS: Set<number>) => {
     for (const vIndex of minDS){
-        const v = g.vertices.get(vIndex);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vIndex, 1);
     }
 })
 
@@ -1461,12 +1446,9 @@ paramIDS.compute= ((g: Graph2) => {
     return [minIDS.size.toString(), minIDS];
 })
 
-paramIDS.showCertificate= ((g: Graph2, minIDS: Set<number>) => {
+paramIDS.showCertificate= ((board: ClientBoard, minIDS: Set<number>) => {
     for (const vIndex of minIDS){
-        const v = g.vertices.get(vIndex);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vIndex, 1);
     }
 })
 
@@ -1487,12 +1469,9 @@ paramCDS.compute= ((g: Graph2) => {
     }
 })
 
-paramCDS.showCertificate= ((g: Graph2, minCDS: Set<number>) => {
+paramCDS.showCertificate= ((board: ClientBoard, minCDS: Set<number>) => {
     for (const vIndex of minCDS){
-        const v = g.vertices.get(vIndex);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vIndex, 1);
     }
 })
 
@@ -1507,12 +1486,9 @@ paramVertexCover.compute= ((g: Graph2) => {
     return [minVC.size.toString(), minVC];
 })
 
-paramVertexCover.showCertificate= ((g: Graph2, vertexCover: Set<number>) => {
+paramVertexCover.showCertificate= ((board: ClientBoard, vertexCover: Set<number>) => {
     for (const vIndex of vertexCover){
-        const v = g.vertices.get(vIndex);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vIndex, 1);
     }
 })
 
@@ -1526,10 +1502,7 @@ paramCliqueNumber.compute= ((g: Graph2) => {
 
 paramCliqueNumber.showCertificate = (board: ClientBoard, clique: Set<number>) =>{
     for (const vId of clique){
-        const v = g.vertices.get(vId);
-        if (typeof v != "undefined"){
-            v.data.highlight = 1;
-        }
+        board.highlightVertex(vId, 1);
     }
 }
 

@@ -30,7 +30,7 @@ export class Rectangle implements BoardElement {
         this.board = board;
         this.cameraCenter.copy_from(pos);
         board.camera.setFromCanvas(this.serverCenter, pos);
-        this.color = board.colorSelected;
+        this.color = color;
         this.x1 = pos.x;
         this.y1 = pos.y;
         this.x2 = pos2.x;

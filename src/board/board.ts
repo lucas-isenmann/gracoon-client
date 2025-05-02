@@ -26,7 +26,7 @@ import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
 import { CrossMode, TwistMode } from "./stanchion";
 import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
-import { Graph2, VertexData2 } from "./graph2";
+import { Graph2, LinkData2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
 import { StrokeElement } from "./elements/stroke2";
 
@@ -112,6 +112,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     g: Graph2;
 
+    shapesGroup: SVGElement;
+    linksGroup: SVGElement;
+    verticesGroup: SVGElement;
+
 
     graphClipboard: Option<ClientGraph>;
     isGraphClipboardGenerated: boolean;
@@ -164,6 +168,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.isAligning = false;
 
 
+    
+
 
         this.canvas = document.createElement("canvas");
         container.appendChild(this.canvas);
@@ -171,6 +177,20 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         const ctx = this.canvas.getContext('2d');
         if (ctx == null) throw Error("Cannot get context 2d of canvas");
         this.ctx = ctx; 
+
+         // Create layers for shapes, links and vertices
+        this.shapesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.linksGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.verticesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        this.shapesGroup.setAttribute("id", "shapes-layer");
+        this.linksGroup.setAttribute("id", "links-layer");
+        this.verticesGroup.setAttribute("id", "vertices-layer");
+
+        this.svgContainer.appendChild(this.shapesGroup);
+        this.svgContainer.appendChild(this.linksGroup);
+        this.svgContainer.appendChild(this.verticesGroup);
+
         
 
         // Init arrow head markers
@@ -183,7 +203,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             
             arrowMarker.setAttribute("id", markerId);
             arrowMarker.setAttribute("viewBox", "0 0 10 10");
-            arrowMarker.setAttribute("refX", "15");
+            arrowMarker.setAttribute("refX", "30");
             arrowMarker.setAttribute("refY", "5");
             arrowMarker.setAttribute("markerWidth", "6");
             arrowMarker.setAttribute("markerHeight", "6");
@@ -200,6 +220,10 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.svgContainer.insertBefore(defs, this.svgContainer.firstChild);
 
        
+
+
+
+
 
 
         this.camera = new Camera();
@@ -235,12 +259,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.g = new Graph2();
         for (const element of this.elements.values()){
             if (element instanceof VertexElement){
-                this.g.setVertex(element.serverId, new VertexData2() );
+                this.g.setVertex(element.serverId, new VertexData2(element.cameraCenter, element.color, element.innerLabel, element.outerLabel) );
             }
         }
         for (const element of this.elements.values()){
             if (element instanceof LinkElement){
-                this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED);
+                this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED, new LinkData2(element.color, ""));
             }
         }
     }
@@ -924,6 +948,99 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         for (const element of this.elements.values()) {
             if (element.isInRect(corner1, corner2)) {
                 element.select();
+            }
+        }
+    }
+
+
+    /**
+     * 
+     * @returns x, y, width, height
+     */
+    getSelectionBoundingBox() {
+        let noSelection = true;
+        let x = 0;
+        let y = 0;
+        let maxX = 0;
+        let maxY = 0;
+        for (const element of this.elements.values()) {
+            if (element.isSelected && element instanceof LinkElement == false){
+                // console.log("selected:", element.serverCenter)
+                if (noSelection){
+                    noSelection = false;
+                    x = element.serverCenter.x;
+                    y = element.serverCenter.y;
+                    maxX = x;
+                    maxY = y;
+                }
+                x = x < element.serverCenter.x ? x : element.serverCenter.x;
+                y = y < element.serverCenter.y ? y : element.serverCenter.y;
+                maxX = maxX > element.serverCenter.x ? maxX : element.serverCenter.x;
+                maxY = maxY > element.serverCenter.y ? maxY : element.serverCenter.y;
+            }
+        }
+        // console.log(x,y, maxX, maxY)
+        return [x, y, maxX-x, maxY-y]
+    }
+
+
+    getSelectionCenter(): Coord{
+        const [x,y,w,h] = this.getSelectionBoundingBox();
+        return new Coord(x+w/2, y+h/2);
+    }
+
+    initRotateSelection(){
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                element.startRotate();
+            }
+        }
+    }
+
+    localRotateSelection(center: Coord, angle: number){
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                element.setAngle(center, angle);
+            }
+        }
+    }
+
+    endLocalRotateSelection(center: Coord, angle: number){
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                element.setAngle(center, angle);
+            }
+        }
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                const shift = element.posBeforeRotate.vectorTo(element.serverCenter);
+                const cshift = this.camera.create_canvas_vect(shift);
+                element.translate(cshift.opposite())
+                this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
+            }
+        }
+    }
+
+    localResizeSelection(center: Coord, ratio: number){
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                element.applyScale(center, ratio);
+            }
+        }
+    }
+
+    endLocalResizeSelection(center: Coord, ratio: number){
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                element.applyScale(center, ratio);
+            }
+        }
+        for (const element of this.elements.values()){
+            if (element.isSelected && element instanceof VertexElement){
+                const shift = element.posBeforeRotate.vectorTo(element.serverCenter);
+                const cshift = this.camera.create_canvas_vect(shift);
+                element.translate(cshift.opposite())
+                this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
             }
         }
     }

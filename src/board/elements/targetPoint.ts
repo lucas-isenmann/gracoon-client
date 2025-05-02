@@ -75,7 +75,7 @@ export class TargetPoint implements BoardElement {
     }
 
     isNearby(pos: CanvasCoord, d: number){
-        return false;
+        return this.cameraCenter.is_nearby(pos, d*d);
     }
 
     translate(cshift: CanvasVect){

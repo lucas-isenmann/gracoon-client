@@ -2,7 +2,7 @@
 
 // INTERACTOR SELECTION
 
-import { Option, Vect } from "gramoloss";
+import { Coord, Option, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../../board/board";
 import { resize_corner, resize_side, translate_by_canvas_vect } from "../../board/resizable";
 import { CanvasVect } from "../../board/display/canvasVect";
@@ -16,6 +16,7 @@ import { VertexElement } from "../../board/element";
 import { Segment } from "../../board/elements/segment";
 import { Color } from "../../board/display/colors_v2";
 import { Rectangle } from "../../board/elements/rectangle";
+import { TargetPoint } from "../../board/elements/targetPoint";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -28,8 +29,23 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     const selectedElements = Array<[BoardElementType,number]>();
 
     let isRectangularSelecting = false;
-    const rectSelection = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Red);
+    const rectSelection = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Green);
     rectSelection.hide();
+
+    const boundingBox = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Red);
+    boundingBox.hide();
+    const rotateIcon = new TargetPoint(board, new CanvasCoord(0,0));
+    rotateIcon.hide();
+    let rotating = false;
+    let rotationCenter = new Coord(0,0);
+    let rotationCanvasCenter = new CanvasCoord(0,0);
+    const resizeIcon = new TargetPoint(board, new CanvasCoord(0,0));
+    resizeIcon.hide();
+    let resizing = false;
+    const rotaCenter = new TargetPoint(board, new CanvasCoord(0,0));
+    rotaCenter.hide();
+
+
 
 
     const selectionV2 = new PreInteractor(INTERACTOR_TYPE.SELECTION, "Drag and select elements", "s", "selection", "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK, DOWN_TYPE.STROKE, DOWN_TYPE.REPRESENTATION_ELEMENT, DOWN_TYPE.REPRESENTATION, DOWN_TYPE.RECTANGLE, DOWN_TYPE.AREA, DOWN_TYPE.RESIZE]))
@@ -40,7 +56,21 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         console.log("Selection mouse down")
         console.log(pointed.data?.element);
 
-        // Compute selectedElements for the mouseDown, mouseMove, mouseUp cycle
+        // Rotate
+        if (rotateIcon.isNearby(pointed.pointedPos, 20)){
+            rotating = true;
+            board.initRotateSelection()
+            return;
+        }
+
+        // Resize
+        if (resizeIcon.isNearby(pointed.pointedPos, 20)){
+            resizing = true;
+            board.initRotateSelection()
+            return;
+        }
+
+        // Compute Selected Elements
         if (typeof pointed.data != "undefined"){
             if (pointed.data.element.isSelected){
                 const s2 = board.getSelectedElements();
@@ -142,7 +172,39 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     selectionV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         // console.log("Selection : Mouse move")
         hasMoved = true;
+
+        
+
         if (typeof pointed == "undefined") return false;
+
+        if (rotating){
+            const d1 = Vect.from_coords(rotationCanvasCenter, e);
+            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const angle = -Math.atan2(d2.y, d2.x) + Math.atan2(d1.y, d1.x);
+            board.localRotateSelection(rotationCenter, angle);
+
+            const [x,y,w,h] = board.getSelectionBoundingBox();
+            const c1 = board.camera.create_canvas_coord(new Coord(x,y))
+            const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+            boundingBox.setStartPoint(c1);
+            boundingBox.setEndPoint(c2)
+
+            return false;
+        }
+
+        if (resizing){
+            const d1 = Vect.from_coords(rotationCanvasCenter, e);
+            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const ratio = d1.norm()/d2.norm();
+            board.localResizeSelection(rotationCenter, ratio);
+
+            const [x,y,w,h] = board.getSelectionBoundingBox();
+            const c1 = board.camera.create_canvas_coord(new Coord(x,y))
+            const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+            boundingBox.setStartPoint(c1);
+            boundingBox.setEndPoint(c2)
+            return false;
+        }
 
         // Translate
         if (typeof pointed.data != "undefined"){
@@ -168,6 +230,18 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 const shift = CanvasVect.from_canvas_coords(pointed.pointedPos, e);
                 board.translateCamera(shift.sub(previousCanvasShift));
                 previousCanvasShift.set_from(shift);
+
+                const [x,y,w,h] = board.getSelectionBoundingBox();
+                const c1 = board.camera.create_canvas_coord(new Coord(x,y))
+                const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+                boundingBox.setStartPoint(c1);
+                boundingBox.setEndPoint(c2)
+                rotationCanvasCenter.x = (c1.x + c2.x)/2
+                rotationCanvasCenter.y = (c1.y + c2.y)/2
+                rotateIcon.setCanvasPos(c2)
+                resizeIcon.setCanvasPos(c1)
+                rotaCenter.setCanvasPos(rotationCanvasCenter);
+                
             }
             return true;
         }
@@ -206,13 +280,61 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     // Mouse up
     selectionV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         console.log("Selection: mouse up")
+
+        if (rotating){
+            rotating = false;
+
+            if (typeof pointed == "undefined") return false;
+            const d1 = Vect.from_coords(rotationCanvasCenter, e);
+            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const angle = -Math.atan2(d2.y, d2.x) + Math.atan2(d1.y, d1.x);
+            board.endLocalRotateSelection(rotationCenter, angle);
+            return false;
+        }
+
+        if (resizing){
+            resizing = false;
+            if (typeof pointed == "undefined") return false;
+            const d1 = Vect.from_coords(rotationCanvasCenter, e);
+            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const ratio = d1.norm()/d2.norm();
+            board.endLocalResizeSelection(rotationCenter, ratio);
+            return false;
+        }
+
         if (typeof pointed == "undefined") return false;
 
         if ( typeof pointed.data == "undefined"){
+            boundingBox.hide();
+            rotateIcon.hide();
+            resizeIcon.hide();
+            rotaCenter.hide();
+
             if (isRectangularSelecting) {
                 isRectangularSelecting = false;
                 board.selectElementsInRect(new CanvasCoord(rectSelection.x1, rectSelection.y1), new CanvasCoord(rectSelection.x2, rectSelection.y2));
                 rectSelection.hide();
+
+                
+                const [x,y,w,h] = board.getSelectionBoundingBox();
+                const c1 = board.camera.create_canvas_coord(new Coord(x,y))
+                const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+                boundingBox.setStartPoint(c1);
+                boundingBox.setEndPoint(c2)
+                boundingBox.show();
+
+                rotateIcon.setCanvasPos(c2)
+                rotateIcon.show();
+                resizeIcon.setCanvasPos(c1)
+                resizeIcon.show()
+
+                rotationCenter.x = x + w/2;
+                rotationCenter.y = y + h/2;
+                rotationCanvasCenter.x = (c1.x + c2.x)/2
+                rotationCanvasCenter.y = (c1.y + c2.y)/2
+                rotaCenter.setCanvasPos(rotationCanvasCenter);
+                rotaCenter.show();
+
             } else {
                 board.clearAllSelections();
             }
@@ -266,8 +388,13 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     })
 
 
-    selectionV2.draw = (board) => {
-       
+    
+
+    selectionV2.onleave = () => {
+        rotaCenter.hide();
+        rotateIcon.hide();
+        resizeIcon.hide();
+        boundingBox.hide();
     }
 
     return selectionV2;
