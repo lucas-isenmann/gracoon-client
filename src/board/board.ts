@@ -256,7 +256,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
     resetGraph(){
-        console.log("reset Graph")
+        // console.log("reset Graph")
         this.g = new Graph2();
         for (const element of this.elements.values()){
             if (element instanceof VertexElement){
@@ -265,7 +265,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
         for (const element of this.elements.values()){
             if (element instanceof LinkElement){
-                this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED, new LinkData2(element.color, ""));
+                this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED, new LinkData2(element.color, element.label));
             }
         }
     }
@@ -466,6 +466,25 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
+    getVertex(serverId: number): undefined | VertexElement {
+        for (const element of this.elements.values()){
+            if (element instanceof VertexElement && element.serverId == serverId){
+                return element;
+            }
+        }
+        return undefined;
+    }
+
+    getLink(serverId: number): undefined | LinkElement {
+        for (const element of this.elements.values()){
+            if (element instanceof LinkElement && element.serverId == serverId){
+                return element;
+            }
+        }
+        return undefined;
+    }
+
+
     selectElement(element: ClientRectangle | ClientStroke){
         if (element.isSelected) {
             if (this.keyPressed.has("Control")) { 
@@ -486,7 +505,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
     nearbyLink(pos: CanvasCoord): Option<LinkElement>{
         for (const element of this.elements.values()){
-            if (element instanceof LinkElement && element.isNearby(pos, 10)){
+            if (element instanceof LinkElement && element.isNearby(pos, 30)){
                 return element;
             }
         }
@@ -1341,7 +1360,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         socket.emit(SocketMsgType.DELETE_ELEMENTS, this.agregId, indices);
     }
 
-    emit_update_element(type: BoardElementType, index: number, attribute: string, value: any){
+    emitUpdateElement(type: BoardElementType, index: number, attribute: string, value: any){
         socket.emit(SocketMsgType.UPDATE_ELEMENT, this.agregId, type, index, attribute, value);
     }
 

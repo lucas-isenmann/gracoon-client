@@ -3,6 +3,7 @@ import { Color, getCanvasColor } from "./display/colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
 import { CanvasVect } from "./display/canvasVect";
 import { Coord, is_segments_intersection } from "gramoloss";
+import katex from "katex";
 
 
 export interface BoardElement {
@@ -33,6 +34,7 @@ export interface BoardElement {
 
 
 export class VertexElement implements BoardElement {
+
     cameraCenter: CanvasCoord;
     serverCenter: Coord;
     id: number;
@@ -47,7 +49,7 @@ export class VertexElement implements BoardElement {
     posBeforeRotate: Coord =new Coord(0,0);
     innerLabel: string;
     outerLabel: string;
-    innerLabelSVG: SVGTextElement;
+    innerLabelSVG: SVGForeignObjectElement;
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
@@ -77,15 +79,15 @@ export class VertexElement implements BoardElement {
         this.disk.classList.add("vertex");
 
         // InnerLabel
-        const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         board.verticesGroup.appendChild(innerLabelSVG);
-        innerLabelSVG.setAttribute("x", `${x}`);
-        innerLabelSVG.setAttribute("y", `${y}`);
-        innerLabelSVG.textContent =  this.serverId.toString();
-        innerLabelSVG.setAttribute("text-anchor", "middle");
-        innerLabelSVG.setAttribute("dominant-baseline", "middle");
+        innerLabelSVG.setAttribute("x", `${x-25}`);
+        innerLabelSVG.setAttribute("y", `${y-12}`);
+        innerLabelSVG.setAttribute("width", "50px");
+        innerLabelSVG.setAttribute("height", "3em");
+        innerLabelSVG.innerHTML = this.serverId.toString()
+        innerLabelSVG.classList.add("vertex-inner-label")
         this.innerLabelSVG = innerLabelSVG;
-        this.innerLabelSVG.classList.add("vertexInnerLabel")
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
@@ -93,11 +95,20 @@ export class VertexElement implements BoardElement {
         board.resetGraph() 
     }
 
+
+    setInnerLabel(value: string) {
+        console.log("setInnerLabel", this.innerLabel, this.outerLabel)
+        this.innerLabel = value;
+        console.log("done", this.innerLabel, this.outerLabel)
+
+        this.innerLabelSVG.innerHTML = katex.renderToString(value);
+    }
+
     updateSVGposition(){
         this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
         this.disk.setAttribute("cy", `${this.cameraCenter.y}`);   
-        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
-        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
+        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
+        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y-12}`);
     }
 
     updateAfterCameraChange() {
@@ -180,10 +191,12 @@ export class VertexElement implements BoardElement {
                 if ( link.startVertex.serverId == this.serverId){
                     link.line.setAttribute("x1", this.cameraCenter.x.toString())
                     link.line.setAttribute("y1", this.cameraCenter.y.toString())
+                    link.updateExtremities();
                 }
                 if ( link.endVertex.serverId == this.serverId){
                     link.line.setAttribute("x2", this.cameraCenter.x.toString())
                     link.line.setAttribute("y2", this.cameraCenter.y.toString())
+                    link.updateExtremities();
                 }
             }
         }
@@ -216,6 +229,9 @@ export class LinkElement implements BoardElement {
     isDirected: boolean;
     board: ClientBoard;
     highlight: number | undefined;
+
+    label: string = "";
+    labelSVG: SVGForeignObjectElement;
     
 
 
@@ -248,7 +264,8 @@ export class LinkElement implements BoardElement {
             const markerId = `arrow-head-${this.color}`;
             this.line.setAttribute("marker-end", `url(#${markerId})`);
         }
-    
+
+        
 
 
         this.cameraCenter.x = (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2
@@ -257,11 +274,46 @@ export class LinkElement implements BoardElement {
         this.serverCenter.x = (startVertex.serverCenter.x + endVertex.serverCenter.x)/2
         this.serverCenter.y = (startVertex.serverCenter.y + endVertex.serverCenter.y)/2;
 
+
+        // InnerLabel
+        const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        board.linksGroup.appendChild(innerLabelSVG);
+        innerLabelSVG.setAttribute("x", `${this.cameraCenter.x}`);
+        innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
+        innerLabelSVG.setAttribute("width", "50px");
+        innerLabelSVG.setAttribute("height", "3em");
+        innerLabelSVG.textContent = this.label;
+        innerLabelSVG.classList.add("link-label");
+        this.labelSVG = innerLabelSVG;
+
+    
+
+
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
 
         board.resetGraph() 
+    }
+
+    updateExtremities(){
+        this.cameraCenter.x = (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2
+        this.cameraCenter.y = (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2;
+
+        this.serverCenter.x = (this.startVertex.serverCenter.x + this.endVertex.serverCenter.x)/2
+        this.serverCenter.y = (this.startVertex.serverCenter.y + this.endVertex.serverCenter.y)/2;
+
+        this.updateSVGposition();
+    }
+
+    updateSVGposition(){
+        this.labelSVG.setAttribute("x", `${this.cameraCenter.x}`);
+        this.labelSVG.setAttribute("y", `${this.cameraCenter.y}`);
+    }
+
+    setLabel(value: string) {
+        this.label = value;
+        this.labelSVG.innerHTML = katex.renderToString(this.label);
     }
 
     updateAfterCameraChange() {
@@ -271,6 +323,8 @@ export class LinkElement implements BoardElement {
         this.line.setAttribute("y1", this.startVertex.cameraCenter.y.toString());
         this.line.setAttribute("x2", this.endVertex.cameraCenter.x.toString());
         this.line.setAttribute("y2", this.endVertex.cameraCenter.y.toString());
+
+        this.updateSVGposition();
     }
 
     setHighlight(value: number){
@@ -345,7 +399,6 @@ export class LinkElement implements BoardElement {
     }
 
     select(){
-        console.log("select line")
         this.line.classList.add("selected")
         this.line.classList.remove("deselected")
         this.isSelected = true;

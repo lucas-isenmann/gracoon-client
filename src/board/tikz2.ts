@@ -129,7 +129,7 @@ function defineNodes(g: Graph2, figSize: number) {
 
         let outLabel = "";
         if (v.data.outerLabel != ""){
-            outLabel = `, label={above:${v.data.outerLabel}}`
+            outLabel = `, label={above:$${v.data.outerLabel}$}`
         }
 
         str += `\t \\node[node_style${color}${outLabel}] (${id}) at ($\\fscale*(${x}, ${y})$) ${label};\n`;
@@ -176,16 +176,13 @@ function createLinks(g: Graph2) {
         //     bend = `[bend ${orientation}=50]`;
         // }
 
-        let weight = "";
+        let label = "";
         if (link.data.label != ""){
-            weight = `node[midway, right] {${link.data.label}}`
+            label = `node[midway, right] {$${link.data.label}$}`
         }
         
 
-        str += `\t \\draw${style} (${link.startVertex.index}) to${bend} ${weight} (${link.endVertex.index});\n`;
-
-        
-        
+        str += `\t \\draw${style} (${link.startVertex.index}) to${bend} ${label} (${link.endVertex.index});\n`;
     }
     return str;
 }

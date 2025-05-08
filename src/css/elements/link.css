@@ -11,3 +11,9 @@
 
 .link.deselected {
 }
+
+
+.link-label {
+  user-select: none;
+  color: white;
+}

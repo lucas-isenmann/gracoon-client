@@ -94,13 +94,13 @@ export function initWeightDiv(element: ClientVertex | ClientLink, type: BoardEle
                 element.data.weightDiv = undefined;
             }
         }
-        board.emit_update_element(type, element.getIndex(), "weight", element.getWeight());
+        board.emitUpdateElement(type, element.getIndex(), "weight", element.getWeight());
     }
 
     // Prevent other interactors to click on this div (and launch the editor of the weight).
     div.onmousedown = (e: MouseEvent) => {
         if (board.interactorLoadedId == INTERACTOR_TYPE.ERASER){
-            board.emit_update_element(boardElementType(element), element.index, "weight", "");
+            board.emitUpdateElement(boardElementType(element), element.index, "weight", "");
         }
         if (board.interactorLoadedId != INTERACTOR_TYPE.TEXT){
             e.preventDefault();
@@ -111,9 +111,9 @@ export function initWeightDiv(element: ClientVertex | ClientLink, type: BoardEle
         const weightNumberValue = parseInt(element.getWeight());
         if ( isNaN(weightNumberValue) == false){
             if (e.deltaY < 0) {
-                board.emit_update_element( type, element.getIndex(), "weight", String(weightNumberValue+1));
+                board.emitUpdateElement( type, element.getIndex(), "weight", String(weightNumberValue+1));
             }else {
-                board.emit_update_element(  type, element.getIndex(), "weight", String(weightNumberValue-1));
+                board.emitUpdateElement(  type, element.getIndex(), "weight", String(weightNumberValue-1));
             }
         }
     })

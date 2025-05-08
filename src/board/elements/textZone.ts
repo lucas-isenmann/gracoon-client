@@ -76,7 +76,7 @@ export class TextZoneElement implements BoardElement {
             }
             window.addEventListener("mousemove", move_div);
             function stop_event(){
-                board.emit_update_element( BoardElementType.TextZone, serverId, "width", textZone.width);
+                board.emitUpdateElement( BoardElementType.TextZone, serverId, "width", textZone.width);
                 window.removeEventListener("mouseup", stop_event);
                 window.removeEventListener("mousemove", move_div);
             }
@@ -126,7 +126,7 @@ export class TextZoneElement implements BoardElement {
 
         content.onblur = (e) => {
             onDivBlur();
-            board.emit_update_element(BoardElementType.TextZone, serverId, "text", this.text);
+            board.emitUpdateElement(BoardElementType.TextZone, serverId, "text", this.text);
         }
 
 
@@ -156,7 +156,7 @@ export class TextZoneElement implements BoardElement {
 
         content.onkeyup = (e) => {
             saveSelection();
-            board.emit_update_element(BoardElementType.TextZone, serverId, "text", this.text);
+            board.emitUpdateElement(BoardElementType.TextZone, serverId, "text", this.text);
 
             if (e.key == "Enter" && board.keyPressed.has("Control")) {
                 content.blur();

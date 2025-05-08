@@ -58,7 +58,8 @@
 
 
 
-.vertexInnerLabel {
-    fill: black;
+.vertex-inner-label {
+    text-align: center;
+    color: black;
     user-select: none;
 }

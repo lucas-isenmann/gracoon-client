@@ -55,7 +55,7 @@ export class ClientTextZone extends TextZone {
                 }
                 window.addEventListener("mousemove", move_div);
                 function stop_event(){
-                    board.emit_update_element( BoardElementType.TextZone, index, "width", textZone.width);
+                    board.emitUpdateElement( BoardElementType.TextZone, index, "width", textZone.width);
                     window.removeEventListener("mouseup", stop_event);
                     window.removeEventListener("mousemove", move_div);
                 }
@@ -105,7 +105,7 @@ export class ClientTextZone extends TextZone {
 
             content.onblur = (e) => {
                 onDivBlur();
-                board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
+                board.emitUpdateElement(BoardElementType.TextZone, index, "text", this.text);
             }
 
 
@@ -135,7 +135,7 @@ export class ClientTextZone extends TextZone {
 
             content.onkeyup = (e) => {
                 saveSelection();
-                board.emit_update_element(BoardElementType.TextZone, index, "text", this.text);
+                board.emitUpdateElement(BoardElementType.TextZone, index, "text", this.text);
 
                 if (e.key == "Enter" && board.keyPressed.has("Control")) {
                     content.blur();

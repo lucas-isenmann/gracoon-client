@@ -375,18 +375,24 @@ export function setupHandlers(board: ClientBoard) {
                 board.setColor(BoardElementType.Vertex, data.index, data.value as Color);
             }
 
-            // const vertex = board.graph.vertices.get(data.index);
-            // if (typeof vertex == "undefined") return;
-            // if (data.param == "weight"){
-            //     if ( (document.activeElement && typeof vertex.data.weightDiv != "undefined" && document.activeElement.id == vertex.data.weightDiv.id) == false ){
-            //         const text = data.value as string;
-            //         vertex.setWeight(text);
-            //         weightUpdate = true;
-            //     }
-            // }
+            const vertex = board.getVertex(data.index);
+            if (typeof vertex == "undefined") return;
+            if (data.param == "weight"){
+                const text = data.value as string;
+                vertex.setInnerLabel(text);
+                weightUpdate = true;
+            }
         }else if (data.kind == "Link"){
             if (data.param == "color"){
                 board.setColor(BoardElementType.Link, data.index, data.value as Color);
+            }
+
+            const link = board.getLink(data.index);
+            if (typeof link == "undefined") return;
+            if (data.param == "weight"){
+                const text = data.value as string;
+                link.setLabel(text);
+                weightUpdate = true;
             }
 
             // const link = board.graph.links.get(data.index);

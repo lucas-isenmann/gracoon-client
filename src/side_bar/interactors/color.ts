@@ -76,7 +76,7 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
         if (typeof pointed.data != "undefined"){
             if ( pointed.data.element.color != board.colorSelected){
                 if (typeof pointed.type != "undefined"){
-                    board.emit_update_element( pointed.type , pointed.data.element.serverId, "color", board.colorSelected);
+                    board.emitUpdateElement( pointed.type , pointed.data.element.serverId, "color", board.colorSelected);
                 }
             }
         }
@@ -90,7 +90,7 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
         const elt = board.get_element_nearby(e, color_interactorV2.interactable_element_type);
         if (typeof elt != "undefined"){
             if ( elt.element.color != board.colorSelected){
-                board.emit_update_element( elt.element.boardElementType , elt.element.serverId, "color", board.colorSelected);
+                board.emitUpdateElement( elt.element.boardElementType , elt.element.serverId, "color", board.colorSelected);
             }
         }
         // if ( elt instanceof ELEMENT_DATA_VERTEX || elt instanceof ELEMENT_DATA_LINK) {

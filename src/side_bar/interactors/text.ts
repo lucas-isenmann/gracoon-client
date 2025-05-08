@@ -5,31 +5,65 @@ import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
 import { TextZoneElement } from "../../board/elements/textZone";
+import { LinkElement, VertexElement } from "../../board/element";
 
 
 
 export function createTextInteractor(board: ClientBoard): PreInteractor{
-    const text_interactorV2 = new PreInteractor(INTERACTOR_TYPE.TEXT, "Text zones, vertices labels, links labels", "t", "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+    const textInteractorV2 = new PreInteractor(INTERACTOR_TYPE.TEXT, "Text zones, vertices labels, links labels", "t", "text", "default", new Set([DOWN_TYPE.LINK, DOWN_TYPE.LINK_WEIGHT, DOWN_TYPE.VERTEX, DOWN_TYPE.VERTEX_WEIGHT, DOWN_TYPE.TEXT_ZONE]));
+    const input = document.createElement("input");
+    input.classList.add("label-input");
+    input.style.display = "none";
+    document.body.appendChild(input);
 
-    text_interactorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+    
+
+    textInteractorV2.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
+
+        input.blur();
+        input.style.display = "none";
 
         if ( pointed.data instanceof ELEMENT_DATA_LINK || pointed.data instanceof ELEMENT_DATA_VERTEX ) {
             const element = pointed.data.element;
 
-            if (typeof element.data.weightDiv == "undefined"){
-                initWeightDiv(element, boardElementType(element), board, true);
+            input.style.display = "block";
+            input.style.top = "100px";
+            input.style.left = "100px";
+
+            input.value = "";
+            if (element instanceof VertexElement){
+                input.value = element.innerLabel;
+            } else if (element instanceof LinkElement){
+                input.value = element.label;
             }
-            
 
-
+            input.focus();
             // A timeout is needed I dont know why.
-            if (typeof element.data.weightDiv !== "undefined"){
-                setTimeout(() => {
-                    if (typeof element.data.weightDiv !== "undefined"){
-                        element.data.weightDiv.focus();
+            setTimeout(() => {
+                input.focus();
+            }, 50);
+
+
+            input.onkeyup = (e) => {
+                if ( input.textContent != null){
+                    if (element instanceof VertexElement){
+                        board.emitUpdateElement(element.boardElementType, element.serverId, "weight", input.value);
+                    } else if (element instanceof LinkElement){
+                        board.emitUpdateElement(element.boardElementType, element.serverId, "weight", input.value);
+                        // element.setLabel(input.value);
                     }
-                }, 50);
+                }
+                if (e.key == "Enter" && board.keyPressed.has("Control")) {
+                    input.blur();
+                    input.style.display = "none";
+                }
             }
+
+            // if (typeof element.data.weightDiv == "undefined"){
+            //     initWeightDiv(element, boardElementType(element), board, true);
+            // }
+
+            
         }
         else if ( typeof pointed.data == "undefined" ){
             if (document.activeElement){ // If there is an active content editable, then do not create a textZone 
@@ -54,7 +88,7 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
     })
 
 
-    return text_interactorV2;
+    return textInteractorV2;
 } 
 
 

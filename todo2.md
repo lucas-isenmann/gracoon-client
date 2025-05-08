@@ -1,11 +1,12 @@
+## Board
+- resetGraph
+
 ## Vertex
-- innerLabel
 - autoNumerotation
 - outerLabel
 - doubleclick on it
 
 ## Link
-- label
 - loop
 - multi
 - control Points
