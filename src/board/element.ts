@@ -4,6 +4,7 @@ import { BoardElementType, ClientBoard } from "./board";
 import { CanvasVect } from "./display/canvasVect";
 import { Coord, is_segments_intersection } from "gramoloss";
 import katex from "katex";
+import { highlightColors } from "./display/highlight_colors";
 
 
 export interface BoardElement {
@@ -119,7 +120,7 @@ export class VertexElement implements BoardElement {
     setHighlight(value: number){
         this.highlight = value;
         this.disk.classList.add("highlight");
-        this.disk.setAttribute("stroke", "black");
+        this.disk.setAttribute("stroke", highlightColors[value]);
         this.disk.setAttribute('stroke-width', '10');
     }
 

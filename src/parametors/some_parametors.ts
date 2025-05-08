@@ -519,15 +519,15 @@ paramMinDegree.compute= ((g: Graph2, verbose: boolean) => {
     const minVertices = new Array();
     for (const v of g.vertices.values()){
         if (data.min_value == g.degree(v.index)){
-            minVertices.push(v);
+            minVertices.push(v.index);
         }
     }
     return [String(data.min_value), minVertices];
 });
 
-paramMinDegree.showCertificate = (board: ClientBoard, minVertices: Array<ClientVertex>) => {
-    for (const v of minVertices){
-        v.data.highlight = 0;
+paramMinDegree.showCertificate = (board: ClientBoard, minVertices: Array<number>) => {
+    for (const vId of minVertices){
+        board.highlight([[BoardElementType.Vertex, vId, 1]])
     }
 }
 
@@ -538,15 +538,15 @@ paramMinIndegree.compute= ((g: Graph2, verbose) => {
     const minVertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.inDegree(v.index)){
-            minVertices.push(v);
+            minVertices.push(v.index);
         }
     }
     return [String(md), minVertices];
 });
 
-paramMinIndegree.showCertificate = (board: ClientBoard, minVertices: Array<ClientVertex>) => {
-    for (const v of minVertices){
-        v.data.highlight = 0;
+paramMinIndegree.showCertificate = (board: ClientBoard, minVertices: Array<number>) => {
+    for (const vId of minVertices){
+        board.highlight([[BoardElementType.Vertex, vId, 1]])
     }
 }
 
@@ -557,15 +557,15 @@ paramMaxIndegree.compute= ((g: Graph2, verbose) => {
     const vertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.inDegree(v.index)){
-            vertices.push(v);
+            vertices.push(v.index);
         }
     }
     return [String(md), vertices];
 });
 
-paramMaxIndegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
-    for (const v of vertices){
-        v.data.highlight = 0;
+paramMaxIndegree.showCertificate = (board: ClientBoard, vertices: Array<number>) => {
+    for (const vId of vertices){
+        board.highlight([[BoardElementType.Vertex, vId, 0]])
     }
 }
 
@@ -576,15 +576,15 @@ paramMinOutdegree.compute= ((g: Graph2, verbose) => {
     const vertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.outDegree(v.index)){
-            vertices.push(v);
+            vertices.push(v.index);
         }
     }
     return [String(md), vertices];
 });
 
-paramMinOutdegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
-    for (const v of vertices){
-        v.data.highlight = 0;
+paramMinOutdegree.showCertificate = (board: ClientBoard, vertices: Array<number>) => {
+    for (const vId of vertices){
+        board.highlight([[BoardElementType.Vertex, vId, 0]])
     }
 }
 
@@ -595,15 +595,15 @@ paramMaxOutdegree.compute= ((g: Graph2, verbose) => {
     const vertices = new Array();
     for (const v of g.vertices.values()){
         if (md == g.outDegree(v.index)){
-            vertices.push(v);
+            vertices.push(v.index);
         }
     }
     return [String(md), vertices];
 });
 
-paramMaxOutdegree.showCertificate = (board: ClientBoard, vertices: Array<ClientVertex>) => {
-    for (const v of vertices){
-        v.data.highlight = 0;
+paramMaxOutdegree.showCertificate = (board: ClientBoard, vertices: Array<number>) => {
+    for (const vId of vertices){
+        board.highlight([[BoardElementType.Vertex, vId, 0]])
     }
 }
 
@@ -619,7 +619,7 @@ paramMaxDegree.compute= ((g: Graph2, verbose: boolean) => {
 
 paramMaxDegree.showCertificate = (board: ClientBoard, certificate: Set<number>) =>  {
     for (const vId of certificate){
-        board.highlightVertex(vId, 1);
+        board.highlight([[BoardElementType.Vertex, vId, 1]])
     }
 }
 

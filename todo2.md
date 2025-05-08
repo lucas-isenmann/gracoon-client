@@ -1,6 +1,8 @@
 ## Board
 - resetGraph
 
+## GraphV2
+
 ## Vertex
 - autoNumerotation
 - outerLabel
