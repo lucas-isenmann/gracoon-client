@@ -1,8 +1,6 @@
 
 import { Parametor, SENSIBILITY } from './parametor';
 import { AbstractGraph, DominationVariant, EmbeddedGraph, ORIENTATION } from 'gramoloss';
-import { ClientLink, ClientLinkData } from '../board/link';
-import { ClientVertex } from '../board/vertex';
 import { shuffle } from '../utils';
 import { Color } from '../board/display/colors_v2';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
@@ -304,9 +302,9 @@ paramMinimalSpanningTree.compute= ((g: Graph2, verbose: boolean) => {
     return [r[0].toString(), r[1]];
 })
 
-paramMinimalSpanningTree.showCertificate = ((board: ClientBoard, certificate: Array<ClientLink>) => {
-    for (const link of certificate){
-        link.data.highlight = 1;
+paramMinimalSpanningTree.showCertificate = ((board: ClientBoard, certificate: Array<number>) => {
+    for (const linkId of certificate){
+        board.highlightLink(linkId, 1)
     }
 })
 

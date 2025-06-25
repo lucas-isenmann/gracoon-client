@@ -1,7 +1,5 @@
-import { Board, Option } from "gramoloss";
-import { ClientArea } from "../board/area";
+import { Option } from "gramoloss";
 import { CanvasCoord } from "../board/display/canvas_coord";
-import { ClientLink } from "../board/link";
 import { ClientRepresentation } from "../board/representations/client_representation";
 import { ClientTextZone } from "../board/text_zone";
 import { RESIZE_TYPE } from "./interactor";
@@ -11,7 +9,7 @@ import { StrokeElement } from "../board/elements/stroke2";
 
 
 export interface ELEMENT_DATA {
-    // element: ClientVertex | ClientLink | ClientRectangle | ClientArea | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
+    // element: ClientVertex | ClientLink | ClientRectangle  | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
     element: BoardElement;
 }
 
@@ -30,8 +28,8 @@ export class ELEMENT_DATA_LINK {
 }
 
 export class ELEMENT_DATA_CONTROL_POINT {
-    element: ClientLink;
-    constructor(l: ClientLink){
+    element: LinkElement;
+    constructor(l: LinkElement){
         this.element = l;
     }
 }
@@ -52,16 +50,7 @@ export class ELEMENT_DATA_TEXT_ZONE {
     }
 }
 
-export class ELEMENT_DATA_AREA {
-    element: ClientArea;
-    index: number;
-    resizeType: Option<RESIZE_TYPE>;
-    constructor(area: ClientArea, index: number, resizeType: Option<RESIZE_TYPE>){
-        this.element = area;
-        this.index = index;
-        this.resizeType = resizeType;
-    }
-}
+
 
 export class ELEMENT_DATA_REPRESENTATION {
     element: ClientRepresentation;

@@ -2,7 +2,7 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
 import { CanvasVect } from "./display/canvasVect";
-import { Coord, is_segments_intersection } from "gramoloss";
+import { Coord, is_segments_intersection, ORIENTATION } from "gramoloss";
 import katex from "katex";
 import { highlightColors } from "./display/highlight_colors";
 
@@ -31,6 +31,18 @@ export interface BoardElement {
 
 
 
+
+export class VertexPreData {
+    pos: Coord;
+    color: Color;
+    weight: string;
+
+    constructor(pos: Coord, color: Color, weight: string){
+        this.pos = pos;
+        this.color = color;
+        this.weight = weight;
+    }
+}
 
 
 
@@ -211,6 +223,25 @@ export class VertexElement implements BoardElement {
         this.updateSVGposition();
         this.updateIncidentLinks();
         
+    }
+}
+
+
+
+
+export class LinkPreData {
+    startIndex: number;
+    endIndex: number;
+    orientation: ORIENTATION;
+    weight: string;
+    color: Color;
+
+    constructor(startIndex: number, endIndex: number, orientation: ORIENTATION, weight: string, color: Color){
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+        this.orientation = orientation;
+        this.color = color;
+        this.weight = weight;
     }
 }
 

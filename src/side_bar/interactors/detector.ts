@@ -1,11 +1,10 @@
-import { ClientLink } from '../../board/link';
 import { CanvasCoord } from '../../board/display/canvas_coord';
 import { DOWN_TYPE, INTERACTOR_TYPE } from '../../interactors/interactor';
 import { PreInteractor } from '../pre_interactor';
-import { ClientVertex } from '../../board/vertex';
 import { ClientBoard } from '../../board/board';
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from '../../interactors/pointed_element_data';
 import { Option } from 'gramoloss';
+import { LinkElement, VertexElement } from '../../board/element';
 
 // INTERACTOR DETECTOR
 
@@ -26,18 +25,18 @@ export function createDetectorInteractor(board: ClientBoard){
         infobox.style.left = String(pos.x+10) + "px";
     }
 
-    function set_vertex_infobox(vertex: ClientVertex, pos: CanvasCoord){
+    function set_vertex_infobox(vertex: VertexElement, pos: CanvasCoord){
         set_element_infobox(pos);
         infobox.innerHTML = 
-        "Vertex index: " + vertex.index + "<br>" +
-        "x: " + vertex.data.pos.x + "<br>" +
-        "y: " + vertex.data.pos.y + "<br>"+
-        "color: " + vertex.data.color + "<br>" +
-        "canvas_x: " + Math.floor(vertex.data.canvas_pos.x) + "<br>" +
-        "canvas_y: " + Math.floor(vertex.data.canvas_pos.y);
+        "Vertex index: " + vertex.id + "<br>" +
+        "x: " + vertex.serverCenter.x + "<br>" +
+        "y: " + vertex.serverCenter.y + "<br>"+
+        "color: " + vertex.color + "<br>" +
+        "canvas_x: " + Math.floor(vertex.cameraCenter.x) + "<br>" +
+        "canvas_y: " + Math.floor(vertex.cameraCenter.y);
     }
 
-    function set_link_infobox(link: ClientLink, pos: CanvasCoord){
+    function set_link_infobox(link: LinkElement, pos: CanvasCoord){
         set_element_infobox(pos);
         infobox.innerHTML = JSON.stringify(link, null, "&nbsp&nbsp&nbsp").replace(/\n/g, "<br />");;
     }

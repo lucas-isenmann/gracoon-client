@@ -1,7 +1,5 @@
 import { User } from "./user";
-import { ClientStroke } from "./board/stroke";
 import { update_params_loaded } from "./parametors/parametor_manager";
-import { ClientArea } from "./board/area";
 import { update_options_graphs } from "./parametors/div_parametor";
 import { SENSIBILITY } from "./parametors/parametor";
 import {  Coord,  ORIENTATION, Vect } from "gramoloss";
@@ -331,11 +329,9 @@ export function setupHandlers(board: ClientBoard) {
             if (kind == "Rectangle"){
                 board.deleteShape(index);
             } else if ( kind == "Stroke"){
-                board.strokes.delete(index);
+                board.deleteStroke(index);
             } else if (kind == "TextZone"){
                 board.deleteTextZone(index);
-            } else if (kind == "Area"){
-                board.delete_area(index);
             } else if (kind == "Vertex"){
                 board.deleteVertex(index);
                 // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
@@ -416,24 +412,12 @@ export function setupHandlers(board: ClientBoard) {
             // }
         } 
         else if (data.kind == "Stroke"){
-            const stroke = board.strokes.get(data.index);
-            if (typeof stroke == "undefined") return;
-            if(data.param == "color"){
-                const color = data.value as string;
-                stroke.color = color as Color;
-            }
-        } else if (data.kind == "Area"){
-            const area = board.areas.get(data.index);
-            if (typeof area == "undefined") return;
-            if(data.param == "c1"){
-                const new_c1 = new Coord(data.value.x , data.value.y);
-                area.c1 = new_c1;
-                area.update_canvas_pos(board.camera);
-            } else if(data.param == "c2"){
-                const new_c2 = new Coord(data.value.x , data.value.y);
-                area.c2 = new_c2;
-                area.update_canvas_pos(board.camera);
-            }
+            // const stroke = board.strokes.get(data.index);
+            // if (typeof stroke == "undefined") return;
+            // if(data.param == "color"){
+            //     const color = data.value as string;
+            //     stroke.color = color as Color;
+            // }
         } else if (data.kind == "Rectangle"){
             if (data.param == "color"){
                 board.setColor(BoardElementType.Rectangle, data.index, data.value as Color);

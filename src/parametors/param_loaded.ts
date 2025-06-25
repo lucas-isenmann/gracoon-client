@@ -1,9 +1,6 @@
 import { Parametor } from "./parametor";
-
 import { params_loaded, removeLoadedParam, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
-import { Zone } from "./zone";
-import { ClientArea } from "../board/area";
 import { createPopup } from "../popup";
 import { marked } from "marked";
 import renderMathInElement from "../katex-auto-render/auto-render";
@@ -14,20 +11,16 @@ export class ParametorLoaded {
     div: HTMLDivElement;
     resultSpan: HTMLSpanElement;
     nameSpan: HTMLSpanElement;
-    zone: Zone;
     isVerbose: boolean;
     certificate: any;
 
-    constructor(parametor: Parametor, zone: Zone, board: ClientBoard){
+    constructor(parametor: Parametor, board: ClientBoard){
         this.isVerbose = true;
         this.certificate = undefined;
         this.parametor = parametor;
-        this.zone = zone;
-        const areaId = (zone instanceof ClientArea) ? zone.index : "";
-        this.id = parametor.id + "_area_" + areaId;
+        this.id = parametor.id;
         this.div = document.createElement("div");
         this.nameSpan = document.createElement("span");
-        zone.paramsDivContainer.appendChild(this.div);
         this.resultSpan = document.createElement("span");
         this.setupDOM(board);
     }

@@ -4,12 +4,11 @@
 
 import { Coord, Option, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../../board/board";
-import { resize_corner, resize_side, translate_by_canvas_vect } from "../../board/resizable";
 import { CanvasVect } from "../../board/display/canvasVect";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
-import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
+import { ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
 import { VertexElement } from "../../board/element";

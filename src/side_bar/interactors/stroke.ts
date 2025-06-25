@@ -1,4 +1,3 @@
-import { ClientStroke } from "../../board/stroke";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";

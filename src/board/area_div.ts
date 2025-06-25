@@ -1,23 +1,14 @@
 import { params_available_turn_on_div } from "../parametors/div_parametor";
+import { EntireZone } from "../parametors/zone";
 import { ClientBoard, COLOR_BACKGROUND } from "./board";
 
-import { ClientArea } from "./area";
-import { Zone } from "../parametors/zone";
 
 
 
 
 
 
-export function createTitleSpanForArea(area: ClientArea):HTMLSpanElement{
-    const span_area = document.createElement('span');
-    span_area.classList.add("span_area_name_parametor");
-    span_area.textContent = area.label;
-    span_area.style.background = area.color;
-    // TODO span_area.style.color = a.multicolor.contrast;
-    // span_area.style.borderColor = a.multicolor.contrast;
-    return span_area;
-}
+
 
 function createTitleSpanForWholeArea(){
     const span_area = document.createElement('span');
@@ -28,10 +19,9 @@ function createTitleSpanForWholeArea(){
     return span_area;
 }
 
-export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, zone: Zone){
-    const g = board.graph;
+export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, zone: EntireZone){
     const camera = board.camera;
-    const area_id = (zone instanceof ClientArea) ? zone.index : "";
+    const area_id = "";
 
     area_DOM.id = "area_"+ area_id;
     area_DOM.classList.add("subgraph_parametors");
@@ -51,26 +41,15 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
     });
     title_area_container.appendChild(load_new_parametors_button);
     
-    if( zone instanceof ClientArea){
-        const titleDOM = createTitleSpanForArea(zone);
-        titleDOM.id = "title_area_"+ area_id;
-        title_area_container.appendChild(titleDOM);
-        // Center on the area on click
-        titleDOM.addEventListener("click",  (e)=>{
-            board.centerCameraOnRectangle( zone.canvas_corner_top_left, zone.canvas_corner_bottom_right);
-            board.requestDraw()
-        });
-    }
-    else{
-        const titleDOM = createTitleSpanForWholeArea();
-        titleDOM.id = "title_area_"+ area_id;
-        title_area_container.appendChild(titleDOM);
-        // Center on the graph on click
-        titleDOM.addEventListener("click",  (e)=>{
-            board.centerViewOnEverything();
-            board.requestDraw();
-        });
-    }
+   
+    const titleDOM = createTitleSpanForWholeArea();
+    titleDOM.id = "title_area_"+ area_id;
+    title_area_container.appendChild(titleDOM);
+    // Center on the graph on click
+    titleDOM.addEventListener("click",  (e)=>{
+        board.centerViewOnEverything();
+        board.requestDraw();
+    });
 
     const expand_list_button = document.createElement("img");
     expand_list_button.classList.add("expand_button", "expanded", "hidden");

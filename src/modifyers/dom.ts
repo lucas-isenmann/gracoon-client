@@ -1,5 +1,5 @@
 import { ClientBoard } from "../board/board";
-import { AreaIndex, Percentage, Integer } from "../generators/attribute";
+import { Percentage, Integer } from "../generators/attribute";
 import { createPopup } from "../popup";
 import { GraphModifyer } from "./modifyer";
 
@@ -7,21 +7,21 @@ const subdivideLinks = new GraphModifyer(
     "subdivideLinks",
     "Subdivide links",
     `For every link (edge or arc), insert k vertices.`,
-        [new AreaIndex("area"), new Integer("k", 1)]);
+        [ new Integer("k", 1)]);
 
 const intoTournament = new GraphModifyer(
     "into_tournament",
     "Complete into tournament",
     `For every pair of non adjacent vertices, add an arc from the leftmost vertex to the rightmost vertex.
     Thus the graph becomes a tournament.`,
-     [new AreaIndex("area")]);
+     []);
 
 
 const removeRandomLinks = new GraphModifyer(
     "removeRandomLinks",
     "Remove random links",
     `For every link (edge or arc), remove it with a certain probability.`,
-        [new AreaIndex("area"), new Percentage("p")]);
+        [ new Percentage("p")]);
 
 
 // --- Modifyers available ---

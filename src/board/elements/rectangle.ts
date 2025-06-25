@@ -5,6 +5,16 @@ import { CanvasVect } from "../display/canvasVect";
 import { Color, getCanvasColor } from "../display/colors_v2";
 import { BoardElement } from "../element";
 
+
+export class ShapePreData {
+    pos: Coord;
+    color: Color;
+    constructor(pos: Coord, color: Color){
+        this.pos = pos;
+        this.color = color;
+    }
+}
+
 export class Rectangle implements BoardElement {
     cameraCenter: CanvasCoord = new CanvasCoord(0,0);
     serverCenter: Coord = new Coord(0,0);

@@ -1,9 +1,9 @@
-import { BoardElementType, ClientBoard } from "../../board/board";
+import { ClientBoard } from "../../board/board";
 import { CanvasCoord } from "../../board/display/canvas_coord";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { Color, colorsData, getCanvasColor } from "../../board/display/colors_v2";
-import { ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
+import { PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
 
 

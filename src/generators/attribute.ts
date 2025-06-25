@@ -118,76 +118,6 @@ export class Percentage {
     }
 }
 
-export enum AreaChoice {
-    EVERYTHING = "Everything",
-    INDUCED_GRAPH_BY_SELECTED_VERTICES = "Induced Selection"
-}
-
-export class AreaIndex {
-    name: string;
-    value: number | AreaChoice;
-    div: HTMLDivElement;
-
-    constructor(name: string) {
-        this.name = name;
-        this.div = document.createElement("div");
-        this.value = AreaChoice.EVERYTHING;
-    }
-
-    reset_inputs(board: ClientBoard){
-        this.div.innerHTML = "";
-        this.div.classList.add("attribute_input");
-
-        // Everything Radio Input
-        Object.values(AreaChoice).forEach( (ugaf) => {
-            const everythingInput = document.createElement("input");
-            everythingInput.name = this.name;
-            everythingInput.type = "radio";
-            everythingInput.value = ugaf;
-            everythingInput.onchange = (e) => {
-                this.value = ugaf;
-            }
-            if (ugaf == this.value){
-                everythingInput.checked = true;
-            }
-            const everythingLabel = document.createElement("label");
-            everythingLabel.innerText = ugaf;
-            everythingLabel.htmlFor = ugaf;
-            everythingLabel.onclick = (e) => {
-                everythingInput.checked = true;
-                this.value = ugaf;
-            }
-            const everything_div = document.createElement("div");
-            everything_div.appendChild(everythingInput);
-            everything_div.appendChild(everythingLabel);
-            this.div.appendChild(everything_div);
-        })
-
-        // for every area add a radio input
-        for( const [index, area] of board.areas.entries()){
-            const newInput = document.createElement("input");
-            newInput.name = this.name;
-            newInput.type = "radio";
-            newInput.value = area.label;
-            newInput.onchange = (e) => {
-                this.value = index;
-            }
-            const newInput_label = document.createElement("label");
-            newInput_label.innerText = area.label;
-            newInput_label.htmlFor = area.label;
-            newInput_label.onclick = (e) => {
-                newInput.checked = true;
-                this.value = index;
-            }
-
-            const newInput_div = document.createElement("div");
-            newInput_div.appendChild(newInput);
-            newInput_div.appendChild(newInput_label);
-            this.div.appendChild(newInput_div);
-        }
-    }
-
-}
 
 // TODO realnumber
 
@@ -233,4 +163,4 @@ export class ListAttribute {
 
 
 
-export interface AttributesArray extends Array<Integer | Percentage | AreaIndex | ListAttribute> { };
+export interface AttributesArray extends Array<Integer | Percentage | ListAttribute> { };

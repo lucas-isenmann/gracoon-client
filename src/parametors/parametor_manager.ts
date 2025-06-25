@@ -1,14 +1,9 @@
 import { paramAverageDegree, paramDiameter, paramHasCycle, paramHasDirectedCycle, paramIsProperColoring, paramIsConnected, param_is_good_weight, paramMaxDegree, paramMinDegree, paramMinIndegree, paramNbEdges, paramNbVertices, paramNumberColors, paramNbConnectedComp, paramIsDrawingPlanar, param_wdin2, param_weighted_distance_identification, paramDelaunayConstructor, paramStretch, paramIsQuasiKernel, paramIsQKAlgoOK, paramFVSN, paramGeomChromaticIndex, paramChromaticNumber, paramChromaticIndex, paramCliqueNumber, paramVertexCover, paramDegreeWidth, paramMinimalSpanningTree, paramMaxIndegree, paramMinOutdegree, paramMaxOutdegree, paramMinQuasiKernel, paramGirth, paramCDS, paramIDS, paramDS, paramDFVS, paramDichromaticNumber, paramIsLight, paramNumberArcs, paramNumberLinks, paramHasLightExtension } from './some_parametors';
 import { Parametor, SENSIBILITY } from './parametor';
-import { ClientGraph } from '../board/graph';
 import { createPopup } from '../popup';
 import { ClientBoard } from '../board/board';
 import { ParametorLoaded } from './param_loaded';
-import { Zone } from './zone';
-import { ClientArea } from '../board/area';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
-import { EmbeddedGraph } from 'gramoloss';
-import { Graph2 } from '../board/graph2';
 
 
 
@@ -70,14 +65,13 @@ export function setup_parametors_available() {
 
 
 
-export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
-    console.log("load_param", param, zone.paramsDivContainer);
+export function load_param(param: Parametor, board: ClientBoard) {
 
     board.unhighlightAll();
 
 
     // const html_id =  param.id + "_area_" + areaId;
-    const paramLoaded = new ParametorLoaded(param, zone, board);
+    const paramLoaded = new ParametorLoaded(param, board);
 
     // Unverbose all other parameters
     for (const p of params_loaded){
@@ -94,13 +88,12 @@ export function load_param(param: Parametor, board: ClientBoard, zone: Zone) {
         board.requestDraw();
     }
         
-    toggleListSeparator(zone, true);
+    toggleListSeparator( true);
 
     // If ask to load degreewidth parameter, then add DW-representation
     if (param.id == "paramDW"){
         const dwRep = ClientDegreeWidthRep.fromEmbedding(board);
-        board.representations.set(0, dwRep);
-        board.requestDraw();
+        // board.representations.set(0, dwRep);
     }
 }
 
@@ -131,23 +124,12 @@ function invalidParametor(param: ParametorLoaded){
 
 export function update_parametor(board: ClientBoard, param: ParametorLoaded){
     console.log("update_param")
-    if ( param.zone instanceof ClientArea ){
-        // const result = param.parametor.compute(g.board.get_subgraph_from_area(param.zone.index), true);
-        // param.certificate = result[1];
-        // updateResultSpan(result[0], param.parametor, param.resultSpan);
-        // if (param.isVerbose){
-        //     g.board.unhighlightAll();
-        //     param.parametor.showCertificate(g, param.certificate);
-        // }
-    }
-    else{
-        const result = param.parametor.compute(board.g, true);
-        param.certificate = result[1];
-        updateResultSpan(result[0], param.parametor, param.resultSpan);
-        if (param.isVerbose){
-            board.unhighlightAll();
-            param.parametor.showCertificate(board, param.certificate);
-        }
+    const result = param.parametor.compute(board.g, true);
+    param.certificate = result[1];
+    updateResultSpan(result[0], param.parametor, param.resultSpan);
+    if (param.isVerbose){
+        board.unhighlightAll();
+        param.parametor.showCertificate(board, param.certificate);
     }
 }
 
@@ -188,8 +170,8 @@ function updateResultSpan(result:string, param: Parametor, resultSpan:HTMLElemen
 
 
 
-function toggleListSeparator(zone: Zone, toggle:boolean){
-    const areaId = (zone instanceof ClientArea) ? zone.index : "";
+function toggleListSeparator(toggle:boolean){
+    const areaId = "";
     const listContainerDiv = document.getElementById(`param_list_container_area_${areaId}`);
     if (listContainerDiv){
         if (toggle){
@@ -218,14 +200,9 @@ export function removeLoadedParam(loadedParam: ParametorLoaded, board: ClientBoa
         }
     }
       
-    // Checking if there are loaded parametors for the area
-    for (var j = 0; j < params_loaded.length; j++) {
-        if (loadedParam.zone === params_loaded[j].zone) {
-            return;
-        }
-    }
+   
     // If there are no more params for the zone of loadedParam 
-    toggleListSeparator(loadedParam.zone, false);
+    toggleListSeparator(false);
 }
 
 

@@ -1,12 +1,9 @@
 import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { socket } from '../socket';
-import { regenerate_graph } from '../generators/dom';
 import { CanvasCoord } from '../board/display/canvas_coord';
 import { CanvasVect } from '../board/display/canvasVect';
-import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
-import { PreInteractor } from '../side_bar/pre_interactor';
-import { ELEMENT_DATA_AREA, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, PointedElementData } from './pointed_element_data';
+import { ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, PointedElementData } from './pointed_element_data';
 import { Option } from 'gramoloss';
 
 // INTERACTOR MANAGER
@@ -63,7 +60,7 @@ export function setupInteractions(board: ClientBoard) {
                 board.emitRedo();
             }
             if (board.keyPressed.has("Control") && e.key.toLowerCase() == "a") {
-                board.selectEverything();
+                // board.selectEverything();
             }
         }
     });
@@ -135,9 +132,9 @@ export function setupInteractions(board: ClientBoard) {
             board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         }
         
-        if ( board.updateElementOver(mousePos)){
-            requestAnimationFrame(() => board.draw() );
-        }
+        // if ( board.updateElementOver(mousePos)){
+        //     requestAnimationFrame(() => board.draw() );
+        // }
 
         board.translateClipboard(previous_canvas_shift, mousePos);
 
@@ -163,7 +160,7 @@ export function setupInteractions(board: ClientBoard) {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
                 const element = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
-                if (element instanceof ELEMENT_DATA_AREA || element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
+                if ( element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
                     if (typeof element.resizeType != "undefined"){
                         board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
                     } else {
@@ -191,15 +188,18 @@ export function setupInteractions(board: ClientBoard) {
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
         previous_canvas_shift = new CanvasVect(0,0);
 
-        if (board.clipboard.length > 0){
-            board.sendRequestPasteClipboard();
-            if( board.keyPressed.has("Control") == false ){
-                board.clearClipboard();
-            } else {
-                board.clipboardInitPos = mousePos.copy();
-            }
-            board.draw();
-        }
+        // CLIPBOARD TODO
+        // if (board.clipboard.length > 0){
+        //     board.sendRequestPasteClipboard();
+        //     if( board.keyPressed.has("Control") == false ){
+        //         board.clearClipboard();
+        //     } else {
+        //         board.clipboardInitPos = mousePos.copy();
+        //     }
+        //     board.draw();
+        // }
+
+
         // else if (typeof board.graphClipboard != "undefined") {
         //     board.pasteGeneratedGraph();
         //     if( board.keyPressed.has("Control") ){
@@ -211,7 +211,8 @@ export function setupInteractions(board: ClientBoard) {
         //     }
         //     board.draw()
         // } 
-        else if (e.buttons == 2){
+        // else
+         if (e.buttons == 2){
             const pointedPos = mousePos.copy();
             const magnetPos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons,  undefined );

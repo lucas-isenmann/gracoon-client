@@ -1,5 +1,3 @@
-import { EmbeddedGraph } from "gramoloss";
-import { ClientGraph } from "../board/graph";
 import { ClientBoard } from "../board/board";
 import { Graph2 } from "../board/graph2";
 

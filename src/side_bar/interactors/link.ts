@@ -1,12 +1,9 @@
 import { Coord, Option, ORIENTATION } from "gramoloss";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { drawHead } from "../../board/display/draw_basics";
 import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
-import { ClientVertexData } from "../../board/vertex";
-import { LinkPreData } from "../../board/link";
 import { Color, getCanvasColor } from "../../board/display/colors_v2";
-import { BoardElementType, ClientBoard, INDEX_TYPE, VERTEX_RADIUS } from "../../board/board";
+import { BoardElementType, ClientBoard } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { VertexElement } from "../../board/element";
 import { TargetPoint } from "../../board/elements/targetPoint";
@@ -54,13 +51,14 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             const server_pos = board.camera.createServerCoord(pos);
 
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                board.emitAddElement(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
+                board.emitAddElement(board.createVertexPreData(server_pos), (response) => { 
                     constructionSegment.show();
                     constructionSegment.setStartPoint(pointed.magnetPos);
                     constructionSegment.setEndPoint(pointed.magnetPos);
 
                     if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                        board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
+                        board.emitAddElement( board.createLinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation)
+                        , () => {} )
                     }
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
@@ -69,7 +67,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                     
                 });
             } else {
-                board.emitAddElement(new ClientVertexData(server_pos.x, server_pos.y, "", board.camera, board.colorSelected), (response) => { 
+                board.emitAddElement(board.createVertexPreData(server_pos), (response) => { 
                     constructionSegment.show();
                     constructionSegment.setStartPoint(pointed.magnetPos);
                     constructionSegment.setEndPoint(pointed.magnetPos);
@@ -82,7 +80,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             const pos = board.camera.createServerCoord(pointed.pointedPos);
             board.emitSubdivideLink( pointed.data.element.serverId, pos, "", board.colorSelected, (response) => { 
                 if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                    board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation, "", board.colorSelected), () => {} )
+                    board.emitAddElement( board.createLinkPreData(linkInteractor.indexLastCreatedVertex, response, orientation), () => {} )
                 }
                 linkInteractor.indexLastCreatedVertex = response;
                 linkInteractor.lastVertexPos = pos;
@@ -94,7 +92,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             constructionSegment.setStartPoint(vertex.cameraCenter);
             constructionSegment.setEndPoint(vertex.cameraCenter);
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
-                board.emitAddElement( new LinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation, "", board.colorSelected), () => {} )
+                board.emitAddElement( board.createLinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation), () => {} )
                 if (board.keyPressed.has("Control")){
                     linkInteractor.indexLastCreatedVertex = vertex.serverId;
                     linkInteractor.lastVertexPos = vertex.serverCenter;
@@ -136,25 +134,30 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         console.log(selectedVertex);
         if (selectedVertex instanceof VertexElement){
             if ( firstVertexIndex != selectedVertex.serverId) { // there is a vertex nearby and it is not the previous one
-                board.emitAddElement(new LinkPreData(firstVertexIndex, selectedVertex.serverId,  orientation, "", board.colorSelected), (response: number) => {});
+                board.emitAddElement(
+                    board.createLinkPreData(firstVertexIndex, selectedVertex.serverId, orientation)
+                    , (response: number) => {});
             } 
         } else {
             const link = board.nearbyLink(e);
             if (typeof link == "undefined"){
                 const aligned_mouse_pos = board.alignPosition(e, new Set(), board.canvas, board.camera);
                 const serverPos = aligned_mouse_pos.toCoord(board.camera);
-                board.emitAddElement(new ClientVertexData(serverPos.x, serverPos.y, "", board.camera, board.colorSelected), (response) => { 
+                board.emitAddElement(
+                    board.createVertexPreData(serverPos), (response) => { 
                     
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
                         linkInteractor.lastVertexPos = aligned_mouse_pos;
                     }
-                    board.emitAddElement( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
+                    board.emitAddElement(
+                        board.createLinkPreData(firstVertexIndex, response, orientation)
+                         , () => {} )
                 });
             }
             else {
                 board.emitSubdivideLink(link.serverId, e.toCoord(board.camera), "", board.colorSelected, (response) => { 
-                    board.emitAddElement( new LinkPreData(firstVertexIndex, response, orientation, "", board.colorSelected), () => {} )
+                    board.emitAddElement( board.createLinkPreData(firstVertexIndex, response, orientation), () => {} )
                 });
             }
         }

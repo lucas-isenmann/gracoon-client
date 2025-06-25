@@ -1,4 +1,3 @@
-import { ClientArea } from "../board/area";
 import { setupLoadedParam } from "../board/area_div";
 import { ClientBoard } from "../board/board";
 
@@ -13,5 +12,3 @@ export class EntireZone {
 
 
 
-// ClientArea and EntireZone have a paramsDivContainer
-export type Zone = ClientArea | EntireZone;

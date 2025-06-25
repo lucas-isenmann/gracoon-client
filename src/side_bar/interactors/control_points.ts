@@ -31,15 +31,15 @@ export function createControlPointInteractor(board: ClientBoard): PreInteractor{
         previousCanvasShift = new CanvasVect(0,0);
 
         if ( pointed.data instanceof ELEMENT_DATA_LINK){
-            const link = pointed.data.element;
-            if (typeof link.data.cp == "undefined"){
-                const v1 = link.startVertex;
-                const v2 = link.endVertex;
-                const new_cp = v1.data.pos.middle(v2.data.pos);
-                board.emitUpdateElement( BoardElementType.Link, link.index, "cp", new_cp);
-            } else {
-                board.emitUpdateElement( BoardElementType.Link, pointed.data.element.index, "cp", "");
-            }
+            // const link = pointed.data.element;
+            // if (typeof link.data.cp == "undefined"){
+            //     const v1 = link.startVertex;
+            //     const v2 = link.endVertex;
+            //     const new_cp = v1.data.pos.middle(v2.data.pos);
+            //     board.emitUpdateElement( BoardElementType.Link, link.index, "cp", new_cp);
+            // } else {
+            //     board.emitUpdateElement( BoardElementType.Link, pointed.data.element.index, "cp", "");
+            // }
         }
     })
     
@@ -47,26 +47,26 @@ export function createControlPointInteractor(board: ClientBoard): PreInteractor{
         if (typeof pointed == "undefined") return false;
 
         if ( pointed.data instanceof ELEMENT_DATA_CONTROL_POINT ){
-            const link = pointed.data.element;
-            if ( board.keyPressed.has("Control") ){
-                const v1 = link.startVertex;
-                const v2 = link.endVertex;
+            // const link = pointed.data.element;
+            // if ( board.keyPressed.has("Control") ){
+            //     const v1 = link.startVertex;
+            //     const v2 = link.endVertex;
 
-                const middle = v1.data.pos.middle(v2.data.pos);
-                const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
-                const orthogonal = new Vect(-vect.y, vect.x);
-                const eCoord = board.camera.createServerCoord(e);
-                const projection = eCoord.orthogonal_projection(middle, orthogonal);
-                const downCoordServer = board.camera.createServerCoord(pointed.pointedPos);
+            //     const middle = v1.data.pos.middle(v2.data.pos);
+            //     const vect = Vect.from_coords(v1.data.pos, v2.data.pos);
+            //     const orthogonal = new Vect(-vect.y, vect.x);
+            //     const eCoord = board.camera.createServerCoord(e);
+            //     const projection = eCoord.orthogonal_projection(middle, orthogonal);
+            //     const downCoordServer = board.camera.createServerCoord(pointed.pointedPos);
 
-                const shift = Vect.from_coords(downCoordServer, projection);
-                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
-                previousShift.set_from(shift);
-            } else {
-                const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos,e));
-                board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
-                previousShift.set_from(shift);
-            }
+            //     const shift = Vect.from_coords(downCoordServer, projection);
+            //     board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
+            //     previousShift.set_from(shift);
+            // } else {
+            //     const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos,e));
+            //     board.emit_translate_elements([[BoardElementType.ControlPoint, link.index]], shift.sub(previousShift));
+            //     previousShift.set_from(shift);
+            // }
             return true;
         }
         return false;

@@ -1,7 +1,6 @@
 import { ClientBoard } from '../board/board';
 import { Parametor } from './parametor';
 import { load_param, params_available } from './parametor_manager';
-import { EntireZone } from './zone';
 
 
 
@@ -30,7 +29,7 @@ export function update_params_available_div(board: ClientBoard) {
         param_label_div.id = `param_div_label_${param.id}`;
         param_label_div.innerHTML = param.name
 
-        param_label_div.onclick = function () { load_param(param, board, board.entireZone); params_available_turn_off_div(); }
+        param_label_div.onclick = function () { load_param(param, board); params_available_turn_off_div(); }
         div.appendChild(param_div);
         param_div.appendChild(param_label_div);
     }
@@ -78,10 +77,7 @@ export function update_options_graphs(board: ClientBoard){
         div.addEventListener('click', (e)=> toggle_list_graph_option(param, board));
 
 
-        if(board.areas.size == 0){
-            // console.log("NO AREA", div);
-        }
-        else{ // If we have areas, we add a list of the subgraphs
+        { // If we have areas, we add a list of the subgraphs
 
             // We check if the div was already created
             let newDiv = document.getElementById(`param_div_${param.id}_list_graph_container`);
@@ -100,21 +96,11 @@ export function update_options_graphs(board: ClientBoard){
             gDiv.textContent = "Everything";
             newDiv.appendChild(gDiv);
             gDiv.addEventListener('click', function () {   
-                load_param(param, board, board.entireZone); 
+                load_param(param, board); 
                 params_available_turn_off_div();
             });
 
-            // Div for each area
-            for(const area of board.areas.values()){
-                let aDiv = document.createElement("div");
-                aDiv.classList.add("subgraph_option");
-                aDiv.textContent = area.label;
-                newDiv.appendChild(aDiv);
-                aDiv.addEventListener('click', function () { 
-                    load_param(param, board, area); 
-                    params_available_turn_off_div();
-                });
-            }
+            
         }
     }
 }
@@ -134,22 +120,7 @@ export function params_available_turn_on_div() {
 
 
 function toggle_list_graph_option(param:Parametor, board: ClientBoard){
-    // If there is no area, click on the parametor just computes it on the full graph
-    if(board.areas.size == 0){
-        load_param(param, board, board.entireZone);
-        params_available_turn_off_div(); 
-    }
-    else{
-        // We get the container of the list
-        const containerDOM = document.getElementById(`param_div_${param.id}_list_graph_container`);
-        if (containerDOM == null) return;
-
-        // We toggle its visibility
-        if(containerDOM.style.display != "flex"){
-            containerDOM.style.display = "flex"
-        }
-        else{
-            containerDOM.style.display = "none"
-        }
-    }
+    load_param(param, board);
+    params_available_turn_off_div(); 
+    
 }

@@ -5,7 +5,7 @@ import { PreInteractor } from "../pre_interactor";
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { ShapeElement } from "../../board/element";
-import { ShapeData } from "../../board/vertex";
+import { ShapePreData } from "../../board/elements/rectangle";
 
 
 
@@ -30,7 +30,7 @@ export function createRectangleInteractor(board: ClientBoard){
         if (typeof pointed.data == "undefined" ) {
             firstCorner = board.camera.createServerCoord(pointed.magnetPos);
 
-            board.emitAddElement(new ShapeData(firstCorner, board.colorSelected), (data) =>{
+            board.emitAddElement(new ShapePreData(firstCorner, board.colorSelected), (data) =>{
                 console.log("receive", data)
             });
             

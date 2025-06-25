@@ -6,7 +6,6 @@ import { ClientBoard, INDEX_TYPE, SocketMsgType } from "./board/board";
 import { setup_modifyers_div, turn_on_modifyers_div } from "./modifyers/dom";
 import { ORIENTATION_SIDE_BAR, PreFolder, PreLauncher, PreSwitch, SideBar } from "./side_bar/side_bar";
 import { createStrokeInteractor } from "./side_bar/interactors/stroke";
-import { createAreaInteractor } from "./side_bar/interactors/area";
 import { createPopup, initEscapeEvent } from "./popup";
 import PACKAGE from "../package.json";
 import { createLinkInteractor } from "./side_bar/interactors/link";
@@ -96,6 +95,7 @@ function setup() {
     setup_generators_div(localBoard.canvas, localBoard);
     setup_modifyers_div(localBoard);
 
+    // Graph Parameters
     setup_parametors_available();
     update_params_available_div(localBoard);
 

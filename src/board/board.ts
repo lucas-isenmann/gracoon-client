@@ -1,35 +1,26 @@
-import { Area, Board, Coord, EmbeddedGraph, EmbeddedVertexData, GeneratorId, Link, Option, ORIENTATION, Rectangle, TextZone, Vect, Vertex } from "gramoloss";
+import {  Coord, EmbeddedGraph, GeneratorId, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
-import { ClientArea } from "./area";
 import { Camera } from "./display/camera";
-import { ClientGraph } from "./graph";
-import { ClientLink, ClientLinkData, LinkPreData } from "./link";
-import { ClientRectangle } from "./rectangle";
-import { ClientRepresentation } from "./representations/client_representation";
-import { is_click_over, resize_type_nearby, translate_by_canvas_vect } from "./resizable";
-import { ClientStroke } from "./stroke";
 import { CanvasVect } from "./display/canvasVect";
-import { ClientVertex, ClientVertexData, ShapeData } from "./vertex";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { drawBezierCurve, drawLine, drawCircle } from "./display/draw_basics";
 import { Color, colorsData, getCanvasColor } from "./display/colors_v2";
 import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
-import { ELEMENT_DATA, ELEMENT_DATA_AREA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
-import { AreaChoice, AreaIndex } from "../generators/attribute";
-import { EntireZone } from "../parametors/zone";
+import { ELEMENT_DATA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
-import { CrossMode, TwistMode } from "./stanchion";
-import { BoardElement, LinkElement, ShapeElement, VertexElement } from "./element";
+import { BoardElement, LinkElement, LinkPreData, ShapeElement, VertexElement, VertexPreData } from "./element";
 import { Graph2, LinkData2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
 import { StrokeElement } from "./elements/stroke2";
 import { VerticesSubset } from "./vertices_subset";
+import { ShapePreData } from "./elements/rectangle";
+import { EntireZone } from "../parametors/zone";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -56,13 +47,7 @@ export enum BoardElementType {
     Local = "Local"
 }
 
-export function boardElementType(element: ClientVertex | ClientLink){
-    if (element instanceof ClientVertex){
-        return BoardElementType.Vertex;
-    } else {
-        return BoardElementType.Link;
-    }
-}
+
 
 // These constants must correspond to the API of the server
 
@@ -94,11 +79,10 @@ export enum INDEX_TYPE {
 }
 
 
-export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientStroke, ClientArea, TextZone, ClientRepresentation, ClientRectangle> {
+export class ClientBoard  {
     camera: Camera;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
-    elementOver: undefined | ClientVertex | ClientLink | ClientStroke | ClientRectangle;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     selfUser: Self;
@@ -118,14 +102,11 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     verticesGroup: SVGElement;
 
 
-    graphClipboard: Option<ClientGraph>;
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
-    clipboard: Array<ClientVertex | ClientLink | ClientStroke | ClientRectangle>;
 
     otherUsers: Map<string, User>;
 
-    entireZone: EntireZone;
 
     private agregId: string;
 
@@ -139,7 +120,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     constructor(container: HTMLElement){
-        super();
 
         this.g = new Graph2();
 
@@ -160,7 +140,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.interactorLoadedId = undefined;
         this.isGraphClipboardGenerated = false;  
         this.agregId = makeid(5);    
-        this.clipboard = new Array();
         
         // Display parameters
         this.darkMode = true;
@@ -230,7 +209,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.camera = new Camera();
         
         
-        this.elementOver = undefined;
 
         this.variables = new Map();
         this.variablesDiv = document.createElement("div");
@@ -238,7 +216,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         document.body.appendChild(this.variablesDiv);
 
         // setup the div of the loaded params of the whole graph
-        this.entireZone = new EntireZone(this);
+        // this.entireZone = new EntireZone(this);
+        new EntireZone(this);
 
 
         const board = this;
@@ -313,23 +292,23 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         this.clearClipboard();
         this.clipboardInitPos = mousePos;
         
-        const newVertices = new Map();
-        for (const [index, v] of graph.vertices){
-            const data = new ClientVertexData((v.data.pos.x + mousePos.x -this.camera.camera.x)/this.camera.zoom, (v.data.pos.y + mousePos.y- this.camera.camera.y)/this.camera.zoom, "", this.camera, Color.Neutral);
-            const newVertex = new ClientVertex(index, data, this);
-            this.clipboard.push(newVertex);
-            newVertices.set(newVertex.index, newVertex);
-        }
+        // const newVertices = new Map();
+        // for (const [index, v] of graph.vertices){
+        //     const data = new ClientVertexData((v.data.pos.x + mousePos.x -this.camera.camera.x)/this.camera.zoom, (v.data.pos.y + mousePos.y- this.camera.camera.y)/this.camera.zoom, "", this.camera, Color.Neutral);
+        //     const newVertex = new ClientVertex(index, data, this);
+        //     this.clipboard.push(newVertex);
+        //     newVertices.set(newVertex.index, newVertex);
+        // }
 
-        for (const [index, link] of graph.links){
-            const cp = undefined;
-            const data = new ClientLinkData(cp, Color.Neutral, "", this.camera);
-            const startVertex = newVertices.get(link.startVertex.index);
-            const endVertex = newVertices.get(link.endVertex.index);
-            if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
-            const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
-            this.clipboard.push(newLink);
-        }
+        // for (const [index, link] of graph.links){
+        //     const cp = undefined;
+        //     const data = new ClientLinkData(cp, Color.Neutral, "", this.camera);
+        //     const startVertex = newVertices.get(link.startVertex.index);
+        //     const endVertex = newVertices.get(link.endVertex.index);
+        //     if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
+        //     const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
+        //     this.clipboard.push(newLink);
+        // }
     }
 
     copySelectedElements(mousePos: CanvasCoord){
@@ -339,130 +318,130 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
         // TODO generalize to elements of board
 
-        // Vertices
-        const newVertices = new Map();
-        for (const [index, v] of this.graph.vertices.entries()) {
-            if (v.data.is_selected){
-                const data = new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, this.camera, v.data.color);
-                const newVertex = new ClientVertex(index, data, this);
-                this.clipboard.push(newVertex);
-                newVertices.set(newVertex.index, newVertex);
-            }
-        }
+        // // Vertices
+        // const newVertices = new Map();
+        // for (const [index, v] of this.graph.vertices.entries()) {
+        //     if (v.data.is_selected){
+        //         const data = new ClientVertexData(v.data.pos.x, v.data.pos.y, v.data.weight, this.camera, v.data.color);
+        //         const newVertex = new ClientVertex(index, data, this);
+        //         this.clipboard.push(newVertex);
+        //         newVertices.set(newVertex.index, newVertex);
+        //     }
+        // }
 
-        // Links
-        for (const [index, link] of this.graph.links.entries()){
-            if (link.data.is_selected){
-                const cp = (typeof link.data.cp == "undefined") ? undefined : link.data.cp.copy();
-                const data = new ClientLinkData(cp, link.data.color, link.data.weight, this.camera);
-                const startVertex = newVertices.get(link.startVertex.index);
-                const endVertex = newVertices.get(link.endVertex.index);
-                if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
-                const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
-                this.clipboard.push(newLink);
-            }
-        }
+        // // Links
+        // for (const [index, link] of this.graph.links.entries()){
+        //     if (link.data.is_selected){
+        //         const cp = (typeof link.data.cp == "undefined") ? undefined : link.data.cp.copy();
+        //         const data = new ClientLinkData(cp, link.data.color, link.data.weight, this.camera);
+        //         const startVertex = newVertices.get(link.startVertex.index);
+        //         const endVertex = newVertices.get(link.endVertex.index);
+        //         if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
+        //         const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
+        //         this.clipboard.push(newLink);
+        //     }
+        // }
 
-        // Strokes
-        for (const [index, stroke] of this.strokes.entries()){
-            if (stroke.isSelected){
-                const positionsCopied = new Array();
-                for (const pos of stroke.positions){
-                    positionsCopied.push(pos.copy());
-                }
-                const newStroke = new ClientStroke(positionsCopied, stroke.color, stroke.width, this.camera, index);
-                this.clipboard.push(newStroke);
-            }
-        }
+        // // Strokes
+        // for (const [index, stroke] of this.strokes.entries()){
+        //     if (stroke.isSelected){
+        //         const positionsCopied = new Array();
+        //         for (const pos of stroke.positions){
+        //             positionsCopied.push(pos.copy());
+        //         }
+        //         const newStroke = new ClientStroke(positionsCopied, stroke.color, stroke.width, this.camera, index);
+        //         this.clipboard.push(newStroke);
+        //     }
+        // }
 
-        // Rectangles
-        for (const [index, rectangle] of this.rectangles.entries()){
-            if (rectangle.isSelected){
-                console.log("rectnagle", index);
-                const newRectangle = new ClientRectangle(rectangle.c1.copy(), rectangle.c2.copy(), rectangle.color, this, rectangle.index);
-                this.clipboard.push(newRectangle);
-            }
-        }
+        // // Rectangles
+        // for (const [index, rectangle] of this.rectangles.entries()){
+        //     if (rectangle.isSelected){
+        //         console.log("rectnagle", index);
+        //         const newRectangle = new ClientRectangle(rectangle.c1.copy(), rectangle.c2.copy(), rectangle.color, this, rectangle.index);
+        //         this.clipboard.push(newRectangle);
+        //     }
+        // }
     }
 
     clearClipboard(){
-        this.clipboard.splice(0,this.clipboard.length);
-        this.clipboardInitPos = undefined;
-        this.canvas.style.cursor = "default";
+        // this.clipboard.splice(0,this.clipboard.length);
+        // this.clipboardInitPos = undefined;
+        // this.canvas.style.cursor = "default";
     }
 
     translateClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
-        if (this.clipboard.length == 0) return;
-        if (typeof this.clipboardInitPos == "undefined") return;
-        const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
-        const cShift = shift.sub(previousCanvasShift);
-        for (const element of this.clipboard){
-            if (element instanceof ClientStroke || element instanceof ClientVertex){
-                element.translate_by_canvas_vect( cShift , this.camera);
-            } else if (element instanceof ClientLink){
-                element.translate_cp_by_canvas_vect(cShift, this.camera);
-            } if (element instanceof ClientRectangle){
-                translate_by_canvas_vect(element, cShift, this.camera);
-            }
-        }
+        // if (this.clipboard.length == 0) return;
+        // if (typeof this.clipboardInitPos == "undefined") return;
+        // const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
+        // const cShift = shift.sub(previousCanvasShift);
+        // for (const element of this.clipboard){
+        //     if (element instanceof ClientStroke || element instanceof ClientVertex){
+        //         element.translate_by_canvas_vect( cShift , this.camera);
+        //     } else if (element instanceof ClientLink){
+        //         element.translate_cp_by_canvas_vect(cShift, this.camera);
+        //     } if (element instanceof ClientRectangle){
+        //         translate_by_canvas_vect(element, cShift, this.camera);
+        //     }
+        // }
 
-        previousCanvasShift.set_from(shift);
-        this.draw()
+        // previousCanvasShift.set_from(shift);
+        // this.draw()
     }
 
 
     drawClipboard(){
-        for (const element of this.clipboard){
-            element.draw(this);
-        }
+        // for (const element of this.clipboard){
+        //     element.draw(this);
+        // }
     }
 
     sendRequestPasteClipboard(){
-        const data = new Array();
+        // const data = new Array();
 
-        for (const element of this.clipboard){
-            if (element instanceof ClientVertex){
-                data.push( {
-                    type: "Vertex",
-                    index: element.index, 
-                    x: element.data.pos.x, 
-                    y: element.data.pos.y, 
-                    color: element.data.color, 
-                    weight: element.data.weight
-                })
-            } else if (element instanceof ClientLink){
-                data.push( {
-                    type: "Link",
-                    index: element.index, 
-                    startIndex: element.startVertex.index, 
-                    endIndex: element.endVertex.index,
-                    orientation: element.orientation,
-                    color: element.data.color,
-                    weight: element.data.weight,
-                    cp: element.data.cp
-                })
-            } else if (element instanceof ClientStroke){
-                data.push({
-                    type: "Stroke",
-                    index: element.index,
-                    color: element.color,
-                    width: element.width,
-                    positions: element.positions
-                })
-            } else if (element instanceof ClientRectangle){
-                data.push({
-                    type: "Rectangle",
-                    index: element.index,
-                    color: element.color,
-                    x1: element.c1.x,
-                    x2: element.c2.x,
-                    y1: element.c1.y,
-                    y2: element.c2.y
-                })
-            }
-        }
+        // for (const element of this.clipboard){
+        //     if (element instanceof ClientVertex){
+        //         data.push( {
+        //             type: "Vertex",
+        //             index: element.index, 
+        //             x: element.data.pos.x, 
+        //             y: element.data.pos.y, 
+        //             color: element.data.color, 
+        //             weight: element.data.weight
+        //         })
+        //     } else if (element instanceof ClientLink){
+        //         data.push( {
+        //             type: "Link",
+        //             index: element.index, 
+        //             startIndex: element.startVertex.index, 
+        //             endIndex: element.endVertex.index,
+        //             orientation: element.orientation,
+        //             color: element.data.color,
+        //             weight: element.data.weight,
+        //             cp: element.data.cp
+        //         })
+        //     } else if (element instanceof ClientStroke){
+        //         data.push({
+        //             type: "Stroke",
+        //             index: element.index,
+        //             color: element.color,
+        //             width: element.width,
+        //             positions: element.positions
+        //         })
+        //     } else if (element instanceof ClientRectangle){
+        //         data.push({
+        //             type: "Rectangle",
+        //             index: element.index,
+        //             color: element.color,
+        //             x1: element.c1.x,
+        //             x2: element.c2.x,
+        //             y1: element.c1.y,
+        //             y2: element.c2.y
+        //         })
+        //     }
+        // }
         
-        socket.emit(SocketMsgType.PASTE_GRAPH, data);
+        // socket.emit(SocketMsgType.PASTE_GRAPH, data);
     }
 
 
@@ -485,22 +464,7 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     }
 
 
-    selectElement(element: ClientRectangle | ClientStroke){
-        if (element.isSelected) {
-            if (this.keyPressed.has("Control")) { 
-                element.isSelected = false;
-            }
-        }
-        else {
-            if (this.keyPressed.has("Control")) { 
-                element.isSelected = true;
-            }
-            else {
-                this.clearAllSelections();
-                element.isSelected = true;
-            }
-        }
-    }
+   
 
 
     nearbyLink(pos: CanvasCoord): Option<LinkElement>{
@@ -668,14 +632,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     
-    override delete_area(areaIndex: number): void {
-        const area = this.areas.get(areaIndex);
-        if (typeof area != "undefined"){
-            area.clearDOM();
-            super.delete_area(areaIndex);
-        }
+    // override delete_area(areaIndex: number): void {
+    //     const area = this.areas.get(areaIndex);
+    //     if (typeof area != "undefined"){
+    //         area.clearDOM();
+    //         super.delete_area(areaIndex);
+    //     }
 
-    }
+    // }
 
 
     /**
@@ -724,14 +688,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
      * TODO: select only the vertices or only the links?
      * (depending on a board variable)
      */
-    selectEverything() {
-        for (const vertex of this.graph.vertices.values()){
-            vertex.data.is_selected = true;
-        } 
-        for (const link of this.graph.links.values()){
-            link.data.is_selected = true;
-        }
-    }
+    // selectEverything() {
+    //     for (const vertex of this.graph.vertices.values()){
+    //         vertex.data.is_selected = true;
+    //     } 
+    //     for (const link of this.graph.links.values()){
+    //         link.data.is_selected = true;
+    //     }
+    // }
 
 
     
@@ -777,8 +741,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     draw() {
         this.drawBackground();
         this.grid.draw(this.canvas, this.ctx, this.camera);
-        this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
-        this.areas.forEach(area => area.draw(this));
+        // this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
+        // this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
 
         this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
@@ -830,6 +794,16 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 this.elements.delete(key);
             }
             if (element instanceof LinkElement && (element.startVertex.serverId == serverId || element.endVertex.serverId == serverId)){
+                element.delete();
+                this.elements.delete(key);
+            }
+        }
+    }
+
+    deleteStroke(serverId: number){
+        console.log("Board: delete stroke")
+        for (const [key, element] of this.elements){
+            if (element instanceof StrokeElement && element.serverId == serverId){
                 element.delete();
                 this.elements.delete(key);
             }
@@ -905,12 +879,12 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         return false;
     }
 
-    clearAreas(){
-        for (const area of this.areas.values()){
-            area.clearDOM();
-        }
-        this.areas.clear();
-    }
+    // clearAreas(){
+    //     for (const area of this.areas.values()){
+    //         area.clearDOM();
+    //     }
+    //     this.areas.clear();
+    // }
 
     setColor(type: BoardElementType, serverId: number, color: Color){
         console.log("setColor", type, serverId, color)
@@ -928,8 +902,8 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
             this.elements.delete(key)
         }
         
-        this.clearAreas();
-        this.rectangles.clear();
+        // this.clearAreas();
+        // this.rectangles.clear();
     }
 
     translateCamera(shift: CanvasVect){
@@ -949,9 +923,9 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
 
         
-        for (const rep of this.representations.values()){
-            rep.update_after_camera_change(this.camera);
-        }
+        // for (const rep of this.representations.values()){
+        //     rep.update_after_camera_change(this.camera);
+        // }
         
 
         // for (const v of this.graph.vertices.values()) {
@@ -1088,27 +1062,27 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
     /**
      * Return true if this.elementOver has changed.
      */
-    updateElementOver(pos: CanvasCoord): boolean {
-        const before = this.elementOver;
-        this.elementOver = undefined;
+    // updateElementOver(pos: CanvasCoord): boolean {
+        // const before = this.elementOver;
+        // this.elementOver = undefined;
         
-        for (const rectangle of this.rectangles.values()){
-            if (is_click_over(rectangle, pos)){
-                this.elementOver = rectangle;
-                break;
-            }
-        }
+        // for (const rectangle of this.rectangles.values()){
+        //     if (is_click_over(rectangle, pos)){
+        //         this.elementOver = rectangle;
+        //         break;
+        //     }
+        // }
 
         
-        for (const stroke of this.strokes.values()){
-            if (stroke.is_nearby(pos, this.camera)){
-                this.elementOver = stroke;
-                break;
-            }
-        }
+        // for (const stroke of this.strokes.values()){
+        //     if (stroke.is_nearby(pos, this.camera)){
+        //         this.elementOver = stroke;
+        //         break;
+        //     }
+        // }
         
-        return before !== this.elementOver;
-    }
+        // return before !== this.elementOver;
+    // }
 
 
     getSpecificElementNearby(pos: CanvasCoord, type: BoardElementType, d: number): Option<BoardElement>{
@@ -1231,25 +1205,25 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
  
 
     selectConnectedComponent(vIndex: number){
-        const c = this.graph.getConnectedComponentOf(vIndex);
-        const vertexIndices = new Set();
-        const linkIndices = new Set();
-        for (const index of c.vertices.keys()){
-            vertexIndices.add(index);
-        }
-        for (const index of c.links.keys()){
-            linkIndices.add(index);
-        }
-        for (const vertex of this.graph.vertices.values()){
-            if (vertexIndices.has(vertex.index)){
-                vertex.data.is_selected = true;
-            }
-        }
-        for (const link of this.graph.links.values()){
-            if (linkIndices.has(link.index)){
-                link.data.is_selected = true;
-            }
-        }
+        // const c = this.graph.getConnectedComponentOf(vIndex);
+        // const vertexIndices = new Set();
+        // const linkIndices = new Set();
+        // for (const index of c.vertices.keys()){
+        //     vertexIndices.add(index);
+        // }
+        // for (const index of c.links.keys()){
+        //     linkIndices.add(index);
+        // }
+        // for (const vertex of this.graph.vertices.values()){
+        //     if (vertexIndices.has(vertex.index)){
+        //         vertex.data.is_selected = true;
+        //     }
+        // }
+        // for (const link of this.graph.links.values()){
+        //     if (linkIndices.has(link.index)){
+        //         link.data.is_selected = true;
+        //     }
+        // }
     }
 
     deselectAll(){
@@ -1369,36 +1343,36 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         socket.emit(SocketMsgType.MERGE_VERTICES, index1, index2);
     }
 
-    emitPasteGraph(graph: ClientGraph){
+    // emitPasteGraph(graph: ClientGraph){
         
-        const data = new Array();
-        for (const vertex of graph.vertices.values()){
-            data.push( {
-                type: "Vertex",
-                index: vertex.index, 
-                x: vertex.data.pos.x, 
-                y: vertex.data.pos.y, 
-                color: vertex.data.color, 
-                weight: vertex.data.weight
-            })
-        }
+    //     const data = new Array();
+    //     for (const vertex of graph.vertices.values()){
+    //         data.push( {
+    //             type: "Vertex",
+    //             index: vertex.index, 
+    //             x: vertex.data.pos.x, 
+    //             y: vertex.data.pos.y, 
+    //             color: vertex.data.color, 
+    //             weight: vertex.data.weight
+    //         })
+    //     }
         
-        for (const link of graph.links.values()){
-            data.push( {
-                type: "Link",
-                index: link.index, 
-                startIndex: link.startVertex.index, 
-                endIndex: link.endVertex.index,
-                orientation: link.orientation,
-                color: link.data.color,
-                weight: link.data.weight,
-                cp: link.data.cp
-            })
-        }
+    //     for (const link of graph.links.values()){
+    //         data.push( {
+    //             type: "Link",
+    //             index: link.index, 
+    //             startIndex: link.startVertex.index, 
+    //             endIndex: link.endVertex.index,
+    //             orientation: link.orientation,
+    //             color: link.data.color,
+    //             weight: link.data.weight,
+    //             cp: link.data.cp
+    //         })
+    //     }
         
         
-        socket.emit(SocketMsgType.PASTE_GRAPH, data);
-    }
+    //     socket.emit(SocketMsgType.PASTE_GRAPH, data);
+    // }
 
 
 
@@ -1416,18 +1390,14 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         const attributes_data = new Array<string | number>();
         let sendVerticesSelection = false;
         for (const attribute of modifyer.attributes){
-            if ( attribute instanceof AreaIndex ){
-                if (attribute.value == AreaChoice.INDUCED_GRAPH_BY_SELECTED_VERTICES){
-                    sendVerticesSelection = true;
-                }
-            }
+            
             attributes_data.push(attribute.value);
         }
         if ( sendVerticesSelection){
             const verticesSelection = new Array<number>();
-            for (const vertex of this.graph.vertices.values()){
-                if (vertex.data.is_selected){
-                    verticesSelection.push(vertex.index);
+            for (const vertex of this.elements.values()){
+                if (vertex instanceof VertexElement && vertex.isSelected){
+                    verticesSelection.push(vertex.serverId);
                 }
             }
             socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data, verticesSelection);
@@ -1437,16 +1407,25 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         }
     }
 
+
+    createVertexPreData(c: Coord): VertexPreData{
+        return new VertexPreData(c, this.colorSelected, "");
+    }
+
+    createLinkPreData(startIndex: number, endIndex: number, orientation: ORIENTATION): LinkPreData{
+        return new LinkPreData(startIndex, endIndex, orientation, "", this.colorSelected)
+    }
+
     // Note: sometimes element is a server class, sometimes a client
     // Normally it should be only server
     // TODO: improve that
-    emitAddElement(element: ClientVertexData | LinkPreData | StrokeElement | Area | TextZone | ShapeData, callback: (response: number) => void  ){
-        if (element instanceof ShapeData){
+    emitAddElement(element: VertexPreData | LinkPreData | StrokeElement | TextZone | ShapePreData, callback: (response: number) => void  ){
+        if (element instanceof ShapePreData){
             socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Rectangle, {c1: element.pos, c2: element.pos, color: element.color}, callback);
         }
         switch(element.constructor){
-            case ClientVertexData: {
-                const vertexData = element as ClientVertexData;
+            case VertexPreData: {
+                const vertexData = element as VertexPreData;
                 socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
                 break;
             }
@@ -1465,11 +1444,6 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
                 socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.TextZone, {pos: text_zone.pos}, callback);
                 break;
             }
-            case Area: {
-                const area = element as Area;
-                socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Area, {c1: area.c1, c2: area.c2, label: area.label, color: area.color }, callback);
-                break;
-            }
         }
     }
 
@@ -1477,33 +1451,33 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
 
 
     
-    setGraphClipboard(graph: ClientGraph, pos_at_click: CanvasCoord, is_coming_from_clipboard: boolean){
-        this.graphClipboard = graph;
-        this.clipboardInitPos = pos_at_click;
-        this.isGraphClipboardGenerated = is_coming_from_clipboard;
-        this.canvas.style.cursor = "grab";
-    }
+//     setGraphClipboard(graph: ClientGraph, pos_at_click: CanvasCoord, is_coming_from_clipboard: boolean){
+//         this.graphClipboard = graph;
+//         this.clipboardInitPos = pos_at_click;
+//         this.isGraphClipboardGenerated = is_coming_from_clipboard;
+//         this.canvas.style.cursor = "grab";
+//     }
     
-   pasteGeneratedGraph() {
-        if ( typeof this.graphClipboard != "undefined"){
-            this.emitPasteGraph(this.graphClipboard);
-        }
-    }
+//    pasteGeneratedGraph() {
+//         if ( typeof this.graphClipboard != "undefined"){
+//             this.emitPasteGraph(this.graphClipboard);
+//         }
+//     }
     
-    clearGraphClipboard(){
-        this.graphClipboard = undefined;
-        this.canvas.style.cursor = "auto";
-        this.isGraphClipboardGenerated = false;
-        this.clipboardInitPos = undefined;
-    }
+//     clearGraphClipboard(){
+//         this.graphClipboard = undefined;
+//         this.canvas.style.cursor = "auto";
+//         this.isGraphClipboardGenerated = false;
+//         this.clipboardInitPos = undefined;
+//     }
 
-    translateGraphClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
-        if (typeof this.graphClipboard == "undefined" || typeof this.clipboardInitPos == "undefined") return;
-        const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
-        this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.camera);
-        previousCanvasShift.set_from(shift);
-        this.draw()
-    }
+//     translateGraphClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
+//         if (typeof this.graphClipboard == "undefined" || typeof this.clipboardInitPos == "undefined") return;
+//         const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
+//         this.graphClipboard.translate_by_canvas_vect( shift.sub(previousCanvasShift), this.camera);
+//         previousCanvasShift.set_from(shift);
+//         this.draw()
+//     }
 
 
 
@@ -1566,33 +1540,23 @@ export class ClientBoard extends Board<ClientVertexData, ClientLinkData, ClientS
         let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
         let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
 
-        const v = this.graph.vertices.values().next().value;
+        const v = this.elements.values().next().value;
 
         if (typeof v != "undefined"){
-            if(this.graph.vertices.size > 1){
-                let xMin = v.data.canvas_pos.x;
-                let yMin = v.data.canvas_pos.y;
-                let xMax = v.data.canvas_pos.x;
-                let yMax = v.data.canvas_pos.y;
+            let xMin = v.cameraCenter.x;
+            let yMin = v.cameraCenter.y;
+            let xMax = v.cameraCenter.x;
+            let yMax = v.cameraCenter.y;
     
-                for(const u of this.graph.vertices.values()){
-                    xMin = Math.min(xMin, u.data.canvas_pos.x);
-                    yMin = Math.min(yMin, u.data.canvas_pos.y);
-                    xMax = Math.max(xMax, u.data.canvas_pos.x);
-                    yMax = Math.max(yMax, u.data.canvas_pos.y);
-                }
-    
-                top_left_corner = new CanvasCoord(xMin, yMin);
-                bot_right_corner = new CanvasCoord(xMax, yMax);
+            for(const u of this.elements.values()){
+                xMin = Math.min(xMin, u.cameraCenter.x);
+                yMin = Math.min(yMin, u.cameraCenter.y);
+                xMax = Math.max(xMax, u.cameraCenter.x);
+                yMax = Math.max(yMax, u.cameraCenter.y);
             }
-            else if(this.graph.vertices.size === 1){
-                let xMin = v.data.canvas_pos.x - this.canvas.width/2;
-                let yMin = v.data.canvas_pos.y - this.canvas.height/2;
-                let xMax = v.data.canvas_pos.x + this.canvas.width/2;
-                let yMax = v.data.canvas_pos.y + this.canvas.height/2;
-                top_left_corner = new CanvasCoord(xMin, yMin);
-                bot_right_corner = new CanvasCoord(xMax, yMax);
-            }
+
+            top_left_corner = new CanvasCoord(xMin, yMin);
+            bot_right_corner = new CanvasCoord(xMax, yMax);
         }
         
 
