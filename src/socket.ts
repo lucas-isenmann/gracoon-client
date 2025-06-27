@@ -236,7 +236,7 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
-        console.log("handleAddElements", datas);
+        // console.log("handleAddElements", datas);
         for(const data of datas){
             if (data.kind == "Rectangle"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
@@ -284,7 +284,7 @@ export function setupHandlers(board: ClientBoard) {
                 update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
             } 
             else if (data.kind == "Link"){
-                console.log("Create Link");
+                // console.log("Create Link");
                 const startIndex = data.element.startVertex.index as number;
                 const endIndex = data.element.endVertex.index as number;
                 const cp = typeof data.element.data.cp == "undefined" ? undefined : new Coord(data.element.data.cp.x, data.element.data.cp.y);
@@ -442,7 +442,7 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
-        console.log("[Handle] reset board");
+        // console.log("[Handle] reset board");
 
         for (const data of rawTextZones) {
             const pos = new Coord(data[1].pos.x, data[1].pos.y);
@@ -494,7 +494,7 @@ export function setupHandlers(board: ClientBoard) {
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
         sensibilities: [SENSIBILITY])
          {
-        console.log("[Handle] resetGraph");
+        // console.log("[Handle] resetGraph");
         console.time("resetGraph")
 
         // pour les vertices_entries c'est parce que on peut pas envoyer des Map par socket ...

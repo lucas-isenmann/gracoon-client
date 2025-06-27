@@ -787,7 +787,7 @@ export class ClientBoard  {
     }
 
     deleteVertex(serverId: number){
-        console.log("Board: delete vertex", serverId)
+        // console.log("Board: delete vertex", serverId)
         for (const [key, element] of this.elements){
             if (element instanceof VertexElement && element.serverId == serverId){
                 element.delete();
@@ -821,7 +821,7 @@ export class ClientBoard  {
     }
 
     deleteLink(serverId: number){
-        console.log("Board: delete link", serverId)
+        // console.log("Board: delete link", serverId)
         for (const [key, element] of this.elements){
             if (element instanceof LinkElement && element.serverId == serverId){
                 element.delete();
@@ -1330,7 +1330,7 @@ export class ClientBoard  {
     }
 
     emit_delete_elements(indices: Array<[BoardElementType,number]>){
-        console.log("emit delete elements: ", indices);
+        // console.log("emit delete elements: ", indices);
         socket.emit(SocketMsgType.DELETE_ELEMENTS, this.agregId, indices);
     }
 
@@ -1343,36 +1343,36 @@ export class ClientBoard  {
         socket.emit(SocketMsgType.MERGE_VERTICES, index1, index2);
     }
 
-    // emitPasteGraph(graph: ClientGraph){
+    emitPasteGraph(graph: Graph2){
+
+        const data = new Array();
+        for (const vertex of graph.vertices.values()){
+            data.push( {
+                type: "Vertex",
+                index: vertex.index, 
+                x: vertex.data.pos.x, 
+                y: vertex.data.pos.y, 
+                color: vertex.data.color, 
+                weight: vertex.data.innerLabel
+            })
+        }
         
-    //     const data = new Array();
-    //     for (const vertex of graph.vertices.values()){
-    //         data.push( {
-    //             type: "Vertex",
-    //             index: vertex.index, 
-    //             x: vertex.data.pos.x, 
-    //             y: vertex.data.pos.y, 
-    //             color: vertex.data.color, 
-    //             weight: vertex.data.weight
-    //         })
-    //     }
-        
-    //     for (const link of graph.links.values()){
-    //         data.push( {
-    //             type: "Link",
-    //             index: link.index, 
-    //             startIndex: link.startVertex.index, 
-    //             endIndex: link.endVertex.index,
-    //             orientation: link.orientation,
-    //             color: link.data.color,
-    //             weight: link.data.weight,
-    //             cp: link.data.cp
-    //         })
-    //     }
+        for (const link of graph.links.values()){
+            data.push( {
+                type: "Link",
+                index: link.index, 
+                startIndex: link.startVertex.index, 
+                endIndex: link.endVertex.index,
+                orientation: link.orientation,
+                color: link.data.color,
+                weight: "",
+                cp: undefined
+            })
+        }
         
         
-    //     socket.emit(SocketMsgType.PASTE_GRAPH, data);
-    // }
+        socket.emit(SocketMsgType.PASTE_GRAPH, data);
+    }
 
 
 

@@ -1,21 +1,10 @@
 
 
-#editor-displayer-button {
-    padding: 10px;
-    position: fixed;
-    top: 10px;
-    right: 100px;
-    background-color: #033126;
-    color: white;
-    font-style:italic;
-    border-radius: 30%;
-    z-index: 10;
-}
+
 
 #editor-container {
     flex: 1;
     overflow: hidden;
-    padding-top: 70px;
 }
 
 
@@ -26,23 +15,77 @@
 
 
 
-.cm-editor {
+.editor-area {
     height: 60%;
     overflow: auto;
 }
 
+
+/* Console */
+
 .output {
-    height: 30%;
-    overflow: auto;
+    height: 34%;
+    overflow: scroll;
 }
 
 .message {
-    margin: 5px 0;
-    padding: 5px;
-    border-radius: 4px;
-    color: rgb(0, 60, 255);
+    white-space: pre-wrap;
+    
+    border-radius: 10px;
+    color: white;
 }
+
+.result {
+    margin: 5px 0;
+    padding: 10px;
+    background-color: #033126;
+    color: rgb(240, 240, 240);
+}
+
  .error {
+    margin: 5px 0;
+    padding: 10px;
     background-color:#3a1f1f ;
     color: #ff6b6b;
+}
+
+
+
+
+/* Tabs */
+
+.tab-bar {
+    display: flex;
+    padding: 4px;
+    height: 40px;
+    background: #64646423;
+}
+
+.tab {
+    border-radius: 5px;
+    width: 100px;
+    padding: 8px 16px;
+    margin: 0 4px;
+    background: rgb(147, 146, 146);
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-bottom: none;
+}
+
+.tab.active {
+    background: #e0e0e0;
+    border-bottom: 2px solid #007bff;
+}
+
+.new-script-button {
+    border: 0px;
+    border-radius: 5px;
+    width: 40px;
+    padding: 4px;
+    margin: 0 4px;
+    background: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-bottom: none;
+    background-color: rgb(16, 135, 7);
 }

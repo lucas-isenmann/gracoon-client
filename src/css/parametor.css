@@ -10,7 +10,7 @@
     /* border-top-left-radius: 15px; */
     align-items: flex-end;
     flex-direction: column;
-    display: flex;
+    display: none;
     z-index: 10;
 }
 
@@ -311,8 +311,8 @@ align-items: center; */
 }
 
 #subgraph_list {
+    display: none;
     margin-top: 10px;
-    display: flex;
     flex-direction: column;
     align-items: flex-end;
 }

@@ -52,8 +52,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
     // Mouse down
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
-        console.log("Selection mouse down")
-        console.log(pointed.data?.element);
+        // console.log("Selection mouse down")
+        // console.log(pointed.data?.element);
 
         // Rotate
         if (rotateIcon.isNearby(pointed.pointedPos, 20)){
@@ -212,7 +212,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             // e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
             e.translate_by_canvas_vect(previousCenterShift.opposite());
             
-            console.log(selectedElements)
+            // console.log(selectedElements)
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
             board.emit_translate_elements(selectedElements, shift.sub(previousShift));
             previousShift.set_from(shift);
@@ -278,7 +278,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
     // Mouse up
     selectionV2.mouseup = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
-        console.log("Selection: mouse up")
+        // console.log("Selection: mouse up")
 
         if (rotating){
             rotating = false;

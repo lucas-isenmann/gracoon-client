@@ -1,5 +1,14 @@
 
 export const codeExample =
+`
+const v = g.vertices.values().next().value;
+console.log(v)
+v.data.pos.x = 100;
+console.log(v);
+
+return g
+`
+const lol =
 `// You have g
 
 function nbEdges() {

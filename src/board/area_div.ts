@@ -43,13 +43,7 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
     
    
     const titleDOM = createTitleSpanForWholeArea();
-    titleDOM.id = "title_area_"+ area_id;
-    title_area_container.appendChild(titleDOM);
-    // Center on the graph on click
-    titleDOM.addEventListener("click",  (e)=>{
-        board.centerViewOnEverything();
-        board.requestDraw();
-    });
+    
 
     const expand_list_button = document.createElement("img");
     expand_list_button.classList.add("expand_button", "expanded", "hidden");

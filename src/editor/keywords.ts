@@ -11,18 +11,16 @@ interface Keyword {
 
 export const customKeywords: Keyword[] = [
     {
-      label: "verticefdss",
+      label: "vertices",
       type: "property",
-      info: "(Graph)",
-      detail: "Collection de sommets du graphe",
+      detail: "Vertices of the graph",
       apply: "vertices"
     },
     {
-      label: "size",
-      type: "property",
-      info: "(Number)",
-      detail: "Nombre d'éléments dans la collection",
-      apply: "size"
+      label: "getInNeighbors(v: Vertex | Number)",
+      type: "method",
+      detail: "List of the in-Neighbors of a vertex",
+      apply: "getInNeighbors("
     },
     {
       label: "forEach",

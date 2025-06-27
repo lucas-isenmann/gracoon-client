@@ -199,7 +199,9 @@ function setup() {
                         */
                 });
             }),
-            new PreLauncher("help", "Help", "", launchHelpPopUp)
+            new PreLauncher("help", "Help", "", launchHelpPopUp),
+            new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
+            new PreLauncher("script_editor", "Script editor", "",() => {document.getElementById('editor-container')?.classList.toggle('hidden')})
 
     ]);
 
