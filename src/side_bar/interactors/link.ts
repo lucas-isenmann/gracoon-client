@@ -44,11 +44,15 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     // Mouse down
     linkInteractor.mousedown = ((board: ClientBoard, pointed: PointedElementData) => {
-        console.log("mouse down ", pointed);
+        console.log("mouse down ", pointed.pointedPos);
+        console.log("camera", board.camera.camera);
+        
         board.regenAgregId();
         if ( typeof pointed.data == "undefined" ) {
             const pos = pointed.magnetPos;
             const server_pos = board.camera.createServerCoord(pos);
+            console.log("pos", pos)
+            console.log("serverPos", server_pos)
 
             if( typeof linkInteractor.indexLastCreatedVertex != "undefined"){
                 board.emitAddElement(board.createVertexPreData(server_pos), (response) => { 
@@ -67,6 +71,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                     
                 });
             } else {
+
                 board.emitAddElement(board.createVertexPreData(server_pos), (response) => { 
                     constructionSegment.show();
                     constructionSegment.setStartPoint(pointed.magnetPos);

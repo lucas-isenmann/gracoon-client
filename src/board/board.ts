@@ -1273,19 +1273,17 @@ export class ClientBoard  {
     }
 
     setC1(serverId: number, x: number, y: number){
-        console.log("set C1, ", x, y)
         for (const element of this.elements.values()){
             if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(new CanvasCoord(x,y), new CanvasCoord(element.c2.x, element.c2.y));
+                element.setCorners(new Coord(x,y), element.c2);
             }
         }
     }
 
     setC2(serverId: number, x: number, y: number){
-        console.log("set C2, ", x, y)
         for (const element of this.elements.values()){
             if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(new CanvasCoord(element.c1.x, element.c1.y), new CanvasCoord(x,y));
+                element.setCorners(element.c1, new Coord(x,y));
             }
         }
     }
@@ -1294,6 +1292,7 @@ export class ClientBoard  {
         for (const element of this.elements.values()){
             if (element.boardElementType == type && element.serverId == serverId){
                 element.translate(cshift);
+                break;
             }
         }
     }
@@ -1426,6 +1425,7 @@ export class ClientBoard  {
         switch(element.constructor){
             case VertexPreData: {
                 const vertexData = element as VertexPreData;
+                console.log("emit add vertex", vertexData.pos);
                 socket.emit(SocketMsgType.ADD_ELEMENT, this.agregId, BoardElementType.Vertex, {pos: vertexData.pos, color: vertexData.color, weight: vertexData.weight}, callback);
                 break;
             }

@@ -21,37 +21,30 @@ export function setCurrentShape(newShape: ShapeElement){
 
 
 export function createRectangleInteractor(board: ClientBoard){
-
     const shapeInteractor = new PreInteractor(INTERACTOR_TYPE.RECTANGLE, "Draw rectangle", "", "rectangle", "default", new Set([]));
-
-    
     
     shapeInteractor.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         if (typeof pointed.data == "undefined" ) {
             firstCorner = board.camera.createServerCoord(pointed.magnetPos);
 
             board.emitAddElement(new ShapePreData(firstCorner, board.colorSelected), (data) =>{
-                console.log("receive", data)
             });
-            
-            // const newIndex = board.get_next_available_index_rectangle();
-            // currentRectangle = new ClientRectangle(firstCorner, firstCorner, board.colorSelected, board, newIndex);
-            // board.rectangles.set(newIndex, currentRectangle);
         } 
     })
     
     shapeInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
-            const magnetE = board.alignPosition(e, new Set(), board.canvas, board.camera);
-            // currentRectangle.setCorners(board.camera.create_canvas_coord(firstCorner), magnetE);
-            if ( firstCorner.x <= magnetE.x && firstCorner.y <= magnetE.y){
-                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_RIGHT);
-            } else if ( firstCorner.x <= magnetE.x && firstCorner.y >= magnetE.y){
-                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.TOP_RIGHT);
-            } else if ( firstCorner.x >= magnetE.x && firstCorner.y <= magnetE.y){
-                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.BOTTOM_LEFT);
-            } else if ( firstCorner.x >= magnetE.x && firstCorner.y >= magnetE.y){
-                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, magnetE, RESIZE_TYPE.TOP_LEFT);
+            const mouseMagnetPos = board.alignPosition(e, new Set(), board.canvas, board.camera);
+            const oppositeCorner = board.camera.createServerCoord(mouseMagnetPos);
+
+            if ( firstCorner.x <= oppositeCorner.x && firstCorner.y <= oppositeCorner.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, oppositeCorner, RESIZE_TYPE.BOTTOM_RIGHT);
+            } else if ( firstCorner.x <= oppositeCorner.x && firstCorner.y >= oppositeCorner.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, oppositeCorner, RESIZE_TYPE.TOP_RIGHT);
+            } else if ( firstCorner.x >= oppositeCorner.x && firstCorner.y <= oppositeCorner.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, oppositeCorner, RESIZE_TYPE.BOTTOM_LEFT);
+            } else if ( firstCorner.x >= oppositeCorner.x && firstCorner.y >= oppositeCorner.y){
+                board.emitResizeElement(BoardElementType.Rectangle, currentRectangle.serverId, oppositeCorner, RESIZE_TYPE.TOP_LEFT);
             }
             
             return true;   

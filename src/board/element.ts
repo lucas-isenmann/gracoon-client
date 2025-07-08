@@ -66,8 +66,8 @@ export class VertexElement implements BoardElement {
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
-        this.cameraCenter = new CanvasCoord(x,y);
-        this.serverCenter = board.camera.createServerCoord(this.cameraCenter);
+        this.serverCenter = new CanvasCoord(x,y); 
+        this.cameraCenter = board.camera.create_canvas_coord(this.serverCenter);
         this.color = color;
         this.boardElementType = BoardElementType.Vertex;
         this.serverId = id;
@@ -81,8 +81,8 @@ export class VertexElement implements BoardElement {
         board.verticesGroup.appendChild(circle);
         
         // Set circle attributes
-        circle.setAttribute("cx", `${x}`);    // Center x coordinate
-        circle.setAttribute("cy", `${y}`);    // Center y coordinate
+        circle.setAttribute("cx", `${this.cameraCenter.x}`);    // Center x coordinate
+        circle.setAttribute("cy", `${this.cameraCenter.y}`);    // Center y coordinate
         circle.setAttribute("r", "5");     // Radius
         circle.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode())); // Use provided color instead of hardcoded red
         circle.style.transformBox = "fill-box";
@@ -94,8 +94,8 @@ export class VertexElement implements BoardElement {
         // InnerLabel
         const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         board.verticesGroup.appendChild(innerLabelSVG);
-        innerLabelSVG.setAttribute("x", `${x-25}`);
-        innerLabelSVG.setAttribute("y", `${y-12}`);
+        innerLabelSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
+        innerLabelSVG.setAttribute("y", `${this.cameraCenter.y-12}`);
         innerLabelSVG.setAttribute("width", "50px");
         innerLabelSVG.setAttribute("height", "3em");
         innerLabelSVG.innerHTML = this.serverId.toString()
@@ -468,10 +468,10 @@ export class ShapeElement implements BoardElement {
 
     shape: SVGRectElement;
 
-    canvas_corner_top_left : CanvasCoord;
-    canvas_corner_bottom_left : CanvasCoord;
-    canvas_corner_bottom_right : CanvasCoord;
-    canvas_corner_top_right : CanvasCoord;
+    canvasCornerTopLeft : CanvasCoord;
+    canvasCornerBottomLeft : CanvasCoord;
+    canvasCornerBottomRight : CanvasCoord;
+    canvasCornerTopRight : CanvasCoord;
     c1: Coord;
     c2: Coord;
     canvasC1: CanvasCoord;
@@ -486,26 +486,28 @@ export class ShapeElement implements BoardElement {
         this.boardElementType = BoardElementType.Rectangle;
         this.serverId = serverId;
 
+        console.log("create Shape", c1, c2);
+
         this.c1 = c1.copy();
         this.c2 = c2.copy();
         this.canvasC1 = board.camera.create_canvas_coord(c1);
         this.canvasC2 = board.camera.create_canvas_coord(c2);
 
 
-        this.canvas_corner_bottom_left = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
-        this.canvas_corner_bottom_right = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
-        this.canvas_corner_top_left = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
-        this.canvas_corner_top_right = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
+        this.canvasCornerBottomLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
+        this.canvasCornerBottomRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
+        this.canvasCornerTopLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
+        this.canvasCornerTopRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
 
         
         this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         board.shapesGroup.appendChild(this.shape);
 
         // Set SVG Element attributes
-        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
-        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
-        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
-        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
+        this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
+        this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
+        this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
+        this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
         this.shape.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
         this.shape.setAttribute("stroke-width", "2");
         this.shape.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode()));
@@ -525,54 +527,46 @@ export class ShapeElement implements BoardElement {
         this.board = board;
     }
 
+    private updateCanvasCorner(){
+        this.canvasCornerTopRight.x = Math.max(this.canvasC1.x, this.canvasC2.x);
+        this.canvasCornerTopRight.y = Math.min(this.canvasC1.y, this.canvasC2.y);
+        this.canvasCornerTopLeft.x = Math.min(this.canvasC1.x, this.canvasC2.x);
+        this.canvasCornerTopLeft.y = Math.min(this.canvasC1.y, this.canvasC2.y);
+        this.canvasCornerBottomRight.x = Math.max(this.canvasC1.x, this.canvasC2.x);
+        this.canvasCornerBottomRight.y = Math.max(this.canvasC1.y, this.canvasC2.y);
+        this.canvasCornerBottomLeft.x = Math.min(this.canvasC1.x, this.canvasC2.x);
+        this.canvasCornerBottomLeft.y = Math.max(this.canvasC1.y, this.canvasC2.y);
+
+        this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
+        this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
+        this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
+        this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
+    }
+
     updateAfterCameraChange() {
         this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
         this.canvasC1.setFromCoord(this.c1, this.board.camera);
         this.canvasC2.setFromCoord(this.c2, this.board.camera);
 
-        this.canvas_corner_top_right.x = Math.max(this.canvasC1.x, this.canvasC2.x);
-        this.canvas_corner_top_right.y = Math.min(this.canvasC1.y, this.canvasC2.y);
-        this.canvas_corner_top_left.x = Math.min(this.canvasC1.x, this.canvasC2.x);
-        this.canvas_corner_top_left.y = Math.min(this.canvasC1.y, this.canvasC2.y);
-        this.canvas_corner_bottom_right.x = Math.max(this.canvasC1.x, this.canvasC2.x);
-        this.canvas_corner_bottom_right.y = Math.max(this.canvasC1.y, this.canvasC2.y);
-        this.canvas_corner_bottom_left.x = Math.min(this.canvasC1.x, this.canvasC2.x);
-        this.canvas_corner_bottom_left.y = Math.max(this.canvasC1.y, this.canvasC2.y);
-
-        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
-        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
-        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
-        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
+        this.updateCanvasCorner();
     }
 
     delete(){
         this.shape.remove();
     }
 
-    setCorners(c1:CanvasCoord, c2:CanvasCoord){
-        console.log("setCorner")
-
-        this.cameraCenter.x = (c1.x + c2.x)/2;
-        this.cameraCenter.y = (c1.y + c2.y)/2;
-
-        this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
-
+    setCorners(c1: Coord, c2: Coord){
         this.c1.copy_from(c1);
         this.c2.copy_from(c2);
 
-        this.canvas_corner_top_right.x = Math.max(c1.x, c2.x);
-        this.canvas_corner_top_right.y = Math.min(c1.y, c2.y);
-        this.canvas_corner_top_left.x = Math.min(c1.x, c2.x);
-        this.canvas_corner_top_left.y = Math.min(c1.y, c2.y);
-        this.canvas_corner_bottom_right.x = Math.max(c1.x, c2.x);
-        this.canvas_corner_bottom_right.y = Math.max(c1.y, c2.y);
-        this.canvas_corner_bottom_left.x = Math.min(c1.x, c2.x);
-        this.canvas_corner_bottom_left.y = Math.max(c1.y, c2.y);
+        this.serverCenter.x = (c1.x + c2.x)/2;
+        this.serverCenter.y = (c1.y + c2.y)/2;
 
-        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
-        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
-        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
-        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
+        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.canvasC1.setFromCoord(this.c1, this.board.camera);
+        this.canvasC2.setFromCoord(this.c2, this.board.camera);
+
+        this.updateCanvasCorner();
     }
 
     setColor (color: Color) {
@@ -582,34 +576,34 @@ export class ShapeElement implements BoardElement {
     }
 
    
-    isInRect(c1: CanvasCoord, c2: CanvasCoord) {
+    isInRect(c1: CanvasCoord, c2: CanvasCoord): boolean {
         
         const topLeft = new Coord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
         const topRight = new Coord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
         const bottomLeft = new Coord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
         const bottomRight = new Coord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
-        if (topLeft.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || topRight.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || bottomLeft.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right) || bottomRight.is_in_rect(this.canvas_corner_top_left, this.canvas_corner_bottom_right)){
+        if (topLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || topRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight)){
             return true;
         }
 
-        if (this.canvas_corner_bottom_left.is_in_rect(c1,c2)
-        || this.canvas_corner_bottom_right.is_in_rect(c1,c2)
-        || this.canvas_corner_top_left.is_in_rect(c1,c2)
-        || this.canvas_corner_top_right.is_in_rect(c1,c2) ){
+        if (this.canvasCornerBottomLeft.is_in_rect(c1,c2)
+        || this.canvasCornerBottomRight.is_in_rect(c1,c2)
+        || this.canvasCornerTopLeft.is_in_rect(c1,c2)
+        || this.canvasCornerTopRight.is_in_rect(c1,c2) ){
             return true;
         }
 
-        if (is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_top_right, topLeft, bottomLeft)
-        || is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_top_right, topRight, bottomRight)
-        || is_segments_intersection(this.canvas_corner_bottom_left, this.canvas_corner_bottom_right, topLeft, bottomLeft)
-        || is_segments_intersection(this.canvas_corner_bottom_left, this.canvas_corner_bottom_right, topRight, bottomRight)){
+        if (is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerTopRight, topLeft, bottomLeft)
+        || is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerTopRight, topRight, bottomRight)
+        || is_segments_intersection(this.canvasCornerBottomLeft, this.canvasCornerBottomRight, topLeft, bottomLeft)
+        || is_segments_intersection(this.canvasCornerBottomLeft, this.canvasCornerBottomRight, topRight, bottomRight)){
             return true;
         }
 
-        if (is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_bottom_left, topLeft, topRight)
-        || is_segments_intersection(this.canvas_corner_top_left, this.canvas_corner_bottom_left, bottomLeft, bottomRight)
-        || is_segments_intersection(this.canvas_corner_bottom_right, this.canvas_corner_top_right, topLeft, topRight)
-        || is_segments_intersection(this.canvas_corner_bottom_right, this.canvas_corner_top_right, bottomLeft, bottomRight)){
+        if (is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerBottomLeft, topLeft, topRight)
+        || is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerBottomLeft, bottomLeft, bottomRight)
+        || is_segments_intersection(this.canvasCornerBottomRight, this.canvasCornerTopRight, topLeft, topRight)
+        || is_segments_intersection(this.canvasCornerBottomRight, this.canvasCornerTopRight, bottomLeft, bottomRight)){
             return true;
         }
 
@@ -617,15 +611,15 @@ export class ShapeElement implements BoardElement {
     }
 
     isClickOver (pos: CanvasCoord): boolean{
-        return this.canvas_corner_bottom_left.x <= pos.x &&
-            pos.x <= this.canvas_corner_top_right.x && 
-            this.canvas_corner_top_right.y <= pos.y && 
-            pos.y <= this.canvas_corner_bottom_left.y;
+        return this.canvasCornerBottomLeft.x <= pos.x &&
+            pos.x <= this.canvasCornerTopRight.x && 
+            this.canvasCornerTopRight.y <= pos.y && 
+            pos.y <= this.canvasCornerBottomLeft.y;
     }
 
-    isNearby (pos: CanvasCoord, d: number){
+    isNearby (pos: CanvasCoord, d: number): boolean{
 
-        return this.canvas_corner_bottom_left.x <= pos.x && pos.x <= this.canvas_corner_bottom_right.x && this.canvas_corner_top_left.y <= pos.y && pos.y <= this.canvas_corner_bottom_right.y;
+        return this.canvasCornerBottomLeft.x <= pos.x && pos.x <= this.canvasCornerBottomRight.x && this.canvasCornerTopLeft.y <= pos.y && pos.y <= this.canvasCornerBottomRight.y;
 
     }
 
@@ -633,18 +627,25 @@ export class ShapeElement implements BoardElement {
         this.cameraCenter.x += cshift.x;
         this.cameraCenter.y += cshift.y;
 
+
+        this.canvasC1.translate_by_canvas_vect(cshift);
+        this.canvasC2.translate_by_canvas_vect(cshift);
+
+        this.canvasCornerBottomLeft.translate_by_canvas_vect(cshift);
+        this.canvasCornerBottomRight.translate_by_canvas_vect(cshift);
+        this.canvasCornerTopLeft.translate_by_canvas_vect(cshift);
+        this.canvasCornerTopRight.translate_by_canvas_vect(cshift);
+
+        this.board.camera.setFromCanvas(this.c1, this.canvasC1);
+        this.board.camera.setFromCanvas(this.c2, this.canvasC2);
         this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
 
-        this.canvas_corner_bottom_left.translate_by_canvas_vect(cshift);
-        this.canvas_corner_bottom_right.translate_by_canvas_vect(cshift);
-        this.canvas_corner_top_left.translate_by_canvas_vect(cshift);
-        this.canvas_corner_top_right.translate_by_canvas_vect(cshift);
 
 
-        this.shape.setAttribute("x", this.canvas_corner_top_left.x.toString());
-        this.shape.setAttribute("y", this.canvas_corner_top_left.y.toString())
-        this.shape.setAttribute("width", (this.canvas_corner_bottom_right.x - this.canvas_corner_bottom_left.x).toString());
-        this.shape.setAttribute("height", (this.canvas_corner_bottom_right.y - this.canvas_corner_top_left.y).toString());
+        this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
+        this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
+        this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
+        this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
     }
 
     select(){

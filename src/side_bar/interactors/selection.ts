@@ -114,6 +114,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
             previousCenterShift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
         } 
+        else {
+            previousCenterShift = CanvasVect.from_canvas_coords( pointed.pointedPos, pointed.data.element.cameraCenter);
+        }
+
         /*
         else if ( pointed.data instanceof ELEMENT_DATA_RECTANGLE || pointed.data instanceof ELEMENT_DATA_AREA || pointed.data instanceof ELEMENT_DATA_REPRESENTATION ){
             const element = pointed.data.element;
@@ -205,7 +209,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             return false;
         }
 
-        // Translate
+        // Translate the Pointed Element or the Selected Elements
         if (typeof pointed.data != "undefined"){
             e.translate_by_canvas_vect(previousCenterShift);
             // e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
@@ -301,7 +305,9 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             return false;
         }
 
-        if (typeof pointed == "undefined") return false;
+        if (typeof pointed == "undefined"){
+            return false;
+        } 
 
         if ( typeof pointed.data == "undefined"){
             boundingBox.hide();
