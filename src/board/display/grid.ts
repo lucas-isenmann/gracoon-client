@@ -16,7 +16,7 @@ export enum GridType {
 export class Grid {
     type: Option<GridType>;
 
-    polarCenter: Coord;
+    polarCenter: CanvasCoord;
     polarDivision: number; // >= 5
 
     grid_size: number;
@@ -24,10 +24,10 @@ export class Grid {
     grid_max_size: number;
     grid_initial_size: number;
 
-    constructor(){
+    constructor(camera: Camera){
         this.type = undefined;
 
-        this.polarCenter = new Coord(window.innerWidth/2, window.innerHeight/2);
+        this.polarCenter = new CanvasCoord(window.innerWidth/2, window.innerHeight/2, camera);
         console.log(this.polarCenter)
         this.polarDivision = 6;
         this.grid_min_size = 40;
@@ -94,13 +94,11 @@ export class Grid {
 
     drawPolarGrid(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
         const color = GRID_COLOR;
-        const c = this.polarCenter;
-        const center = CanvasCoord.fromCoord(c, camera);
 
-        const cTopLeft = new CanvasCoord(0, 0).toCoord(camera);
-        const cBotRight = new CanvasCoord(canvas.width, canvas.height).toCoord(camera);
-        const cBotLeft = new CanvasCoord(0, canvas.height).toCoord(camera);
-        const cTopRight = new CanvasCoord(canvas.width, 0).toCoord(camera);
+        const cTopLeft = new CanvasCoord(0, 0, camera).toCoord();
+        const cBotRight = new CanvasCoord(canvas.width, canvas.height, camera).toCoord();
+        const cBotLeft = new CanvasCoord(0, canvas.height, camera).toCoord();
+        const cTopRight = new CanvasCoord(canvas.width, 0, camera).toCoord();
 
         const d1 = Math.sqrt(cBotRight.dist2(c));
         const d2 = Math.sqrt(cBotLeft.dist2(c));
@@ -111,26 +109,26 @@ export class Grid {
         let max = Math.max(d1, d2, d3, d4);
 
 
-        if (0 <= center.x && center.x <= canvas.width){
+        if (0 <= this.polarCenter.x && this.polarCenter.x <= canvas.width){
             const dBot = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(1,0)).dist2(c));
             const dTop = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(1,0)).dist2(c));
             min = Math.min(min, dBot, dTop);
             max = Math.max(max, dBot, dTop);
         }
-        if ( 0 <= center.y  && center.y <= canvas.height){
+        if ( 0 <= this.polarCenter.y  && this.polarCenter.y <= canvas.height){
             const dLeft = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(0,1)).dist2(c));
             const dRight = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(0,1)).dist2(c));
             min = Math.min(min, dLeft, dRight);
             max = Math.max(max, dLeft, dRight);
         }
 
-        const mini = (0 <= center.x && center.x <= canvas.width && 0 <= center.y && center.y <= canvas.height ) ? 0 :  Math.floor(min*camera.zoom/(this.grid_size*2));
+        const mini = (0 <= this.polarCenter.x && this.polarCenter.x <= canvas.width && 0 <= this.polarCenter.y && this.polarCenter.y <= canvas.height ) ? 0 :  Math.floor(min*camera.zoom/(this.grid_size*2));
         for (let i = mini ; i <= max*camera.zoom/(this.grid_size*2) ; i ++ ){
             drawArc(ctx, center, color, i*this.grid_size*2, 1, 1);
         }
 
-        const c1 = new CanvasCoord(0, center.y);
-        const c2 = new CanvasCoord(canvas.width, center.y);
+        const c1 = new CanvasCoord(0, center.y, camera);
+        const c2 = new CanvasCoord(canvas.width, center.y, camera);
         drawLine(c1, c2, ctx, color, 1 );
 
         // const c3 = new CanvasCoord(center.x, 0);

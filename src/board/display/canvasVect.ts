@@ -9,6 +9,10 @@ export class CanvasVect {
         this.y = y;
     }
 
+    norm(): number {
+        return Math.sqrt( this.x**2 + this.y**2)
+    }
+
     set_from(v: CanvasVect) {
         this.x = v.x;
         this.y = v.y;

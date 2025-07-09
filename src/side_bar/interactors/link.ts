@@ -36,9 +36,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const shortcutLetter = orientation == ORIENTATION.UNDIRECTED ? "e" : "a";
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
     const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
-    const targetPoint = new TargetPoint(board, new CanvasCoord(0,0));
+    const targetPoint = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
     targetPoint.hide();
-    const constructionSegment = new Segment(board, new CanvasCoord(0,0), new CanvasCoord(0,0), Color.Neutral);
+    const constructionSegment = new Segment(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(0,0, board.camera), Color.Neutral);
     constructionSegment.hide();
 
 
@@ -100,11 +100,11 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 board.emitAddElement( board.createLinkPreData(linkInteractor.indexLastCreatedVertex, pointed.data.element.serverId, orientation), () => {} )
                 if (board.keyPressed.has("Control")){
                     linkInteractor.indexLastCreatedVertex = vertex.serverId;
-                    linkInteractor.lastVertexPos = vertex.serverCenter;
+                    linkInteractor.lastVertexPos = vertex.cameraCenter.serverPos;
                 }
             } else {
                 linkInteractor.indexLastCreatedVertex = vertex.serverId;
-                linkInteractor.lastVertexPos = vertex.serverCenter;
+                linkInteractor.lastVertexPos = vertex.cameraCenter.serverPos;
             }
         }
     })
@@ -147,13 +147,13 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
             const link = board.nearbyLink(e);
             if (typeof link == "undefined"){
                 const aligned_mouse_pos = board.alignPosition(e, new Set(), board.canvas, board.camera);
-                const serverPos = aligned_mouse_pos.toCoord(board.camera);
+                const serverPos = aligned_mouse_pos.toCoord();
                 board.emitAddElement(
                     board.createVertexPreData(serverPos), (response) => { 
                     
                     if (board.keyPressed.has("Control")){
                         linkInteractor.indexLastCreatedVertex = response;
-                        linkInteractor.lastVertexPos = aligned_mouse_pos;
+                        linkInteractor.lastVertexPos = aligned_mouse_pos.serverPos;
                     }
                     board.emitAddElement(
                         board.createLinkPreData(firstVertexIndex, response, orientation)
@@ -161,7 +161,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
                 });
             }
             else {
-                board.emitSubdivideLink(link.serverId, e.toCoord(board.camera), "", board.colorSelected, (response) => { 
+                board.emitSubdivideLink(link.serverId, e.toCoord(), "", board.colorSelected, (response) => { 
                     board.emitAddElement( board.createLinkPreData(firstVertexIndex, response, orientation), () => {} )
                 });
             }

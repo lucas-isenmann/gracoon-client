@@ -9,7 +9,7 @@ import { highlightColors } from "./display/highlight_colors";
 
 export interface BoardElement {
     cameraCenter: CanvasCoord;
-    serverCenter: Coord;
+    // serverCenter: Coord; // à virer
     serverId: number;
     boardElementType: BoardElementType;
     delete: () => void;
@@ -49,10 +49,10 @@ export class VertexPreData {
 export class VertexElement implements BoardElement {
 
     cameraCenter: CanvasCoord;
-    serverCenter: Coord;
+    // serverCenter: Coord;
     id: number;
     serverId: number;
-    boardElementType: BoardElementType;
+    boardElementType: BoardElementType = BoardElementType.Vertex;
     color: Color;
     isSelected: boolean = false;
     disk: SVGCircleElement;
@@ -66,10 +66,10 @@ export class VertexElement implements BoardElement {
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
-        this.serverCenter = new CanvasCoord(x,y); 
-        this.cameraCenter = board.camera.create_canvas_coord(this.serverCenter);
+        this.cameraCenter = CanvasCoord.fromCoord(new Coord(x,y), board.camera);
+        // this.serverCenter = this.cameraCenter.serverPos;
+        // this.cameraCenter = board.camera.create_canvas_coord(this.serverCenter);
         this.color = color;
-        this.boardElementType = BoardElementType.Vertex;
         this.serverId = id;
         this.board = board;
 
@@ -125,7 +125,7 @@ export class VertexElement implements BoardElement {
     }
 
     updateAfterCameraChange() {
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.cameraCenter.updateAfterCameraChange();
         this.updateSVGposition();
     }
 
@@ -151,8 +151,8 @@ export class VertexElement implements BoardElement {
         this.innerLabelSVG.remove();
     }
 
-    isNearby (pos: CanvasCoord,d: number) {
-        return pos.dist2(this.cameraCenter) <= d*d 
+    isNearby (pos: CanvasCoord, d: number) {
+        return pos.dist(this.cameraCenter) <= d 
     }
 
     isInRect (corner1: CanvasCoord, corner2: CanvasCoord) : boolean  {
@@ -176,23 +176,24 @@ export class VertexElement implements BoardElement {
     }
 
     startRotate(){
-        this.posBeforeRotate.copy_from(this.serverCenter)
+        this.posBeforeRotate.copy_from(this.cameraCenter.serverPos)
     }
 
     setAngle(center: Coord, angle: number){
-        this.serverCenter.x = center.x + (this.posBeforeRotate.x - center.x) * Math.cos(angle) - (this.posBeforeRotate.y - center.y) * Math.sin(angle);
-        this.serverCenter.y = center.y + (this.posBeforeRotate.x - center.x) * Math.sin(angle) + (this.posBeforeRotate.y - center.y) * Math.cos(angle);
+        this.cameraCenter.setServerPos( 
+            center.x + (this.posBeforeRotate.x - center.x) * Math.cos(angle) - (this.posBeforeRotate.y - center.y) * Math.sin(angle), 
+            center.y + (this.posBeforeRotate.x - center.x) * Math.sin(angle) + (this.posBeforeRotate.y - center.y) * Math.cos(angle))
 
-        this.board.camera.setFromServer( this.cameraCenter, this.serverCenter)
         this.updateSVGposition();
         this.updateIncidentLinks();
     }
 
     applyScale(center: Coord, ratio: number){
-        this.serverCenter.x = center.x + (this.posBeforeRotate.x - center.x) * ratio;
-        this.serverCenter.y = center.y + (this.posBeforeRotate.y - center.y) * ratio;
+        this.cameraCenter.setServerPos(
+            center.x + (this.posBeforeRotate.x - center.x) * ratio,
+            center.y + (this.posBeforeRotate.y - center.y) * ratio
+        )
 
-        this.board.camera.setFromServer( this.cameraCenter, this.serverCenter)
         this.updateSVGposition();
         this.updateIncidentLinks();
     }
@@ -216,10 +217,11 @@ export class VertexElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.cameraCenter.x += cshift.x;
-        this.cameraCenter.y += cshift.y;
+        this.cameraCenter.translate_by_canvas_vect(cshift)
+        // this.cameraCenter.x += cshift.x;
+        // this.cameraCenter.y += cshift.y;
 
-        this.board.camera.setFromCanvas( this.serverCenter, this.cameraCenter)
+        // this.board.camera.setFromCanvas( this.serverCenter, this.cameraCenter)
         this.updateSVGposition();
         this.updateIncidentLinks();
         
@@ -249,7 +251,7 @@ export class LinkPreData {
 
 export class LinkElement implements BoardElement {
     cameraCenter: CanvasCoord;
-    serverCenter: Coord;
+    // serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType;
@@ -269,8 +271,8 @@ export class LinkElement implements BoardElement {
 
     constructor(board: ClientBoard, serverId: number, startVertex: VertexElement, endVertex: VertexElement, directed: boolean, label: string, color: Color){
         this.id = board.elementCounter;
-        this.cameraCenter = new CanvasCoord(0,0);
-        this.serverCenter = new Coord(0,0);
+        this.cameraCenter = new CanvasCoord(0,0, board.camera);
+        // this.serverCenter = this.cameraCenter.serverPos;
         this.color = color;
         this.boardElementType = BoardElementType.Link;
         this.serverId = serverId;
@@ -298,13 +300,13 @@ export class LinkElement implements BoardElement {
         }
 
         
+        this.cameraCenter.setLocalPos( (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2, (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2  );
 
+        // this.cameraCenter.x = (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2
+        // this.cameraCenter.y = (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2;
 
-        this.cameraCenter.x = (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2
-        this.cameraCenter.y = (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2;
-
-        this.serverCenter.x = (startVertex.serverCenter.x + endVertex.serverCenter.x)/2
-        this.serverCenter.y = (startVertex.serverCenter.y + endVertex.serverCenter.y)/2;
+        // this.serverCenter.x = (startVertex.serverCenter.x + endVertex.serverCenter.x)/2
+        // this.serverCenter.y = (startVertex.serverCenter.y + endVertex.serverCenter.y)/2;
 
 
         // InnerLabel
@@ -329,11 +331,14 @@ export class LinkElement implements BoardElement {
     }
 
     updateExtremities(){
-        this.cameraCenter.x = (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2
-        this.cameraCenter.y = (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2;
+        this.cameraCenter.setLocalPos( (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2, (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2  );
 
-        this.serverCenter.x = (this.startVertex.serverCenter.x + this.endVertex.serverCenter.x)/2
-        this.serverCenter.y = (this.startVertex.serverCenter.y + this.endVertex.serverCenter.y)/2;
+
+        // this.cameraCenter.x = (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2
+        // this.cameraCenter.y = (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2;
+
+        // this.serverCenter.x = (this.startVertex.serverCenter.x + this.endVertex.serverCenter.x)/2
+        // this.serverCenter.y = (this.startVertex.serverCenter.y + this.endVertex.serverCenter.y)/2;
 
         this.updateSVGposition();
     }
@@ -349,7 +354,7 @@ export class LinkElement implements BoardElement {
     }
 
     updateAfterCameraChange() {
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.cameraCenter.updateAfterCameraChange();
 
         this.line.setAttribute("x1", this.startVertex.cameraCenter.x.toString());
         this.line.setAttribute("y1", this.startVertex.cameraCenter.y.toString());
@@ -423,7 +428,7 @@ export class LinkElement implements BoardElement {
         // }
 
 
-        return pos.dist2(this.cameraCenter) <= d*d 
+        return pos.dist(this.cameraCenter) <= d
     }
 
     translate (cshift: CanvasVect){
@@ -458,7 +463,6 @@ export class LinkElement implements BoardElement {
 
 export class ShapeElement implements BoardElement {
     cameraCenter: CanvasCoord;
-    serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType;
@@ -472,8 +476,6 @@ export class ShapeElement implements BoardElement {
     canvasCornerBottomLeft : CanvasCoord;
     canvasCornerBottomRight : CanvasCoord;
     canvasCornerTopRight : CanvasCoord;
-    c1: Coord;
-    c2: Coord;
     canvasC1: CanvasCoord;
     canvasC2: CanvasCoord;
     
@@ -481,23 +483,19 @@ export class ShapeElement implements BoardElement {
 
     constructor(board: ClientBoard, serverId: number, c1: Coord, c2: Coord, color: Color){
         this.id = board.elementCounter;
-        this.serverCenter = new Coord(0,0);
         this.color = color;
         this.boardElementType = BoardElementType.Rectangle;
         this.serverId = serverId;
 
-        console.log("create Shape", c1, c2);
 
-        this.c1 = c1.copy();
-        this.c2 = c2.copy();
-        this.canvasC1 = board.camera.create_canvas_coord(c1);
-        this.canvasC2 = board.camera.create_canvas_coord(c2);
+        this.canvasC1 = CanvasCoord.fromCoord(c1, board.camera)
+        this.canvasC2 = CanvasCoord.fromCoord(c2, board.camera)
 
 
-        this.canvasCornerBottomLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
-        this.canvasCornerBottomRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y));
-        this.canvasCornerTopLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
-        this.canvasCornerTopRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y));
+        this.canvasCornerBottomLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y), board.camera);
+        this.canvasCornerBottomRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.max(this.canvasC1.y, this.canvasC2.y), board.camera);
+        this.canvasCornerTopLeft = new CanvasCoord(Math.min(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y), board.camera);
+        this.canvasCornerTopRight = new CanvasCoord(Math.max(this.canvasC1.x, this.canvasC2.x), Math.min(this.canvasC1.y, this.canvasC2.y), board.camera);
 
         
         this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -517,10 +515,8 @@ export class ShapeElement implements BoardElement {
 
         
 
-        this.serverCenter.x = (c1.x + c2.x)/2;
-        this.serverCenter.y = (c1.y + c2.y)/2;
 
-        this.cameraCenter = board.camera.create_canvas_coord(this.serverCenter)
+        this.cameraCenter = new CanvasCoord( (this.canvasC1.x + this.canvasC2.x)/2, (this.canvasC1.y + this.canvasC2.y)/2, board.camera);
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
@@ -544,9 +540,9 @@ export class ShapeElement implements BoardElement {
     }
 
     updateAfterCameraChange() {
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
-        this.canvasC1.setFromCoord(this.c1, this.board.camera);
-        this.canvasC2.setFromCoord(this.c2, this.board.camera);
+        this.canvasC1.updateAfterCameraChange();
+        this.canvasC2.updateAfterCameraChange();
+        this.cameraCenter.updateAfterCameraChange();
 
         this.updateCanvasCorner();
     }
@@ -556,15 +552,17 @@ export class ShapeElement implements BoardElement {
     }
 
     setCorners(c1: Coord, c2: Coord){
-        this.c1.copy_from(c1);
-        this.c2.copy_from(c2);
 
-        this.serverCenter.x = (c1.x + c2.x)/2;
-        this.serverCenter.y = (c1.y + c2.y)/2;
+        this.canvasC1.setServerPos(c1.x, c1.y);
+        this.canvasC2.setServerPos(c2.x, c2.y);
+        this.cameraCenter.setServerPos((c1.x + c2.x)/2, (c1.y+ c2.y)/2);
 
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
-        this.canvasC1.setFromCoord(this.c1, this.board.camera);
-        this.canvasC2.setFromCoord(this.c2, this.board.camera);
+        // this.serverCenter.x = (c1.x + c2.x)/2;
+        // this.serverCenter.y = (c1.y + c2.y)/2;
+
+        // this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        // this.canvasC1.setFromCoord(this.c1, this.board.camera);
+        // this.canvasC2.setFromCoord(this.c2, this.board.camera);
 
         this.updateCanvasCorner();
     }
@@ -578,10 +576,10 @@ export class ShapeElement implements BoardElement {
    
     isInRect(c1: CanvasCoord, c2: CanvasCoord): boolean {
         
-        const topLeft = new Coord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y));
-        const topRight = new Coord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y));
-        const bottomLeft = new Coord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y));
-        const bottomRight = new Coord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y));
+        const topLeft = new CanvasCoord(Math.min(c1.x, c2.x), Math.min(c1.y, c2.y), this.board.camera);
+        const topRight = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y), this.board.camera);
+        const bottomLeft = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y), this.board.camera);
+        const bottomRight = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y), this.board.camera);
         if (topLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || topRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight)){
             return true;
         }
@@ -593,17 +591,17 @@ export class ShapeElement implements BoardElement {
             return true;
         }
 
-        if (is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerTopRight, topLeft, bottomLeft)
-        || is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerTopRight, topRight, bottomRight)
-        || is_segments_intersection(this.canvasCornerBottomLeft, this.canvasCornerBottomRight, topLeft, bottomLeft)
-        || is_segments_intersection(this.canvasCornerBottomLeft, this.canvasCornerBottomRight, topRight, bottomRight)){
+        if (is_segments_intersection(this.canvasCornerTopLeft.serverPos, this.canvasCornerTopRight.serverPos, topLeft.serverPos, bottomLeft.serverPos)
+        || is_segments_intersection(this.canvasCornerTopLeft.serverPos, this.canvasCornerTopRight.serverPos, topRight.serverPos, bottomRight.serverPos)
+        || is_segments_intersection(this.canvasCornerBottomLeft.serverPos, this.canvasCornerBottomRight.serverPos, topLeft.serverPos, bottomLeft.serverPos)
+        || is_segments_intersection(this.canvasCornerBottomLeft.serverPos, this.canvasCornerBottomRight.serverPos, topRight.serverPos, bottomRight.serverPos)){
             return true;
         }
 
-        if (is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerBottomLeft, topLeft, topRight)
-        || is_segments_intersection(this.canvasCornerTopLeft, this.canvasCornerBottomLeft, bottomLeft, bottomRight)
-        || is_segments_intersection(this.canvasCornerBottomRight, this.canvasCornerTopRight, topLeft, topRight)
-        || is_segments_intersection(this.canvasCornerBottomRight, this.canvasCornerTopRight, bottomLeft, bottomRight)){
+        if (is_segments_intersection(this.canvasCornerTopLeft.serverPos, this.canvasCornerBottomLeft.serverPos, topLeft.serverPos, topRight.serverPos)
+        || is_segments_intersection(this.canvasCornerTopLeft.serverPos, this.canvasCornerBottomLeft.serverPos, bottomLeft.serverPos, bottomRight.serverPos)
+        || is_segments_intersection(this.canvasCornerBottomRight.serverPos, this.canvasCornerTopRight.serverPos, topLeft.serverPos, topRight.serverPos)
+        || is_segments_intersection(this.canvasCornerBottomRight.serverPos, this.canvasCornerTopRight.serverPos, bottomLeft.serverPos, bottomRight.serverPos)){
             return true;
         }
 
@@ -624,8 +622,8 @@ export class ShapeElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.cameraCenter.x += cshift.x;
-        this.cameraCenter.y += cshift.y;
+        this.cameraCenter.translate_by_canvas_vect(cshift);
+
 
 
         this.canvasC1.translate_by_canvas_vect(cshift);
@@ -636,9 +634,6 @@ export class ShapeElement implements BoardElement {
         this.canvasCornerTopLeft.translate_by_canvas_vect(cshift);
         this.canvasCornerTopRight.translate_by_canvas_vect(cshift);
 
-        this.board.camera.setFromCanvas(this.c1, this.canvasC1);
-        this.board.camera.setFromCanvas(this.c2, this.canvasC2);
-        this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
 
 
 

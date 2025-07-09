@@ -5,6 +5,7 @@ import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
 import { TargetPoint } from "../../board/elements/targetPoint";
+import { Camera } from "../../board/display/camera";
 
 // INTERACTOR ERASER
 
@@ -21,7 +22,7 @@ export class EraserInteractor extends PreInteractor {
         this.isErasing = false;
         this.ERASE_DISTANCE = 8;
 
-        this.disk = new TargetPoint(board, new CanvasCoord(0,0));
+        this.disk = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
         this.disk.disk.setAttribute("r", this.ERASE_DISTANCE.toString()); 
         this.disk.disk.setAttribute("stroke", "#fff");    
         this.disk.disk.setAttribute("stroke-width", "1");    

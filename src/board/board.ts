@@ -142,9 +142,10 @@ export class ClientBoard  {
         this.agregId = makeid(5);    
         
         // Display parameters
+        this.camera = new Camera();
         this.darkMode = true;
         this.isDrawingInteractor = true;
-        this.grid = new Grid();
+        this.grid = new Grid(this.camera);
         this.isAligning = false;
 
 
@@ -206,7 +207,6 @@ export class ClientBoard  {
 
 
 
-        this.camera = new Camera();
         
         
 
@@ -239,7 +239,7 @@ export class ClientBoard  {
         this.g = new Graph2();
         for (const element of this.elements.values()){
             if (element instanceof VertexElement){
-                this.g.setVertex(element.serverId, new VertexData2(element.cameraCenter, element.color, element.innerLabel, element.outerLabel) );
+                this.g.setVertex(element.serverId, new VertexData2(element.cameraCenter.serverPos, element.color, element.innerLabel, element.outerLabel) );
             }
         }
         for (const element of this.elements.values()){
@@ -478,20 +478,20 @@ export class ClientBoard  {
     
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
     alignPosition(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
-        const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y);
+        const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y, this.camera);
         if (this.isAligning) {
             this.alignement_horizontal_y = undefined;
             this.alignement_vertical_x = undefined;
             for (const element of this.elements.values()){
                 if (excluded_indices.has(element.serverId) == false) {
                     if (Math.abs(element.cameraCenter.y - pos_to_align.y) <= 15) { 
-                        aligned_pos.y = element.serverCenter.y;
-                        this.alignement_horizontal_y = camera.canvasCoordY(element.serverCenter);
+                        aligned_pos.y = element.cameraCenter.y;
+                        this.alignement_horizontal_y = element.cameraCenter.y;
                         break
                     }
                     if (Math.abs(element.cameraCenter.x - pos_to_align.x) <= 15) {
-                        aligned_pos.x = element.serverCenter.x;
-                        this.alignement_vertical_x = camera.canvasCoordX(element.serverCenter);
+                        aligned_pos.x = element.cameraCenter.x;
+                        this.alignement_vertical_x = element.cameraCenter.x;
                         break;
                     }
                 }
@@ -530,7 +530,7 @@ export class ClientBoard  {
             // align on the corners if the point is near enough
             for (let corner of corners){
                 corner = corner.add(camera.camera);
-                if (Math.sqrt(corner.dist2(pos_to_align)) <= 2*15){
+                if (Math.sqrt(corner.dist2(new Coord(pos_to_align.x, pos_to_align.y) )) <= 2*15){
                     aligned_pos.x = corner.x;
                     aligned_pos.y = corner.y;
                     return aligned_pos;
@@ -570,7 +570,7 @@ export class ClientBoard  {
             
         } else if (this.grid.type == GridType.GridPolar){
             const size = this.grid.grid_size;
-            const center = CanvasCoord.fromCoord(this.grid.polarCenter, this.camera);
+            const center = this.grid.polarCenter;
             const p = aligned_pos;
 
             let d = Math.sqrt(p.dist2(center));
@@ -704,12 +704,12 @@ export class ClientBoard  {
      * The alignement lines with other vertices.
      */
     drawAlignements() {
-        if (typeof this.alignement_horizontal_y == "number" ) {
-            drawLine(new CanvasCoord(0, this.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
-        }
-        if (typeof this.alignement_vertical_x == "number") {
-            drawLine(new CanvasCoord(this.alignement_vertical_x, 0), new CanvasCoord(this.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
-        }
+        // if (typeof this.alignement_horizontal_y == "number" ) {
+        //     drawLine(new CanvasCoord(0, this.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        // }
+        // if (typeof this.alignement_vertical_x == "number") {
+        //     drawLine(new CanvasCoord(this.alignement_vertical_x, 0), new CanvasCoord(this.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
+        // }
     }
 
 
@@ -979,15 +979,15 @@ export class ClientBoard  {
                 // console.log("selected:", element.serverCenter)
                 if (noSelection){
                     noSelection = false;
-                    x = element.serverCenter.x;
-                    y = element.serverCenter.y;
+                    x = element.cameraCenter.serverPos.x;
+                    y = element.cameraCenter.serverPos.y;
                     maxX = x;
                     maxY = y;
                 }
-                x = x < element.serverCenter.x ? x : element.serverCenter.x;
-                y = y < element.serverCenter.y ? y : element.serverCenter.y;
-                maxX = maxX > element.serverCenter.x ? maxX : element.serverCenter.x;
-                maxY = maxY > element.serverCenter.y ? maxY : element.serverCenter.y;
+                x = x < element.cameraCenter.serverPos.x ? x : element.cameraCenter.serverPos.x;
+                y = y < element.cameraCenter.serverPos.y ? y : element.cameraCenter.serverPos.y;
+                maxX = maxX > element.cameraCenter.serverPos.x ? maxX : element.cameraCenter.serverPos.x;
+                maxY = maxY > element.cameraCenter.serverPos.y ? maxY : element.cameraCenter.serverPos.y;
             }
         }
         // console.log(x,y, maxX, maxY)
@@ -1024,7 +1024,7 @@ export class ClientBoard  {
         }
         for (const element of this.elements.values()){
             if (element.isSelected && element instanceof VertexElement){
-                const shift = element.posBeforeRotate.vectorTo(element.serverCenter);
+                const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
                 this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
@@ -1048,7 +1048,7 @@ export class ClientBoard  {
         }
         for (const element of this.elements.values()){
             if (element.isSelected && element instanceof VertexElement){
-                const shift = element.posBeforeRotate.vectorTo(element.serverCenter);
+                const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
                 this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
@@ -1275,7 +1275,7 @@ export class ClientBoard  {
     setC1(serverId: number, x: number, y: number){
         for (const element of this.elements.values()){
             if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(new Coord(x,y), element.c2);
+                element.setCorners(new Coord(x,y), element.canvasC2.serverPos);
             }
         }
     }
@@ -1283,7 +1283,7 @@ export class ClientBoard  {
     setC2(serverId: number, x: number, y: number){
         for (const element of this.elements.values()){
             if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(element.c1, new Coord(x,y));
+                element.setCorners(element.canvasC1.serverPos, new Coord(x,y));
             }
         }
     }
@@ -1313,7 +1313,7 @@ export class ClientBoard  {
     }
 
     emitGenerateGraph(generatorId: GeneratorId, params: Array<any>) {
-        socket.emit(SocketMsgType.GENERATE_GRAPH, this.camera.createServerCoord(new CanvasCoord(this.canvas.width/2,this.canvas.height/2 )), generatorId, params );
+        socket.emit(SocketMsgType.GENERATE_GRAPH, new CanvasCoord(this.canvas.width/2,this.canvas.height/2, this.camera).serverPos , generatorId, params );
     }
 
     emitRedo() {
@@ -1487,7 +1487,7 @@ export class ClientBoard  {
     updateOtherUsersCanvasPos() {
         for (const user of this.otherUsers.values()){
             if ( typeof user.pos != "undefined"){
-                user.canvas_pos = this.camera.create_canvas_coord(user.pos);
+                user.canvasPos = this.camera.create_canvas_coord(user.pos);
             }
         }
     }
@@ -1537,8 +1537,8 @@ export class ClientBoard  {
      * For the moment it only center the view on the vertices
      */
     centerViewOnEverything(){
-        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2);
-        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2);
+        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2, this.camera);
+        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2, this.camera);
 
         const v = this.elements.values().next().value;
 
@@ -1555,8 +1555,8 @@ export class ClientBoard  {
                 yMax = Math.max(yMax, u.cameraCenter.y);
             }
 
-            top_left_corner = new CanvasCoord(xMin, yMin);
-            bot_right_corner = new CanvasCoord(xMax, yMax);
+            top_left_corner = new CanvasCoord(xMin, yMin, this.camera);
+            bot_right_corner = new CanvasCoord(xMax, yMax, this.camera);
         }
         
 

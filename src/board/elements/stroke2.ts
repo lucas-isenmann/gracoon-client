@@ -11,8 +11,7 @@ export class StrokeElement implements BoardElement {
     
     // BoardElement properties
     id: number;
-    cameraCenter: CanvasCoord = new CanvasCoord(0,0);
-    serverCenter: Coord = new Coord(0,0);
+    cameraCenter: CanvasCoord;
     serverId: number;
     boardElementType: BoardElementType = BoardElementType.Stroke;
     color: Color;
@@ -35,6 +34,7 @@ export class StrokeElement implements BoardElement {
         board.elementCounter += 1;
         this.board = board;
         this.serverId = this.id;
+        this.cameraCenter = new CanvasCoord(initialPos.x, initialPos.y, board.camera);
 
 
         this.color = color;

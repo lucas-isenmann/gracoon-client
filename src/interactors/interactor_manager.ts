@@ -76,9 +76,9 @@ export function setupInteractions(board: ClientBoard) {
 
     board.svgContainer.addEventListener("wheel", function (e) {
         if (e.deltaY > 0) {
-            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY), 1 / 1.1);
+            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY, board.camera), 1 / 1.1);
         } else {
-            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY), 1.1);
+            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY, board.camera), 1.1);
         }
         board.updateAfterCameraChange();
 
@@ -98,8 +98,8 @@ export function setupInteractions(board: ClientBoard) {
     // Mouse up
     board.svgContainer.addEventListener('mouseup', function (e) {
         // console.log("mouseup")
-        mousePos = new CanvasCoord(e.pageX, e.pageY);
-        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
+        mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
+        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         mousePos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
@@ -125,11 +125,11 @@ export function setupInteractions(board: ClientBoard) {
 
     // Mouse move
     board.svgContainer.addEventListener('mousemove', function (e) {
-        mousePos = new CanvasCoord(e.pageX, e.pageY);
+        mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         if ( typeof board.selfUser.canvasPos != "undefined"){
-            board.selfUser.canvasPos.copy_from(mousePos);
+            board.selfUser.canvasPos.setLocalPos(mousePos.x, mousePos.y);
         } else {
-            board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
+            board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         }
         
         // if ( board.updateElementOver(mousePos)){
@@ -184,8 +184,8 @@ export function setupInteractions(board: ClientBoard) {
     // Mouse down
     board.svgContainer.addEventListener('mousedown', function (e) {
         // console.log("mousedwon")
-        mousePos = new CanvasCoord(e.pageX, e.pageY);
-        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY);
+        mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
+        board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         previous_canvas_shift = new CanvasVect(0,0);
 
         // CLIPBOARD TODO
@@ -233,7 +233,7 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchstart', (et: TouchEvent) => {
         // console.log("touchstart");
-        mousePos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY);
+        mousePos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY, board.camera);
 
         if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
@@ -246,9 +246,9 @@ export function setupInteractions(board: ClientBoard) {
 
     board.canvas.addEventListener('touchmove', (e) => {
         // console.log("touchmove")
-        mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY);
+        mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY, board.camera);
         if ( typeof board.selfUser.canvasPos != "undefined"){
-            board.selfUser.canvasPos.copy_from(mousePos);
+            board.selfUser.canvasPos.setLocalPos(mousePos.x, mousePos.y);
         } else {
             board.selfUser.canvasPos = mousePos.copy();
         }

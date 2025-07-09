@@ -16,8 +16,7 @@ export class ShapePreData {
 }
 
 export class Rectangle implements BoardElement {
-    cameraCenter: CanvasCoord = new CanvasCoord(0,0);
-    serverCenter: Coord = new Coord(0,0);
+    cameraCenter: CanvasCoord;
     serverId: number = 0;
     boardElementType: BoardElementType = BoardElementType.Local;
     color: Color = Color.Red;
@@ -38,8 +37,7 @@ export class Rectangle implements BoardElement {
 
     constructor(board: ClientBoard, pos: CanvasCoord, pos2: CanvasCoord, color: Color) {
         this.board = board;
-        this.cameraCenter.copy_from(pos);
-        board.camera.setFromCanvas(this.serverCenter, pos);
+        this.cameraCenter = pos;
         this.color = color;
         this.x1 = pos.x;
         this.y1 = pos.y;

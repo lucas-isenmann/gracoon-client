@@ -12,9 +12,9 @@ export class User {
     label: string;
     multicolor: Multicolor;
     pos: Option<Coord>;
-    canvas_pos: Option<CanvasCoord>;
-    timer_refresh : number; // Date since the last change of position
-    id_timeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
+    canvasPos: Option<CanvasCoord>;
+    timerRefresh : number; // Date since the last change of position
+    idTimeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
 
     constructor(id: string, label: string, color: string, camera: Camera, pos?: Coord) {
         this.id = id;
@@ -23,34 +23,34 @@ export class User {
          
         if (typeof pos !== 'undefined') {
             this.pos = pos;
-            this.canvas_pos = camera.create_canvas_coord(this.pos);
+            this.canvasPos = camera.create_canvas_coord(this.pos);
         }
         else{
             this.pos = undefined;
-            this.canvas_pos = undefined;
+            this.canvasPos = undefined;
         }
-        this.timer_refresh = Date.now();
-        this.id_timeout = undefined;
+        this.timerRefresh = Date.now();
+        this.idTimeout = undefined;
     }
 
     set_pos(newPos: Option<Coord>, board: ClientBoard) {
 
         if (typeof newPos != "undefined"){
             if( typeof this.pos == "undefined" || ( this.pos.x != newPos.x || this.pos.y != newPos.y ) ){ // If the user position is updated
-                this.timer_refresh = Date.now();
-                if( typeof this.id_timeout !== "undefined"){
-                    clearTimeout(this.id_timeout); // We clear the current timeout 
-                    this.id_timeout = undefined;
+                this.timerRefresh = Date.now();
+                if( typeof this.idTimeout !== "undefined"){
+                    clearTimeout(this.idTimeout); // We clear the current timeout 
+                    this.idTimeout = undefined;
                 }
                 // We set a new timeout that starts after 2 seconds. 
-                this.id_timeout = setTimeout(() => {
+                this.idTimeout = setTimeout(() => {
                     // We draw the canvas every 100ms
                     const interval_id = setInterval(()=>{
                         const canvas = document.getElementById('main') as HTMLCanvasElement;
                         const ctx = canvas.getContext('2d');
                         requestAnimationFrame(function () { board.draw() });
     
-                        if(Date.now() - this.timer_refresh > 4000){
+                        if(Date.now() - this.timerRefresh > 4000){
                             // The interval kill itself after the user does not move for 4secs 
                             clearInterval(interval_id); 
                         }
@@ -61,9 +61,9 @@ export class User {
         
         this.pos = newPos;
         if (typeof this.pos != "undefined"){
-            this.canvas_pos = board.camera.create_canvas_coord(this.pos);
+            this.canvasPos = board.camera.create_canvas_coord(this.pos);
         } else {
-            this.canvas_pos = undefined;
+            this.canvasPos = undefined;
         }
     }
 
@@ -78,14 +78,14 @@ export class User {
 
 
     draw_user_arrow(ctx: CanvasRenderingContext2D){
-        if ( typeof this.canvas_pos == "undefined") return;
+        if ( typeof this.canvasPos == "undefined") return;
         
         // Background
         ctx.beginPath();
         ctx.lineWidth = 4;
         ctx.strokeStyle = this.multicolor.darken;
-        ctx.moveTo(this.canvas_pos.x - 2, this.canvas_pos.y + 1);
-        ctx.lineTo(this.canvas_pos.x - 2, this.canvas_pos.y + 21);
+        ctx.moveTo(this.canvasPos.x - 2, this.canvasPos.y + 1);
+        ctx.lineTo(this.canvasPos.x - 2, this.canvasPos.y + 21);
         ctx.globalAlpha = 0.35;
         ctx.stroke();
         ctx.globalAlpha = 1;
@@ -93,10 +93,10 @@ export class User {
         //Arrow
         ctx.beginPath();
         ctx.fillStyle = this.multicolor.color;
-        ctx.moveTo(this.canvas_pos.x, this.canvas_pos.y);
-        ctx.lineTo(this.canvas_pos.x + 13, this.canvas_pos.y + 13);
-        ctx.lineTo(this.canvas_pos.x + 5, this.canvas_pos.y + 13);
-        ctx.lineTo(this.canvas_pos.x, this.canvas_pos.y + 20);
+        ctx.moveTo(this.canvasPos.x, this.canvasPos.y);
+        ctx.lineTo(this.canvasPos.x + 13, this.canvasPos.y + 13);
+        ctx.lineTo(this.canvasPos.x + 5, this.canvasPos.y + 13);
+        ctx.lineTo(this.canvasPos.x, this.canvasPos.y + 20);
         ctx.closePath();
         ctx.fill();
 
@@ -104,20 +104,20 @@ export class User {
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.strokeStyle = this.multicolor.lighten;
-        ctx.moveTo(this.canvas_pos.x, this.canvas_pos.y);
-        ctx.lineTo(this.canvas_pos.x + 13, this.canvas_pos.y + 13);
-        ctx.lineTo(this.canvas_pos.x + 5, this.canvas_pos.y + 13);
-        ctx.lineTo(this.canvas_pos.x, this.canvas_pos.y + 20);
+        ctx.moveTo(this.canvasPos.x, this.canvasPos.y);
+        ctx.lineTo(this.canvasPos.x + 13, this.canvasPos.y + 13);
+        ctx.lineTo(this.canvasPos.x + 5, this.canvasPos.y + 13);
+        ctx.lineTo(this.canvasPos.x, this.canvasPos.y + 20);
         ctx.stroke();
     }
 
 
     draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-        if ( typeof this.canvas_pos == "undefined") return;
+        if ( typeof this.canvasPos == "undefined") return;
         
-        if(this.canvas_pos.x > canvas.width || this.canvas_pos.x < 0 || this.canvas_pos.y > canvas.height  || this.canvas_pos.y < 0 ){
-            const x = clamp(this.canvas_pos.x, 0, canvas.width);
-            const y = clamp(this.canvas_pos.y, 0, canvas.height);
+        if(this.canvasPos.x > canvas.width || this.canvasPos.x < 0 || this.canvasPos.y > canvas.height  || this.canvasPos.y < 0 ){
+            const x = clamp(this.canvasPos.x, 0, canvas.width);
+            const y = clamp(this.canvasPos.y, 0, canvas.height);
 
             ctx.beginPath();
             ctx.fillStyle = this.multicolor.color;
@@ -129,33 +129,33 @@ export class User {
 
             let shift_x = 0;
             let shift_y = 0;
-            if(this.canvas_pos.x > canvas.width){
+            if(this.canvasPos.x > canvas.width){
                 shift_x = - text.width - 23 ;
                 shift_y = -10;
             }
-            if(this.canvas_pos.x < 0){
+            if(this.canvasPos.x < 0){
                 shift_x = 13 ;
                 shift_y = -10;
             }
-            if(this.canvas_pos.y > canvas.height){
+            if(this.canvasPos.y > canvas.height){
                 shift_x = - text.width/2 - 5;
                 shift_y = - 34 ;
 
-                if(this.canvas_pos.x < 0){
+                if(this.canvasPos.x < 0){
                     shift_x = 10;
                 }
-                if(this.canvas_pos.x > canvas.width){
+                if(this.canvasPos.x > canvas.width){
                     shift_x = - text.width - 13;
                 }
             }
-            if(this.canvas_pos.y < 0){
+            if(this.canvasPos.y < 0){
                 shift_x = - text.width/2 - 5;
                 shift_y = 13 ;
 
-                if(this.canvas_pos.x < 0){
+                if(this.canvasPos.x < 0){
                     shift_x = 10;
                 }
-                if(this.canvas_pos.x > canvas.width){
+                if(this.canvasPos.x > canvas.width){
                     shift_x = - text.width - 13;
                 }
             }
@@ -168,7 +168,7 @@ export class User {
         }
         else{
             // DRAW USERNAME 
-            drawUserLabel(this.canvas_pos.x + 10, this.canvas_pos.y + 17, this.label, this.multicolor, this.timer_refresh, ctx);
+            drawUserLabel(this.canvasPos.x + 10, this.canvasPos.y + 17, this.label, this.multicolor, this.timerRefresh, ctx);
         
 
             // DRAW ARROW

@@ -48,12 +48,12 @@ export class Camera {
     }
 
     create_server_coord_from_subtranslated(c: CanvasCoord, shift: CanvasVect): Coord{
-        const c2 = new CanvasCoord(c.x - shift.x, c.y - shift.y);
+        const c2 = new CanvasCoord(c.x - shift.x, c.y - shift.y, this);
         return this.createServerCoord(c2);
     }
 
     create_canvas_coord(c: Coord){
-        return new CanvasCoord(c.x*this.zoom + this.camera.x, c.y*this.zoom+this.camera.y);
+        return new CanvasCoord(c.x*this.zoom + this.camera.x, c.y*this.zoom+this.camera.y, this);
     }
 
     canvasCoordX(c: Coord): number{
@@ -75,7 +75,7 @@ export class Camera {
 
         const ratio_w = canvas.width/w;
         const ratio_h = canvas.height/h;
-        const center = new CanvasCoord(canvas.width/2, canvas.height/2);
+        const center = new CanvasCoord(canvas.width/2, canvas.height/2, this);
         this.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
     }
 }

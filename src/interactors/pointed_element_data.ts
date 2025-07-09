@@ -1,7 +1,6 @@
 import { Option } from "gramoloss";
 import { CanvasCoord } from "../board/display/canvas_coord";
 import { ClientRepresentation } from "../board/representations/client_representation";
-import { ClientTextZone } from "../board/text_zone";
 import { RESIZE_TYPE } from "./interactor";
 import { BoardElement, LinkElement, ShapeElement, VertexElement } from "../board/element";
 import { BoardElementType } from "../board/board";
@@ -9,7 +8,7 @@ import { StrokeElement } from "../board/elements/stroke2";
 
 
 export interface ELEMENT_DATA {
-    // element: ClientVertex | ClientLink | ClientRectangle  | ClientStroke | ClientRepresentation | ClientTextZone | BoardElement;
+    // element: ClientVertex | ClientLink | ClientRectangle  | ClientStroke | ClientRepresentation | BoardElement;
     element: BoardElement;
 }
 
@@ -41,14 +40,7 @@ export class ELEMENT_DATA_STROKE {
     }
 }
 
-export class ELEMENT_DATA_TEXT_ZONE {
-    element: ClientTextZone;
-    index: number;
-    constructor(t: ClientTextZone, index: number){
-        this.element = t;
-        this.index = index;
-    }
-}
+
 
 
 

@@ -1,4 +1,4 @@
-import { bezierValue, Coord } from "gramoloss";
+import { bezierValue, Board, Coord, Vect } from "gramoloss";
 import { solutionQuadratic } from "../../utils";
 import { Camera } from "./camera";
 import { CanvasVect } from "./canvasVect";
@@ -8,53 +8,90 @@ import { CanvasVect } from "./canvasVect";
  * These coordinates should be integers.
  * 
  */
-export class CanvasCoord extends Coord {
-    constructor(x: number, y: number){
-        super(Math.floor(x),Math.floor(y));
+export class CanvasCoord  {
+    x: number;
+    y: number;
+    serverPos: Coord;
+    private camera: Camera;
+
+    constructor(x: number, y: number, camera: Camera){
+        // super(Math.floor(x),Math.floor(y));
+        this.x = x;
+        this.y = y;
+        this.camera = camera;
+        this.serverPos = new Coord( (x - camera.camera.x)/ camera.zoom, (y - camera.camera.y)/ camera.zoom);
     }
 
-    setFromCoord(c: Coord, camera: Camera) {
-        this.x = c.x * camera.zoom + camera.camera.x
-        this.y = c.y * camera.zoom + camera.camera.y
+    static fromCoord(c: Coord, camera: Camera): CanvasCoord{
+        return new CanvasCoord(c.x*camera.zoom + camera.camera.x, c.y*camera.zoom+camera.camera.y, camera);
     }
 
     copy(): CanvasCoord {
-        return new CanvasCoord(this.x, this.y);
+        return new CanvasCoord(this.x, this.y, this.camera);
     }
 
-    subc(c: CanvasCoord): CanvasCoord {
-        return new CanvasCoord(this.x - c.x,this.y - c.y);
+    setServerPos(x: number, y: number){
+        this.serverPos.x = x;
+        this.serverPos.y = y;
+        this.x = this.serverPos.x*this.camera.zoom + this.camera.camera.x;
+        this.y = this.serverPos.y*this.camera.zoom + this.camera.camera.y;
     }
 
-    addc(c: CanvasCoord): CanvasCoord {
-        return new CanvasCoord(this.x + c.x,this.y + c.y);
+    setLocalPos(x: number, y: number){
+        this.x = x;
+        this.y = y;
+        this.serverPos.x = (x - this.camera.camera.x)/ this.camera.zoom
+        this.serverPos.y = (y - this.camera.camera.y)/ this.camera.zoom;
     }
+
+    updateAfterCameraChange(){
+        this.x = this.serverPos.x*this.camera.zoom + this.camera.camera.x;
+        this.y = this.serverPos.y*this.camera.zoom + this.camera.camera.y;
+    }
+
+
+    dist(c: CanvasCoord): number {
+        return Math.sqrt( (this.x - c.x)**2 + (this.y - c.y)**2);
+    }
+
+    dist2(c: CanvasCoord): number {
+        return  (this.x - c.x)**2 + (this.y - c.y)**2;
+    }
+
+
+    is_in_rect(c1: CanvasCoord, c2: CanvasCoord): boolean {
+        return (Math.min(c1.x, c2.x) <= this.x && this.x <= Math.max(c1.x, c2.x) &&
+                Math.min(c1.y, c2.y) <= this.y && this.y <= Math.max(c1.y, c2.y))
+    }
+    
  
 
-    translate_by_canvas_vect(shift: CanvasVect): void {
-        this.x += shift.x;
-        this.y += shift.y;
+    translate_by_canvas_vect(shift: CanvasVect) {
+        this.setLocalPos(this.x + shift.x, this.y + shift.y);
+    }
+
+    orthogonal_projection(c: Coord, dir: Vect): CanvasCoord{
+        const u =  new Coord(this.x, this.y).orthogonal_projection(c, dir);
+        return new CanvasCoord(u.x, u.y, this.camera);
     }
 
     middle(c: CanvasCoord) {
-        return new CanvasCoord((this.x + c.x) / 2, (this.y + c.y) / 2);
+        return new CanvasCoord((this.x + c.x) / 2, (this.y + c.y) / 2, this.camera);
     }
 
-    is_nearby(pos: CanvasCoord, rsquared: number) {
-        return this.dist2(pos) <= rsquared;
-    }
+    // is_nearby(pos: CanvasCoord, rsquared: number) {
+    //     return this.dist2(pos) <= rsquared;
+    // }
 
 
     /**
      * Return the Server coordinates of the Canvas coordinates.
      */
-    toCoord(view: Camera): Coord {
-        return new Coord( (this.x - view.camera.x)/ view.zoom, (this.y - view.camera.y)/ view.zoom);
+    toCoord(): Coord {
+        return this.serverPos;
     }
 
-    static fromCoord(c: Coord, view: Camera): CanvasCoord{
-        return new CanvasCoord(c.x*view.zoom + view.camera.x, c.y*view.zoom+view.camera.y);
-    }
+    
 
     // return boolean
     // true if the square of size 10 centered on this intersects the bezier Curve from c1 to c2 with control point cp
@@ -78,7 +115,7 @@ export class CanvasCoord extends Coord {
         let y2 = c2.y;
 
         // case where one of the endvertices is already on the box
-        if (c1.is_in_rect(new CanvasCoord(xA, yA), new CanvasCoord(xB, yB)) || c1.is_in_rect(new CanvasCoord(xA, yA), new CanvasCoord(xB, yB))) {
+        if (c1.is_in_rect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera)) || c1.is_in_rect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera))) {
             return true
         } else {
             // we get the quadratic equation of the intersection of the bended edge and the sides of the box

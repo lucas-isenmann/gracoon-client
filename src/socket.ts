@@ -1,8 +1,7 @@
 import { User } from "./user";
 import { update_params_loaded } from "./parametors/parametor_manager";
-import { update_options_graphs } from "./parametors/div_parametor";
 import { SENSIBILITY } from "./parametors/parametor";
-import {  Coord,  ORIENTATION, Vect } from "gramoloss";
+import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "./board/board";
 import { handleServerVersion } from "./handlers/serverVersion";
 import { handleErrorLog } from "./handlers/errorLog";
@@ -10,7 +9,6 @@ import { handleErrorLog } from "./handlers/errorLog";
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
-import { translate_by_canvas_vect } from "./board/resizable";
 import { LinkElement, ShapeElement, VertexElement } from "./board/element";
 import { setCurrentShape } from "./side_bar/interactors/rectangle";
 import { TextZoneElement } from "./board/elements/textZone";

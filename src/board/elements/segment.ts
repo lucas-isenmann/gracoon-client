@@ -6,15 +6,14 @@ import { Color, getCanvasColor } from "../display/colors_v2";
 import { BoardElement } from "../element";
 
 export class Segment implements BoardElement {
-    cameraCenter: CanvasCoord = new CanvasCoord(0,0);
-    serverCenter: Coord = new Coord(0,0);
+    cameraCenter: CanvasCoord;
     serverId: number = 0;
     boardElementType: BoardElementType = BoardElementType.Local;
     color: Color = Color.Red;
     isSelected: boolean = false;
 
-    c1: CanvasCoord = new CanvasCoord(0,0);
-    c2: CanvasCoord = new CanvasCoord(0,0);
+    c1: CanvasCoord ;
+    c2: CanvasCoord;
 
     board: ClientBoard;
     line: SVGLineElement;
@@ -22,11 +21,10 @@ export class Segment implements BoardElement {
 
     constructor(board: ClientBoard, pos: CanvasCoord, pos2: CanvasCoord, color: Color) {
         this.board = board;
-        this.cameraCenter.copy_from(pos);
-        board.camera.setFromCanvas(this.serverCenter, pos);
+        this.cameraCenter = pos;
         this.color = board.colorSelected;
-        this.c1.copy_from(pos);
-        this.c1.copy_from(pos2);
+        this.c1 = new CanvasCoord(pos.x, pos.y, board.camera);
+        this.c2 = new CanvasCoord(pos2.x, pos2.y, board.camera);
 
         // Create the line svg
         this.line = document.createElementNS("http://www.w3.org/2000/svg", "line");

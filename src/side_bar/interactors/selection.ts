@@ -28,20 +28,20 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     const selectedElements = Array<[BoardElementType,number]>();
 
     let isRectangularSelecting = false;
-    const rectSelection = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Green);
+    const rectSelection = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Green);
     rectSelection.hide();
 
-    const boundingBox = new Rectangle(board, new CanvasCoord(0,0), new CanvasCoord(100,100), Color.Red);
+    const boundingBox = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Red);
     boundingBox.hide();
-    const rotateIcon = new TargetPoint(board, new CanvasCoord(0,0));
+    const rotateIcon = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
     rotateIcon.hide();
     let rotating = false;
     let rotationCenter = new Coord(0,0);
-    let rotationCanvasCenter = new CanvasCoord(0,0);
-    const resizeIcon = new TargetPoint(board, new CanvasCoord(0,0));
+    let rotationCanvasCenter = new CanvasCoord(0,0, board.camera);
+    const resizeIcon = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
     resizeIcon.hide();
     let resizing = false;
-    const rotaCenter = new TargetPoint(board, new CanvasCoord(0,0));
+    const rotaCenter = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
     rotaCenter.hide();
 
 
@@ -94,7 +94,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 showProperties(board.grid, pointed.pointedPos, board);
             }
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
-                board.grid.polarCenter = pointed.pointedPos.toCoord(board.camera);
+                board.grid.polarCenter.setLocalPos(pointed.pointedPos.x, pointed.pointedPos.y);
                 board.draw();
             }
             if (board.keyPressed.has("Control")) {
@@ -109,7 +109,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         else if ( pointed.data.element instanceof VertexElement){
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
-                board.grid.polarCenter.copy_from(v.serverCenter);
+                board.grid.polarCenter.setLocalPos(v.cameraCenter.x, v.cameraCenter.y);
                 board.draw();
             }
             previousCenterShift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
@@ -181,8 +181,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         if (typeof pointed == "undefined") return false;
 
         if (rotating){
-            const d1 = Vect.from_coords(rotationCanvasCenter, e);
-            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const d1 = CanvasVect.from_canvas_coords(rotationCanvasCenter, e);
+            const d2 = CanvasVect.from_canvas_coords(rotationCanvasCenter, pointed.pointedPos);
             const angle = -Math.atan2(d2.y, d2.x) + Math.atan2(d1.y, d1.x);
             board.localRotateSelection(rotationCenter, angle);
 
@@ -196,8 +196,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         }
 
         if (resizing){
-            const d1 = Vect.from_coords(rotationCanvasCenter, e);
-            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const d1 = CanvasVect.from_canvas_coords(rotationCanvasCenter, e);
+            const d2 = CanvasVect.from_canvas_coords(rotationCanvasCenter, pointed.pointedPos);
             const ratio = d1.norm()/d2.norm();
             board.localResizeSelection(rotationCenter, ratio);
 
@@ -288,8 +288,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             rotating = false;
 
             if (typeof pointed == "undefined") return false;
-            const d1 = Vect.from_coords(rotationCanvasCenter, e);
-            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const d1 = CanvasVect.from_canvas_coords(rotationCanvasCenter, e);
+            const d2 = CanvasVect.from_canvas_coords(rotationCanvasCenter, pointed.pointedPos);
             const angle = -Math.atan2(d2.y, d2.x) + Math.atan2(d1.y, d1.x);
             board.endLocalRotateSelection(rotationCenter, angle);
             return false;
@@ -298,8 +298,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         if (resizing){
             resizing = false;
             if (typeof pointed == "undefined") return false;
-            const d1 = Vect.from_coords(rotationCanvasCenter, e);
-            const d2 = Vect.from_coords(rotationCanvasCenter, pointed.pointedPos);
+            const d1 = CanvasVect.from_canvas_coords(rotationCanvasCenter, e);
+            const d2 = CanvasVect.from_canvas_coords(rotationCanvasCenter, pointed.pointedPos);
             const ratio = d1.norm()/d2.norm();
             board.endLocalResizeSelection(rotationCenter, ratio);
             return false;
@@ -317,7 +317,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
             if (isRectangularSelecting) {
                 isRectangularSelecting = false;
-                board.selectElementsInRect(new CanvasCoord(rectSelection.x1, rectSelection.y1), new CanvasCoord(rectSelection.x2, rectSelection.y2));
+                board.selectElementsInRect(new CanvasCoord(rectSelection.x1, rectSelection.y1, board.camera), new CanvasCoord(rectSelection.x2, rectSelection.y2, board.camera));
                 rectSelection.hide();
 
                 

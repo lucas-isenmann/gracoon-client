@@ -12,7 +12,6 @@ export class VerticesSubset implements BoardElement{
     isSelected: boolean;
     board: ClientBoard;
     cameraCenter: CanvasCoord;
-    serverCenter: Coord;
     serverId: number;
     boardElementType: BoardElementType = BoardElementType.Local;
     
@@ -31,8 +30,7 @@ export class VerticesSubset implements BoardElement{
         board.elements.set(this.id, this);
         board.elementCounter += 1;
 
-        this.cameraCenter = new CanvasCoord(0,0);
-        this.serverCenter = new Coord(0,0);
+        this.cameraCenter = new CanvasCoord(0,0, board.camera);
 
         this.serverId = this.id;
         this.color = board.colorSelected;
@@ -47,7 +45,7 @@ export class VerticesSubset implements BoardElement{
         for (const vId of vertices){
             const element = this.board.elements.get(vId);
             if (element instanceof VertexElement){
-                this.points.push(element.serverCenter)
+                this.points.push(element.cameraCenter.serverPos)
             }
         }
 

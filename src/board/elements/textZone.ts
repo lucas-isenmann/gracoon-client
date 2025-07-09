@@ -12,8 +12,7 @@ import renderMathInElement from "../../katex-auto-render/auto-render";
 
 export class TextZoneElement implements BoardElement {
     id: number;
-    cameraCenter: CanvasCoord = new CanvasCoord(0,0);
-    serverCenter: Coord = new Coord(0,0);
+    cameraCenter: CanvasCoord;
     serverId: number;
     boardElementType: BoardElementType = BoardElementType.TextZone;
     color: Color;
@@ -23,12 +22,12 @@ export class TextZoneElement implements BoardElement {
     div: HTMLDivElement;
     width: number;
     contentDiv: HTMLDivElement;
-    lastMousePos: CanvasCoord = new CanvasCoord(0,0);
+    lastMousePos: CanvasCoord;
     text: string = "";
     
     constructor(pos: Coord, width: number, text: string, board: ClientBoard, serverId: number){
         this.board = board;
-        this.cameraCenter = board.camera.create_canvas_coord(pos);
+        this.cameraCenter = CanvasCoord.fromCoord(pos, board.camera);
         this.width = width;
         this.color = Color.Neutral;
 
@@ -38,6 +37,8 @@ export class TextZoneElement implements BoardElement {
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
+
+        this.lastMousePos = new CanvasCoord(0,0, board.camera)
 
 
 
@@ -69,7 +70,7 @@ export class TextZoneElement implements BoardElement {
             this.lastMousePos.x = e.pageX
             this.lastMousePos.y = e.pageY;
             function move_div(e: MouseEvent){
-                const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
+                const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY, board.camera);
                 textZone.width += new_mouse_pos.x - textZone.lastMousePos.x;
                 textZone.lastMousePos = new_mouse_pos;
                 textZone.div.style.width = String(textZone.width) + "px";
@@ -94,11 +95,11 @@ export class TextZoneElement implements BoardElement {
         }
 
         content.onmousedown = (e: MouseEvent) => {
-            this.lastMousePos = new CanvasCoord(e.pageX, e.pageY);
+            this.lastMousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
             if (board.interactorLoadedId == INTERACTOR_TYPE.SELECTION){
                 function move_div(e: MouseEvent){
                     console.log("moveDiv");
-                    const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY);
+                    const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY, board.camera);
                     const cshift = CanvasVect.from_canvas_coords(textZone.lastMousePos, new_mouse_pos);
                     const shift = board.camera.server_vect(cshift);
                     board.emit_translate_elements([[BoardElementType.TextZone, serverId]], shift);
@@ -186,7 +187,6 @@ export class TextZoneElement implements BoardElement {
 
     translate(cshift: CanvasVect) {
         this.cameraCenter.translate_by_canvas_vect(cshift);
-        this.board.camera.setFromCanvas(this.serverCenter, this.cameraCenter);
         this.resetDivPos();
     }
 
@@ -217,7 +217,7 @@ export class TextZoneElement implements BoardElement {
     }
 
     updateAfterCameraChange(){
-        this.cameraCenter.setFromCoord(this.serverCenter, this.board.camera);
+        this.cameraCenter.updateAfterCameraChange();
         this.resetDivPos();
         this.applyScaling(this.board.camera.zoom)
     }
