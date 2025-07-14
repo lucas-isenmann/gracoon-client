@@ -118,6 +118,9 @@ export class ClientBoard  {
     alignement_horizontal_y: Option<number>;
     alignement_vertical_x: Option<number>;
 
+    alignmentLineVert: SVGLineElement;
+    alignmentLineHori: SVGLineElement;
+
     gridSquarePattern: SVGElement;
     gridVerticalTriangularPattern: SVGElement;
     gridVerticalTriangularPatternPath: SVGElement;
@@ -251,6 +254,27 @@ export class ClientBoard  {
         gridElement.setAttribute("display", "none")
         this.svgContainer.appendChild(gridElement)
         this.gridElement = gridElement;
+
+
+        // Vertical Line Alignment
+        const alignmentLineVert = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        alignmentLineVert.setAttribute("x1", "0");
+        alignmentLineVert.setAttribute("y1", "0");
+        alignmentLineVert.setAttribute("x2", "0");
+        alignmentLineVert.setAttribute("y2", "100%");
+        alignmentLineVert.setAttribute("stroke", COLOR_ALIGNEMENT_LINE)
+        this.svgContainer.appendChild(alignmentLineVert)
+        this.alignmentLineVert = alignmentLineVert;
+
+         // Horizontal Line Alignment
+        const alignmentLineHori = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        alignmentLineHori.setAttribute("x1", "0");
+        alignmentLineHori.setAttribute("y1", "0");
+        alignmentLineHori.setAttribute("x2", "100%");
+        alignmentLineHori.setAttribute("y2", "0");
+        alignmentLineHori.setAttribute("stroke", COLOR_ALIGNEMENT_LINE)
+        this.svgContainer.appendChild(alignmentLineHori)
+        this.alignmentLineHori = alignmentLineHori;
 
 
         
@@ -554,21 +578,30 @@ export class ClientBoard  {
     
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
     alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
-        const aligned_pos = new CanvasCoord(posToAlign.x, posToAlign.y, this.camera);
+        this.alignmentLineHori.setAttribute("display", "none");
+        this.alignmentLineVert.setAttribute("display", "none");
+        
+        const alignedPos = new CanvasCoord(posToAlign.x, posToAlign.y, this.camera);
         if (this.isAligning) {
             this.alignement_horizontal_y = undefined;
             this.alignement_vertical_x = undefined;
             for (const element of this.elements.values()){
                 if (excludedIndices.has(element.serverId) == false) {
                     if (Math.abs(element.cameraCenter.y - posToAlign.y) <= 15) { 
-                        aligned_pos.y = element.cameraCenter.y;
-                        this.alignement_horizontal_y = element.cameraCenter.y;
-                        break
+                        alignedPos.y = element.cameraCenter.y;
+                        // this.alignement_horizontal_y = element.cameraCenter.y;
+                        this.alignmentLineHori.setAttribute("display", "");
+                        this.alignmentLineHori.setAttribute("y1", element.cameraCenter.y.toString())
+                        this.alignmentLineHori.setAttribute("y2", element.cameraCenter.y.toString())
+                        // break
                     }
                     if (Math.abs(element.cameraCenter.x - posToAlign.x) <= 15) {
-                        aligned_pos.x = element.cameraCenter.x;
-                        this.alignement_vertical_x = element.cameraCenter.x;
-                        break;
+                        alignedPos.x = element.cameraCenter.x;
+                        this.alignmentLineVert.setAttribute("display", "");
+                        this.alignmentLineVert.setAttribute("x1", element.cameraCenter.x.toString())
+                        this.alignmentLineVert.setAttribute("x2", element.cameraCenter.x.toString())
+                        // this.alignement_vertical_x = element.cameraCenter.x;
+                        // break;
                     }
                 }
             }
@@ -577,13 +610,13 @@ export class ClientBoard  {
             const grid_size = this.grid.grid_size;
             for (let x = camera.camera.x % grid_size; x < canvas.width; x += grid_size) {
                 if (Math.abs(x - posToAlign.x) <= 15) {
-                    aligned_pos.x = x;
+                    alignedPos.x = x;
                     break;
                 }
             }
             for (let y = camera.camera.y % grid_size; y < canvas.height; y += grid_size) {
                 if (Math.abs(y - posToAlign.y) <= 15) {
-                    aligned_pos.y = y;
+                    alignedPos.y = y;
                     break;
                 }
             }
@@ -607,31 +640,31 @@ export class ClientBoard  {
             for (let corner of corners){
                 corner = corner.add(camera.camera);
                 if (Math.sqrt(corner.dist2(new Coord(posToAlign.x, posToAlign.y) )) <= 2*15){
-                    aligned_pos.x = corner.x;
-                    aligned_pos.y = corner.y;
-                    return aligned_pos;
+                    alignedPos.x = corner.x;
+                    alignedPos.y = corner.y;
+                    return alignedPos;
                 }
             }
 
             // projection on the \ diagonal starting at the top left corner
             const projection1 = posToAlign.orthogonal_projection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
             if (projection1.dist2(posToAlign) <= 15*15){
-                aligned_pos.x = projection1.x;
-                aligned_pos.y = projection1.y;
+                alignedPos.x = projection1.x;
+                alignedPos.y = projection1.y;
             }
 
             // projection on the \ diagonal starting at the top right corner
             const projection2 = posToAlign.orthogonal_projection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
             if (projection2.dist2(posToAlign) <= 15*15){
-                aligned_pos.x = projection2.x;
-                aligned_pos.y = projection2.y;
+                alignedPos.x = projection2.x;
+                alignedPos.y = projection2.y;
             }
 
             // projection on the / diagonal starting at the top right corner
             const projection = posToAlign.orthogonal_projection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
             if (projection.dist2(posToAlign) <= 15*15){
-                aligned_pos.x = projection.x;
-                aligned_pos.y = projection.y;
+                alignedPos.x = projection.x;
+                alignedPos.y = projection.y;
             }
 
             // align on the horizontal lines
@@ -639,7 +672,7 @@ export class ClientBoard  {
                 // of the quadrilateral containing the point
                 let y = corners[k].y;
                 if (Math.abs(y - posToAlign.y) <= 15) {
-                    aligned_pos.y = y;
+                    alignedPos.y = y;
                     break;
                 }
             }
@@ -647,7 +680,7 @@ export class ClientBoard  {
         } else if (this.grid.type == GridType.GridPolar){
             const size = this.grid.grid_size;
             const center = this.grid.polarCenter;
-            const p = aligned_pos;
+            const p = alignedPos;
 
             let d = Math.sqrt(p.dist2(center));
             if (d != 0){
@@ -657,11 +690,11 @@ export class ClientBoard  {
                     if (i == 0) {
                         alignToCenter = true;
                     }
-                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*(i*2*size)/d;
-                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*(i*2*size)/d;
+                    alignedPos.x = center.x + (alignedPos.x-center.x)*(i*2*size)/d;
+                    alignedPos.y = center.y + (alignedPos.y-center.y)*(i*2*size)/d;
                 } else if ( (i+1)*2*size - d <= 20){
-                    aligned_pos.x = center.x + (aligned_pos.x-center.x)*((i+1)*2*size)/d;
-                    aligned_pos.y = center.y + (aligned_pos.y-center.y)*((i+1)*2*size)/d;
+                    alignedPos.x = center.x + (alignedPos.x-center.x)*((i+1)*2*size)/d;
+                    alignedPos.y = center.y + (alignedPos.y-center.y)*((i+1)*2*size)/d;
                 }
                 
                 if (alignToCenter == false){
@@ -669,17 +702,17 @@ export class ClientBoard  {
                         const angle = 2*Math.PI*j/this.grid.polarDivision;
                         const end = new Vect(1,0);
                         end.rotate(angle);
-                        const projection = aligned_pos.orthogonal_projection(center, end);
-                        if ( Math.sqrt(aligned_pos.dist2(projection)) <= 20){
-                            aligned_pos.x = projection.x;
-                            aligned_pos.y = projection.y;
+                        const projection = alignedPos.orthogonal_projection(center, end);
+                        if ( Math.sqrt(alignedPos.dist2(projection)) <= 20){
+                            alignedPos.x = projection.x;
+                            alignedPos.y = projection.y;
                         }
                     }
                 }
             }
         }
-        aligned_pos.setLocalPos(aligned_pos.x, aligned_pos.y);
-        return aligned_pos;
+        alignedPos.setLocalPos(alignedPos.x, alignedPos.y);
+        return alignedPos;
     }
 
 
