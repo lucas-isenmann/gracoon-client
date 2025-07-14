@@ -10,7 +10,7 @@ import { drawBezierCurve, drawLine, drawCircle } from "./display/draw_basics";
 import { Color, colorsData, getCanvasColor } from "./display/colors_v2";
 import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
-import { ELEMENT_DATA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_TEXT_ZONE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
+import { ELEMENT_DATA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
@@ -118,6 +118,11 @@ export class ClientBoard  {
     alignement_horizontal_y: Option<number>;
     alignement_vertical_x: Option<number>;
 
+    gridSquarePattern: SVGElement;
+    gridVerticalTriangularPattern: SVGElement;
+    gridVerticalTriangularPatternPath: SVGElement;
+    gridElement: SVGElement;
+
 
     constructor(container: HTMLElement){
 
@@ -159,24 +164,61 @@ export class ClientBoard  {
         if (ctx == null) throw Error("Cannot get context 2d of canvas");
         this.ctx = ctx; 
 
-         // Create layers for shapes, links and vertices
-        this.shapesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.linksGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.verticesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-        this.shapesGroup.setAttribute("id", "shapes-layer");
-        this.linksGroup.setAttribute("id", "links-layer");
-        this.verticesGroup.setAttribute("id", "vertices-layer");
-
-        this.svgContainer.appendChild(this.shapesGroup);
-        this.svgContainer.appendChild(this.linksGroup);
-        this.svgContainer.appendChild(this.verticesGroup);
+        
 
         
 
         // Init arrow head markers
         // One for each color
         const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+
+
+        // SQUARE PATTERN
+        // <pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+        //      <path d="M 8 0 L 0 0 0 8" fill="none" stroke="gray" stroke-width="0.5"/>
+        // </pattern>
+        const squarePattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+        squarePattern.setAttribute("id", "smallGrid");
+        squarePattern.setAttribute("width", this.grid.grid_size.toString())
+        squarePattern.setAttribute("height", this.grid.grid_size.toString());
+        squarePattern.setAttribute("patternUnits", "userSpaceOnUse")
+        const squarePatternPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        squarePatternPath.setAttribute("d", `M ${this.grid.grid_max_size} 0 L 0 0 0 ${this.grid.grid_max_size}`);
+        squarePatternPath.setAttribute("stroke", "rgb(77, 77, 77)")
+        squarePatternPath.setAttribute("fill", "none")
+        squarePatternPath.setAttribute("stroke-width", "0.5")
+        squarePattern.appendChild(squarePatternPath);
+        defs.appendChild(squarePattern);
+
+        this.gridSquarePattern = squarePattern;
+
+        // Vertical Triangular Grid
+        const verticalTriangularPattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+        verticalTriangularPattern.setAttribute("id", "VerticalTriangular");
+        const w = this.grid.grid_size;
+        const h = w*Math.sqrt(3);
+        verticalTriangularPattern.setAttribute("width", w.toString())
+        verticalTriangularPattern.setAttribute("height", h.toString());
+        verticalTriangularPattern.setAttribute("patternUnits", "userSpaceOnUse")
+        const verticalTriangularPatternPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        verticalTriangularPatternPath.setAttribute("d", `M 0 0 L ${w} 0 
+            M 0 ${h/2} L ${w} ${h/2} 
+            M 0 0 L ${w/2} ${h/2} L ${w} 0 
+            M 0 ${h} L ${w/2} ${h/2} L ${w} ${h} 
+            M 0 ${h} L ${w} ${h}`);
+
+        verticalTriangularPatternPath.setAttribute("stroke", "rgb(77, 77, 77)")
+        verticalTriangularPatternPath.setAttribute("fill", "none")
+        verticalTriangularPatternPath.setAttribute("stroke-width", "0.5")
+        verticalTriangularPattern.appendChild(verticalTriangularPatternPath);
+        defs.appendChild(verticalTriangularPattern);
+
+        this.gridVerticalTriangularPatternPath = verticalTriangularPatternPath;
+        this.gridVerticalTriangularPattern = verticalTriangularPattern;
+        
+
+
+
 
         for (const color of colorsData){
             const markerId = `arrow-head-${color[0]}`;
@@ -201,14 +243,32 @@ export class ClientBoard  {
         this.svgContainer.insertBefore(defs, this.svgContainer.firstChild);
 
        
-
-
-
-
+        // Grid
+        const gridElement = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        gridElement.setAttribute("width", "100%");
+        gridElement.setAttribute("height", "100%");
+        gridElement.setAttribute("fill", "url(#smallGrid)")
+        gridElement.setAttribute("display", "none")
+        this.svgContainer.appendChild(gridElement)
+        this.gridElement = gridElement;
 
 
         
+         // Create layers for shapes, links and vertices
+        this.shapesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.linksGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.verticesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        this.shapesGroup.setAttribute("id", "shapes-layer");
+        this.linksGroup.setAttribute("id", "links-layer");
+        this.verticesGroup.setAttribute("id", "vertices-layer");
+
+        this.svgContainer.appendChild(this.shapesGroup);
+        this.svgContainer.appendChild(this.linksGroup);
+        this.svgContainer.appendChild(this.verticesGroup);
         
+
+
 
         this.variables = new Map();
         this.variablesDiv = document.createElement("div");
@@ -232,6 +292,22 @@ export class ClientBoard  {
         })
 
         
+    }
+
+
+    updateVerticalTriangularGrid(){
+        const w = this.grid.grid_size;
+        const h = w*Math.sqrt(3);
+        this.gridVerticalTriangularPattern.setAttribute("width", w.toString())
+        this.gridVerticalTriangularPattern.setAttribute("height", h.toString());
+        this.gridVerticalTriangularPatternPath.setAttribute("d", `M 0 0 L ${w} 0 
+            M 0 ${h/2} L ${w} ${h/2} 
+            M 0 0 L ${w/2} ${h/2} L ${w} 0 
+            M 0 ${h} L ${w/2} ${h/2} L ${w} ${h} 
+            M 0 ${h} L ${w} ${h}`);
+
+        this.gridVerticalTriangularPattern.setAttribute("x", this.camera.camera.x.toString());
+        this.gridVerticalTriangularPattern.setAttribute("y", this.camera.camera.y.toString());
     }
 
     resetGraph(){
@@ -477,19 +553,19 @@ export class ClientBoard  {
     }
     
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
-    alignPosition(pos_to_align: CanvasCoord, excluded_indices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
-        const aligned_pos = new CanvasCoord(pos_to_align.x, pos_to_align.y, this.camera);
+    alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
+        const aligned_pos = new CanvasCoord(posToAlign.x, posToAlign.y, this.camera);
         if (this.isAligning) {
             this.alignement_horizontal_y = undefined;
             this.alignement_vertical_x = undefined;
             for (const element of this.elements.values()){
-                if (excluded_indices.has(element.serverId) == false) {
-                    if (Math.abs(element.cameraCenter.y - pos_to_align.y) <= 15) { 
+                if (excludedIndices.has(element.serverId) == false) {
+                    if (Math.abs(element.cameraCenter.y - posToAlign.y) <= 15) { 
                         aligned_pos.y = element.cameraCenter.y;
                         this.alignement_horizontal_y = element.cameraCenter.y;
                         break
                     }
-                    if (Math.abs(element.cameraCenter.x - pos_to_align.x) <= 15) {
+                    if (Math.abs(element.cameraCenter.x - posToAlign.x) <= 15) {
                         aligned_pos.x = element.cameraCenter.x;
                         this.alignement_vertical_x = element.cameraCenter.x;
                         break;
@@ -500,13 +576,13 @@ export class ClientBoard  {
         if ( this.grid.type == GridType.GridRect ) {
             const grid_size = this.grid.grid_size;
             for (let x = camera.camera.x % grid_size; x < canvas.width; x += grid_size) {
-                if (Math.abs(x - pos_to_align.x) <= 15) {
+                if (Math.abs(x - posToAlign.x) <= 15) {
                     aligned_pos.x = x;
                     break;
                 }
             }
             for (let y = camera.camera.y % grid_size; y < canvas.height; y += grid_size) {
-                if (Math.abs(y - pos_to_align.y) <= 15) {
+                if (Math.abs(y - posToAlign.y) <= 15) {
                     aligned_pos.y = y;
                     break;
                 }
@@ -516,8 +592,8 @@ export class ClientBoard  {
             const h = grid_size*Math.sqrt(3)/2;
 
             // find the corners of the quadrilateral containing the point
-            const px = ((pos_to_align.x-camera.camera.x)- (pos_to_align.y-camera.camera.y)/Math.sqrt(3))/grid_size;
-            const py = (pos_to_align.y-camera.camera.y)/h;
+            const px = ((posToAlign.x-camera.camera.x)- (posToAlign.y-camera.camera.y)/Math.sqrt(3))/grid_size;
+            const py = (posToAlign.y-camera.camera.y)/h;
             const i = Math.floor(px);
             const j = Math.floor(py);
             const corners = [
@@ -530,7 +606,7 @@ export class ClientBoard  {
             // align on the corners if the point is near enough
             for (let corner of corners){
                 corner = corner.add(camera.camera);
-                if (Math.sqrt(corner.dist2(new Coord(pos_to_align.x, pos_to_align.y) )) <= 2*15){
+                if (Math.sqrt(corner.dist2(new Coord(posToAlign.x, posToAlign.y) )) <= 2*15){
                     aligned_pos.x = corner.x;
                     aligned_pos.y = corner.y;
                     return aligned_pos;
@@ -538,22 +614,22 @@ export class ClientBoard  {
             }
 
             // projection on the \ diagonal starting at the top left corner
-            const projection1 = pos_to_align.orthogonal_projection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
-            if (projection1.dist2(pos_to_align) <= 15*15){
+            const projection1 = posToAlign.orthogonal_projection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
+            if (projection1.dist2(posToAlign) <= 15*15){
                 aligned_pos.x = projection1.x;
                 aligned_pos.y = projection1.y;
             }
 
             // projection on the \ diagonal starting at the top right corner
-            const projection2 = pos_to_align.orthogonal_projection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
-            if (projection2.dist2(pos_to_align) <= 15*15){
+            const projection2 = posToAlign.orthogonal_projection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
+            if (projection2.dist2(posToAlign) <= 15*15){
                 aligned_pos.x = projection2.x;
                 aligned_pos.y = projection2.y;
             }
 
             // projection on the / diagonal starting at the top right corner
-            const projection = pos_to_align.orthogonal_projection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
-            if (projection.dist2(pos_to_align) <= 15*15){
+            const projection = posToAlign.orthogonal_projection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
+            if (projection.dist2(posToAlign) <= 15*15){
                 aligned_pos.x = projection.x;
                 aligned_pos.y = projection.y;
             }
@@ -562,7 +638,7 @@ export class ClientBoard  {
             for (let k of [0,3]){ // 0 and 3 are the indices of the top left and bottom right corner
                 // of the quadrilateral containing the point
                 let y = corners[k].y;
-                if (Math.abs(y - pos_to_align.y) <= 15) {
+                if (Math.abs(y - posToAlign.y) <= 15) {
                     aligned_pos.y = y;
                     break;
                 }
@@ -602,6 +678,7 @@ export class ClientBoard  {
                 }
             }
         }
+        aligned_pos.setLocalPos(aligned_pos.x, aligned_pos.y);
         return aligned_pos;
     }
 
@@ -631,15 +708,6 @@ export class ClientBoard  {
     }
 
 
-    
-    // override delete_area(areaIndex: number): void {
-    //     const area = this.areas.get(areaIndex);
-    //     if (typeof area != "undefined"){
-    //         area.clearDOM();
-    //         super.delete_area(areaIndex);
-    //     }
-
-    // }
 
 
     /**
@@ -740,7 +808,6 @@ export class ClientBoard  {
 
     draw() {
         this.drawBackground();
-        this.grid.draw(this.canvas, this.ctx, this.camera);
         // this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
         // this.areas.forEach(area => area.draw(this));
         this.drawAlignements();
@@ -907,6 +974,13 @@ export class ClientBoard  {
     }
 
     translateCamera(shift: CanvasVect){
+
+        this.gridSquarePattern.setAttribute("x", this.camera.camera.x.toString());
+        this.gridSquarePattern.setAttribute("y", this.camera.camera.y.toString());
+        
+
+        this.updateVerticalTriangularGrid();
+
         this.camera.translate_camera(shift);
         this.updateAfterCameraChange();
         if(typeof this.selfUser.following != "undefined"){
@@ -916,7 +990,16 @@ export class ClientBoard  {
     }
 
     updateAfterCameraChange(){
+
+
         this.grid.updateToZoom(this.camera.zoom);
+
+        this.gridSquarePattern.setAttribute("width", this.grid.grid_size.toString());
+        this.gridSquarePattern.setAttribute("height", this.grid.grid_size.toString());
+        this.gridSquarePattern.setAttribute("x", this.camera.camera.x.toString());
+        this.gridSquarePattern.setAttribute("y", this.camera.camera.y.toString())
+        
+        this.updateVerticalTriangularGrid()
 
         for (const element of this.elements.values()){
             element.updateAfterCameraChange()
@@ -1616,6 +1699,19 @@ export class ClientBoard  {
 
     setGridType(type: Option<GridType>) {
         this.grid.type = type;
+        if (typeof type == "undefined"){
+            this.gridElement.setAttribute("display", "none");
+        }
+        else if (type == GridType.GridRect){
+            this.gridElement.setAttribute("fill", "url(#smallGrid)");
+            this.gridElement.setAttribute("display", "");
+        } else if (type == GridType.GridVerticalTriangular){
+            this.gridElement.setAttribute("fill", "url(#VerticalTriangular)");
+            this.gridElement.setAttribute("display", "");
+        } else if (type == GridType.GridPolar){
+            this.gridElement.setAttribute("fill", "url(#Polar)");
+            this.gridElement.setAttribute("display", "");
+        }
     }
 
 }

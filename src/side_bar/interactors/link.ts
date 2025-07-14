@@ -38,6 +38,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
     const targetPoint = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
     targetPoint.hide();
+    targetPoint.setColor(Color.Red);
     const constructionSegment = new Segment(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(0,0, board.camera), Color.Neutral);
     constructionSegment.hide();
 
@@ -112,8 +113,9 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     // Mouse move
     linkInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
-        targetPoint.setCanvasPos(e);
-        constructionSegment.setEndPoint(e);
+        const p = board.alignPosition(e, new Set(), board.canvas, board.camera);
+        targetPoint.setCanvasPos(p);
+        constructionSegment.setEndPoint(p);
         return false;
     })
 

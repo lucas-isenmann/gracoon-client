@@ -29,8 +29,8 @@ export function createDetectorInteractor(board: ClientBoard){
         set_element_infobox(pos);
         infobox.innerHTML = 
         "Vertex index: " + vertex.id + "<br>" +
-        "x: " + vertex.serverCenter.x + "<br>" +
-        "y: " + vertex.serverCenter.y + "<br>"+
+        "x: " + vertex.cameraCenter.serverPos.x + "<br>" +
+        "y: " + vertex.cameraCenter.serverPos.y + "<br>"+
         "color: " + vertex.color + "<br>" +
         "canvas_x: " + Math.floor(vertex.cameraCenter.x) + "<br>" +
         "canvas_y: " + Math.floor(vertex.cameraCenter.y);

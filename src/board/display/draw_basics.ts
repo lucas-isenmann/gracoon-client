@@ -3,14 +3,7 @@ import { Multicolor } from "./multicolor";
 
 const ARC_ARROW_LENGTH = 12
 
-function drawTriangle(ctx: CanvasRenderingContext2D, a: CanvasCoord, b: CanvasCoord, c: CanvasCoord){
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.lineTo(c.x, c.y);
-    ctx.lineTo(a.x, a.y);
-    ctx.stroke();
-}
+
 
 
 export function drawLine(start: CanvasCoord, end: CanvasCoord, ctx: CanvasRenderingContext2D, color: string, width: number) {

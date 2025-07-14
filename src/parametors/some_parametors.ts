@@ -1,11 +1,12 @@
 
 import { Parametor, SENSIBILITY } from './parametor';
-import { AbstractGraph, DominationVariant, EmbeddedGraph, ORIENTATION } from 'gramoloss';
+import { AbstractGraph, DominationVariant, EmbeddedGraph, ORIENTATION, Vertex } from 'gramoloss';
 import { shuffle } from '../utils';
 import { Color } from '../board/display/colors_v2';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
-import { Graph2 } from '../board/graph2';
+import { Graph2, VertexData2 } from '../board/graph2';
+import { VertexElement } from '../board/element';
 
 
 
@@ -642,7 +643,7 @@ paramIsProperColoring.compute= ((g: Graph2) => {
 
     const visited = new Set<number>();
     const [vStart] = g.vertices.values(); 
-    const S = Array<ClientVertex>(vStart);
+    const S = Array<Vertex<VertexData2>>(vStart);
 
     while (S.length !== 0) {
         const v = S.pop();
