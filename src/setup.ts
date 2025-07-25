@@ -241,7 +241,6 @@ function setup() {
 
     // load_param(params_available[14], localBoard, localBoard.entireZone);
 
-    localBoard.draw();
 }
 
 

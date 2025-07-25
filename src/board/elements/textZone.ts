@@ -186,7 +186,7 @@ export class TextZoneElement implements BoardElement {
     }
 
     translate(cshift: CanvasVect) {
-        this.cameraCenter.translate_by_canvas_vect(cshift);
+        this.cameraCenter.translateByCanvasVect(cshift);
         this.resetDivPos();
     }
 

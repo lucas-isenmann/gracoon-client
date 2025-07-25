@@ -2,7 +2,7 @@ import { CanvasCoord } from "./display/canvas_coord";
 import { Color, getCanvasColor } from "./display/colors_v2";
 import { BoardElementType, ClientBoard } from "./board";
 import { CanvasVect } from "./display/canvasVect";
-import { Coord, is_segments_intersection, ORIENTATION } from "gramoloss";
+import { Coord, is_segments_intersection, ORIENTATION, Vect } from "gramoloss";
 import katex from "katex";
 import { highlightColors } from "./display/highlight_colors";
 
@@ -156,7 +156,7 @@ export class VertexElement implements BoardElement {
     }
 
     isInRect (corner1: CanvasCoord, corner2: CanvasCoord) : boolean  {
-        return this.cameraCenter.is_in_rect(corner1, corner2);
+        return this.cameraCenter.isInRect(corner1, corner2);
     }
 
     select(){
@@ -217,7 +217,7 @@ export class VertexElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.cameraCenter.translate_by_canvas_vect(cshift)
+        this.cameraCenter.translateByCanvasVect(cshift)
         // this.cameraCenter.x += cshift.x;
         // this.cameraCenter.y += cshift.y;
 
@@ -272,7 +272,6 @@ export class LinkElement implements BoardElement {
     constructor(board: ClientBoard, serverId: number, startVertex: VertexElement, endVertex: VertexElement, directed: boolean, label: string, color: Color){
         this.id = board.elementCounter;
         this.cameraCenter = new CanvasCoord(0,0, board.camera);
-        // this.serverCenter = this.cameraCenter.serverPos;
         this.color = color;
         this.boardElementType = BoardElementType.Link;
         this.serverId = serverId;
@@ -302,12 +301,7 @@ export class LinkElement implements BoardElement {
         
         this.cameraCenter.setLocalPos( (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2, (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2  );
 
-        // this.cameraCenter.x = (startVertex.cameraCenter.x + endVertex.cameraCenter.x)/2
-        // this.cameraCenter.y = (startVertex.cameraCenter.y + endVertex.cameraCenter.y)/2;
-
-        // this.serverCenter.x = (startVertex.serverCenter.x + endVertex.serverCenter.x)/2
-        // this.serverCenter.y = (startVertex.serverCenter.y + endVertex.serverCenter.y)/2;
-
+       
 
         // InnerLabel
         const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
@@ -332,14 +326,6 @@ export class LinkElement implements BoardElement {
 
     updateExtremities(){
         this.cameraCenter.setLocalPos( (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2, (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2  );
-
-
-        // this.cameraCenter.x = (this.startVertex.cameraCenter.x + this.endVertex.cameraCenter.x)/2
-        // this.cameraCenter.y = (this.startVertex.cameraCenter.y + this.endVertex.cameraCenter.y)/2;
-
-        // this.serverCenter.x = (this.startVertex.serverCenter.x + this.endVertex.serverCenter.x)/2
-        // this.serverCenter.y = (this.startVertex.serverCenter.y + this.endVertex.serverCenter.y)/2;
-
         this.updateSVGposition();
     }
 
@@ -413,9 +399,17 @@ export class LinkElement implements BoardElement {
 
 
     isNearby (pos: CanvasCoord, d: number){
-        // const v = startVertex;
-        // const w = endVertex;
-        // const linkcp_canvas = link.data.cp_canvas_pos;
+        const v = this.startVertex;
+        const w = this.endVertex;
+
+        return pos.distToSegment(v.cameraCenter, w.cameraCenter) <= d;
+        
+
+
+        // const middle = v.cameraCenter.middle(w.cameraCenter)
+        // pos.is_nearby_beziers_1cp(v.cameraCenter, middle, w.cameraCenter)
+
+        // const linkcp_canvas = this.cp_canvas_pos;
         // const v_canvas_pos = v.data.canvas_pos;
         // const w_canvas_pos = w.data.canvas_pos
         // if (typeof linkcp_canvas != "string"){
@@ -580,14 +574,14 @@ export class ShapeElement implements BoardElement {
         const topRight = new CanvasCoord(Math.max(c1.x, c2.x), Math.min(c1.y, c2.y), this.board.camera);
         const bottomLeft = new CanvasCoord(Math.min(c1.x, c2.x), Math.max(c1.y, c2.y), this.board.camera);
         const bottomRight = new CanvasCoord(Math.max(c1.x, c2.x), Math.max(c1.y, c2.y), this.board.camera);
-        if (topLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || topRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomLeft.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomRight.is_in_rect(this.canvasCornerTopLeft, this.canvasCornerBottomRight)){
+        if (topLeft.isInRect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || topRight.isInRect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomLeft.isInRect(this.canvasCornerTopLeft, this.canvasCornerBottomRight) || bottomRight.isInRect(this.canvasCornerTopLeft, this.canvasCornerBottomRight)){
             return true;
         }
 
-        if (this.canvasCornerBottomLeft.is_in_rect(c1,c2)
-        || this.canvasCornerBottomRight.is_in_rect(c1,c2)
-        || this.canvasCornerTopLeft.is_in_rect(c1,c2)
-        || this.canvasCornerTopRight.is_in_rect(c1,c2) ){
+        if (this.canvasCornerBottomLeft.isInRect(c1,c2)
+        || this.canvasCornerBottomRight.isInRect(c1,c2)
+        || this.canvasCornerTopLeft.isInRect(c1,c2)
+        || this.canvasCornerTopRight.isInRect(c1,c2) ){
             return true;
         }
 
@@ -622,17 +616,17 @@ export class ShapeElement implements BoardElement {
     }
 
     translate (cshift: CanvasVect){
-        this.cameraCenter.translate_by_canvas_vect(cshift);
+        this.cameraCenter.translateByCanvasVect(cshift);
 
 
 
-        this.canvasC1.translate_by_canvas_vect(cshift);
-        this.canvasC2.translate_by_canvas_vect(cshift);
+        this.canvasC1.translateByCanvasVect(cshift);
+        this.canvasC2.translateByCanvasVect(cshift);
 
-        this.canvasCornerBottomLeft.translate_by_canvas_vect(cshift);
-        this.canvasCornerBottomRight.translate_by_canvas_vect(cshift);
-        this.canvasCornerTopLeft.translate_by_canvas_vect(cshift);
-        this.canvasCornerTopRight.translate_by_canvas_vect(cshift);
+        this.canvasCornerBottomLeft.translateByCanvasVect(cshift);
+        this.canvasCornerBottomRight.translateByCanvasVect(cshift);
+        this.canvasCornerTopLeft.translateByCanvasVect(cshift);
+        this.canvasCornerTopRight.translateByCanvasVect(cshift);
 
 
 

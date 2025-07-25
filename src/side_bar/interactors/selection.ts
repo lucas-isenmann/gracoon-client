@@ -211,10 +211,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
         // Translate the Pointed Element or the Selected Elements
         if (typeof pointed.data != "undefined"){
-            e.translate_by_canvas_vect(previousCenterShift);
+            e.translateByCanvasVect(previousCenterShift);
             // e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
             // e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
-            e.translate_by_canvas_vect(previousCenterShift.opposite());
+            e.translateByCanvasVect(previousCenterShift.opposite());
             
             // console.log(selectedElements)
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));

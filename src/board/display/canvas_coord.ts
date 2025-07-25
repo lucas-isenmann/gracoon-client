@@ -59,19 +59,35 @@ export class CanvasCoord  {
     }
 
 
-    is_in_rect(c1: CanvasCoord, c2: CanvasCoord): boolean {
+    distToSegment(ca: CanvasCoord, cb: CanvasCoord): number{
+        const a = ca.serverPos;
+        const b = cb.serverPos;
+        const pos = this.serverPos;
+
+        if ( (pos.x-a.x)*(b.x-a.x) + (pos.y-a.y)*(b.y-a.y) <= 0 ){
+            return Math.sqrt( (pos.x-a.x)**2 + (pos.y-a.y)**2) * this.camera.zoom;
+        } else if ( (pos.x-b.x)*(a.x-b.x) + (pos.y-b.y)*(a.y-b.y) <= 0){
+            return Math.sqrt( (pos.x-b.x)**2 + (pos.y-b.y)**2) * this.camera.zoom
+        } else {
+            const proj = pos.orthogonal_projection(a, Vect.from_coords(a,b));
+            return Math.sqrt(pos.dist2(proj)) * this.camera.zoom
+        }
+    }
+
+
+    isInRect(c1: CanvasCoord, c2: CanvasCoord): boolean {
         return (Math.min(c1.x, c2.x) <= this.x && this.x <= Math.max(c1.x, c2.x) &&
                 Math.min(c1.y, c2.y) <= this.y && this.y <= Math.max(c1.y, c2.y))
     }
     
  
 
-    translate_by_canvas_vect(shift: CanvasVect) {
+    translateByCanvasVect(shift: CanvasVect) {
         this.setLocalPos(this.x + shift.x, this.y + shift.y);
     }
 
-    orthogonal_projection(c: Coord, dir: Vect): CanvasCoord{
-        const u =  new Coord(this.x, this.y).orthogonal_projection(c, dir);
+    orthogonalProjection(c: CanvasCoord, dir: CanvasVect): CanvasCoord{
+        const u =  new Coord(this.x, this.y).orthogonal_projection(new Coord(c.x, c.y), new Vect(dir.x, dir.y));
         return new CanvasCoord(u.x, u.y, this.camera);
     }
 
@@ -115,7 +131,7 @@ export class CanvasCoord  {
         let y2 = c2.y;
 
         // case where one of the endvertices is already on the box
-        if (c1.is_in_rect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera)) || c1.is_in_rect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera))) {
+        if (c1.isInRect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera)) || c1.isInRect(new CanvasCoord(xA, yA, this.camera), new CanvasCoord(xB, yB, this.camera))) {
             return true
         } else {
             // we get the quadratic equation of the intersection of the bended edge and the sides of the box

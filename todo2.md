@@ -24,10 +24,6 @@
 
 ## Vertices subset
 
-## Resize and rotate
-
-## Camera
-
 ## Latex
 
 ## Tikz / SVG / Typst Generator

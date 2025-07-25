@@ -2,7 +2,7 @@ import { DOWN_TYPE, RESIZE_TYPE } from './interactor'
 import { socket } from '../socket';
 import { CanvasCoord } from '../board/display/canvas_coord';
 import { CanvasVect } from '../board/display/canvasVect';
-import { BoardElementType, ClientBoard } from '../board/board';
+import { ClientBoard } from '../board/board';
 import { ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, PointedElementData } from './pointed_element_data';
 import { Option } from 'gramoloss';
 
@@ -138,11 +138,7 @@ export function setupInteractions(board: ClientBoard) {
 
         board.translateClipboard(previous_canvas_shift, mousePos);
 
-
-        // if ( typeof board.graphClipboard != "undefined") {
-        //     board.translateGraphClipboard(previous_canvas_shift, mousePos);
-        // }
-        // else 
+        
         if (typeof lastPointedElement != "undefined" && lastPointedElement.buttonType == 2){
             const shift = CanvasVect.from_canvas_coords(lastPointedElement.pointedPos, mousePos);
             // board.camera.translate_camera(shift.sub(previous_canvas_shift));
@@ -188,16 +184,14 @@ export function setupInteractions(board: ClientBoard) {
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         previous_canvas_shift = new CanvasVect(0,0);
 
-        // CLIPBOARD TODO
-        // if (board.clipboard.length > 0){
-        //     board.sendRequestPasteClipboard();
-        //     if( board.keyPressed.has("Control") == false ){
-        //         board.clearClipboard();
-        //     } else {
-        //         board.clipboardInitPos = mousePos.copy();
-        //     }
-        //     board.draw();
-        // }
+        // Clipboard
+        if (typeof board.clipboardInitPos != "undefined"){
+            if( board.keyPressed.has("Control") ){
+                board.clipboardInitPos = mousePos.copy();
+            } else {
+                board.clearClipboard();
+            }
+        }
 
 
         // else if (typeof board.graphClipboard != "undefined") {

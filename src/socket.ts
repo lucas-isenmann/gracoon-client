@@ -234,7 +234,7 @@ export function setupHandlers(board: ClientBoard) {
     }
 
     function handleAddElements( datas: [{kind: string, index: number, element: any}], sensibilities: [SENSIBILITY]){
-        // console.log("handleAddElements", datas);
+        console.log("handleAddElements", datas);
         for(const data of datas){
             if (data.kind == "Rectangle"){
                 const c1 = new Coord(data.element.c1.x, data.element.c1.y);
@@ -274,11 +274,15 @@ export function setupHandlers(board: ClientBoard) {
        
             // } 
             else if (data.kind == "Vertex"){
+
                 const x = data.element.data.pos.x as number;
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                new VertexElement(board, data.index, x, y, "", weight, color );
+                const v = new VertexElement(board, data.index, x, y, "", weight, color );
+                if (typeof board.clipboardInitPos != "undefined") {
+                    v.select()
+                }
                 update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
             } 
             else if (data.kind == "Link"){
@@ -492,7 +496,7 @@ export function setupHandlers(board: ClientBoard) {
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
         sensibilities: [SENSIBILITY])
          {
-        // console.log("[Handle] resetGraph");
+        console.log("[Handle] resetGraph");
         console.time("resetGraph")
 
         // pour les vertices_entries c'est parce que on peut pas envoyer des Map par socket ...

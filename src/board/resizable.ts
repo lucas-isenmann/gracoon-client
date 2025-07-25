@@ -14,10 +14,10 @@ export interface Resizable {
 }
 
 export function translate_by_canvas_vect<R extends Resizable>(element: R, shift: CanvasVect, view: Camera){
-    element.canvas_corner_bottom_left.translate_by_canvas_vect(shift);
-    element.canvas_corner_bottom_right.translate_by_canvas_vect(shift);
-    element.canvas_corner_top_left.translate_by_canvas_vect(shift);
-    element.canvas_corner_top_right.translate_by_canvas_vect(shift);
+    element.canvas_corner_bottom_left.translateByCanvasVect(shift);
+    element.canvas_corner_bottom_right.translateByCanvasVect(shift);
+    element.canvas_corner_top_left.translateByCanvasVect(shift);
+    element.canvas_corner_top_right.translateByCanvasVect(shift);
     element.c1.translate(view.server_vect(shift));
     element.c2.translate(view.server_vect(shift));
 }

@@ -75,7 +75,7 @@ export class TargetPoint implements BoardElement {
     }
 
     translate(cshift: CanvasVect){
-        this.cameraCenter.translate_by_canvas_vect(cshift);
+        this.cameraCenter.translateByCanvasVect(cshift);
         this.disk.setAttribute("cx", `${this.cameraCenter.x}`);  
         this.disk.setAttribute("cy", `${this.cameraCenter.y}`);  
     }

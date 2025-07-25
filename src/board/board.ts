@@ -21,6 +21,7 @@ import { StrokeElement } from "./elements/stroke2";
 import { VerticesSubset } from "./vertices_subset";
 import { ShapePreData } from "./elements/rectangle";
 import { EntireZone } from "../parametors/zone";
+import { Interactor } from "../side_bar/side_bar";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -88,6 +89,10 @@ export class ClientBoard  {
     selfUser: Self;
     colorSelected: Color;
     keyPressed: Set<string>;
+
+
+    // Interactors
+    interactors: Map<string, Interactor> = new Map();
     interactorLoaded: Option<PreInteractor>;
     interactorLoadedId: Option<string>;
 
@@ -101,7 +106,7 @@ export class ClientBoard  {
     linksGroup: SVGElement;
     verticesGroup: SVGElement;
 
-
+    // Clipboard
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
 
@@ -146,7 +151,6 @@ export class ClientBoard  {
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
         this.interactorLoadedId = undefined;
-        this.isGraphClipboardGenerated = false;  
         this.agregId = makeid(5);    
         
         // Display parameters
@@ -156,6 +160,9 @@ export class ClientBoard  {
         this.grid = new Grid(this.camera);
         this.isAligning = false;
 
+
+        this.isGraphClipboardGenerated = false;  
+        
 
     
 
@@ -389,32 +396,49 @@ export class ClientBoard  {
      * @todo when no mouse ???
      */
     addGraphToClipboard(graph: EmbeddedGraph, mousePos: CanvasCoord){
+        console.log("addGraphToClipboard")
         this.clearClipboard();
         this.clipboardInitPos = mousePos;
-        
-        // const newVertices = new Map();
-        // for (const [index, v] of graph.vertices){
-        //     const data = new ClientVertexData((v.data.pos.x + mousePos.x -this.camera.camera.x)/this.camera.zoom, (v.data.pos.y + mousePos.y- this.camera.camera.y)/this.camera.zoom, "", this.camera, Color.Neutral);
-        //     const newVertex = new ClientVertex(index, data, this);
-        //     this.clipboard.push(newVertex);
-        //     newVertices.set(newVertex.index, newVertex);
-        // }
+        this.svgContainer.style.cursor = "grab";
 
-        // for (const [index, link] of graph.links){
-        //     const cp = undefined;
-        //     const data = new ClientLinkData(cp, Color.Neutral, "", this.camera);
-        //     const startVertex = newVertices.get(link.startVertex.index);
-        //     const endVertex = newVertices.get(link.endVertex.index);
-        //     if (typeof startVertex == "undefined" || typeof endVertex == "undefined") continue;
-        //     const newLink = new ClientLink(index, startVertex, endVertex, link.orientation, data, this );
-        //     this.clipboard.push(newLink);
-        // }
+        
+
+        const data = new Array();
+
+        for (const [index, v] of graph.vertices){
+            data.push( {
+                type: "Vertex",
+                index: index, 
+                x: (v.data.pos.x + mousePos.x - this.camera.camera.x )/this.camera.zoom, 
+                y: (v.data.pos.y + mousePos.y - this.camera.camera.y )/this.camera.zoom, 
+                color: Color.Neutral, 
+                weight: ""
+            })
+        }
+
+        for (const [index, link] of graph.links){
+            data.push( {
+                type: "Link",
+                index: link.index, 
+                startIndex: link.startVertex.index, 
+                endIndex: link.endVertex.index,
+                orientation: link.orientation,
+                color: Color.Neutral,
+                weight: "",
+                cp: undefined
+            })
+        }
+
+        socket.emit(SocketMsgType.PASTE_GRAPH, data);
+        return;
+
+
     }
 
     copySelectedElements(mousePos: CanvasCoord){
         this.clearClipboard();
         this.clipboardInitPos = mousePos;
-        this.canvas.style.cursor = "grab";
+        this.svgContainer.style.cursor = "grab";
 
         // TODO generalize to elements of board
 
@@ -465,83 +489,96 @@ export class ClientBoard  {
     }
 
     clearClipboard(){
+        this.deselectAll()
+        // for (const element of this.clipboard){
+        //     console.log("delete element", element.serverId)
+        //     element.delete()
+        // }
         // this.clipboard.splice(0,this.clipboard.length);
-        // this.clipboardInitPos = undefined;
-        // this.canvas.style.cursor = "default";
+        this.clipboardInitPos = undefined;
+        this.svgContainer.style.cursor = "default";
     }
 
     translateClipboard(previousCanvasShift: CanvasVect, pos: CanvasCoord){
         // if (this.clipboard.length == 0) return;
-        // if (typeof this.clipboardInitPos == "undefined") return;
-        // const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
-        // const cShift = shift.sub(previousCanvasShift);
-        // for (const element of this.clipboard){
-        //     if (element instanceof ClientStroke || element instanceof ClientVertex){
-        //         element.translate_by_canvas_vect( cShift , this.camera);
-        //     } else if (element instanceof ClientLink){
-        //         element.translate_cp_by_canvas_vect(cShift, this.camera);
-        //     } if (element instanceof ClientRectangle){
-        //         translate_by_canvas_vect(element, cShift, this.camera);
+        if (typeof this.clipboardInitPos == "undefined") return;
+
+        console.log("translateClipboard")
+
+        const shift = CanvasVect.from_canvas_coords(this.clipboardInitPos, pos);
+        const cShift = shift.sub(previousCanvasShift);
+
+        const selection = this.getSelectedElements();
+        this.emit_translate_elements(selection, this.camera.server_vect(cShift) )
+        previousCanvasShift.set_from(shift);
+        
+        // for (const element of this.elements.values()){
+        //     if (element.isSelected){
+        //         element.translate(cShift);
         //     }
+        //     // if (element instanceof TargetPoint || element instanceof StrokeElement || element instanceof VertexElement){
+        //     //     element.translate( cShift);
+        //     // } else if (element instanceof LinkElement){
+        //     //     // TODO
+        //     //     // element.translate_cp_by_canvas_vect(cShift, this.camera);
+        //     // } if (element instanceof ShapeElement){
+        //     //     element.translate(cShift);
+        //     // }
         // }
 
         // previousCanvasShift.set_from(shift);
-        // this.draw()
     }
 
 
-    drawClipboard(){
-        // for (const element of this.clipboard){
-        //     element.draw(this);
-        // }
-    }
+   
 
     sendRequestPasteClipboard(){
-        // const data = new Array();
+        const data = new Array();
 
         // for (const element of this.clipboard){
-        //     if (element instanceof ClientVertex){
+        //     if (element instanceof VertexElement){
         //         data.push( {
         //             type: "Vertex",
-        //             index: element.index, 
-        //             x: element.data.pos.x, 
-        //             y: element.data.pos.y, 
-        //             color: element.data.color, 
-        //             weight: element.data.weight
+        //             index: element.serverId, 
+        //             x: element.cameraCenter.serverPos.x, 
+        //             y: element.cameraCenter.serverPos.y, 
+        //             color: element.color, 
+        //             weight: element.innerLabel
         //         })
-        //     } else if (element instanceof ClientLink){
+        //     } else if (element instanceof LinkElement){
         //         data.push( {
         //             type: "Link",
-        //             index: element.index, 
-        //             startIndex: element.startVertex.index, 
-        //             endIndex: element.endVertex.index,
-        //             orientation: element.orientation,
-        //             color: element.data.color,
-        //             weight: element.data.weight,
-        //             cp: element.data.cp
+        //             index: element.serverId, 
+        //             startIndex: element.startVertex.serverId, 
+        //             endIndex: element.endVertex.serverId,
+        //             orientation: element.isDirected ? "DIRECTED" : "UNDIRECTED",
+        //             color: element.color,
+        //             weight: element.label,
+        //             cp: undefined
         //         })
-        //     } else if (element instanceof ClientStroke){
+        //     } else if (element instanceof StrokeElement){
         //         data.push({
         //             type: "Stroke",
-        //             index: element.index,
+        //             index: element.serverId,
         //             color: element.color,
         //             width: element.width,
-        //             positions: element.positions
+        //             positions: element.serverPositions
         //         })
-        //     } else if (element instanceof ClientRectangle){
+        //     } else if (element instanceof ShapeElement){
         //         data.push({
         //             type: "Rectangle",
-        //             index: element.index,
+        //             index: element.serverId,
         //             color: element.color,
-        //             x1: element.c1.x,
-        //             x2: element.c2.x,
-        //             y1: element.c1.y,
-        //             y2: element.c2.y
+        //             x1: element.canvasC1.serverPos.x,
+        //             x2: element.canvasC2.serverPos.x,
+        //             y1: element.canvasC1.serverPos.y,
+        //             y2: element.canvasC2.serverPos.y
         //         })
         //     }
         // }
+
         
-        // socket.emit(SocketMsgType.PASTE_GRAPH, data);
+        socket.emit(SocketMsgType.PASTE_GRAPH, data);
     }
 
 
@@ -624,22 +661,23 @@ export class ClientBoard  {
             const grid_size = this.grid.grid_size;
             const h = grid_size*Math.sqrt(3)/2;
 
-            // find the corners of the quadrilateral containing the point
+            // Find the corners of the rectangle containing the point
             const px = ((posToAlign.x-camera.camera.x)- (posToAlign.y-camera.camera.y)/Math.sqrt(3))/grid_size;
             const py = (posToAlign.y-camera.camera.y)/h;
             const i = Math.floor(px);
             const j = Math.floor(py);
             const corners = [
-                new Coord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2), // top left
-                new Coord((i+1)*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2), // top right
-                new Coord(i*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2), // bottom left
-                new Coord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2) // bottom right
+                new CanvasCoord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2, this.camera), // top left
+                new CanvasCoord((i+1)*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2, this.camera), // top right
+                new CanvasCoord(i*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2, this.camera), // bottom left
+                new CanvasCoord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2, this.camera) // bottom right
             ]
             
             // align on the corners if the point is near enough
             for (let corner of corners){
-                corner = corner.add(camera.camera);
-                if (Math.sqrt(corner.dist2(new Coord(posToAlign.x, posToAlign.y) )) <= 2*15){
+                // corner = corner.add(camera.camera);
+                corner.setLocalPos(corner.x + camera.camera.x, corner.y + camera.camera.y)
+                if (Math.sqrt(corner.dist2(new CanvasCoord(posToAlign.x, posToAlign.y, this.camera) )) <= 2*15){
                     alignedPos.x = corner.x;
                     alignedPos.y = corner.y;
                     return alignedPos;
@@ -647,21 +685,21 @@ export class ClientBoard  {
             }
 
             // projection on the \ diagonal starting at the top left corner
-            const projection1 = posToAlign.orthogonal_projection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
+            const projection1 = posToAlign.orthogonalProjection(corners[0], new Vect(1 , Math.sqrt(3))) ; 
             if (projection1.dist2(posToAlign) <= 15*15){
                 alignedPos.x = projection1.x;
                 alignedPos.y = projection1.y;
             }
 
             // projection on the \ diagonal starting at the top right corner
-            const projection2 = posToAlign.orthogonal_projection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
+            const projection2 = posToAlign.orthogonalProjection(corners[1], new Vect(1 , Math.sqrt(3))) ; 
             if (projection2.dist2(posToAlign) <= 15*15){
                 alignedPos.x = projection2.x;
                 alignedPos.y = projection2.y;
             }
 
             // projection on the / diagonal starting at the top right corner
-            const projection = posToAlign.orthogonal_projection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
+            const projection = posToAlign.orthogonalProjection(corners[1], new Vect(-1 , Math.sqrt(3))) ; 
             if (projection.dist2(posToAlign) <= 15*15){
                 alignedPos.x = projection.x;
                 alignedPos.y = projection.y;
@@ -702,7 +740,7 @@ export class ClientBoard  {
                         const angle = 2*Math.PI*j/this.grid.polarDivision;
                         const end = new Vect(1,0);
                         end.rotate(angle);
-                        const projection = alignedPos.orthogonal_projection(center, end);
+                        const projection = alignedPos.orthogonalProjection(center, end);
                         if ( Math.sqrt(alignedPos.dist2(projection)) <= 20){
                             alignedPos.x = projection.x;
                             alignedPos.y = projection.y;
@@ -848,8 +886,6 @@ export class ClientBoard  {
         this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
         this.drawInteractor();
         
-        this.drawClipboard();
-
     }
 
     /**

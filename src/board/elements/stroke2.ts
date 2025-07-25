@@ -100,7 +100,7 @@ export class StrokeElement implements BoardElement {
     translate (cshift: CanvasVect){
         console.log("transalte stroke")
         for (const point of this.canvasPositions){
-            point.translate_by_canvas_vect(cshift);
+            point.translateByCanvasVect(cshift);
         }
         this.x += cshift.x;
         this.y += cshift.y;
@@ -119,7 +119,7 @@ export class StrokeElement implements BoardElement {
 
     isInRect(corner1: CanvasCoord, corner2: CanvasCoord): boolean{
         for (const point of this.canvasPositions){
-            if (point.is_in_rect(corner1, corner2)){
+            if (point.isInRect(corner1, corner2)){
                 return true;
             }
         }

@@ -170,8 +170,9 @@ export class Interactor extends Element {
         super(preInteractor.imgSrc, parentSideBar, rootSideBar, preInteractor.info, preInteractor.shortcut);
         this.preInteractor = preInteractor;
         this.board = board;
+        board.interactors.set(preInteractor.id, this);
         const interactor = this;
-        
+
         if (preInteractor.shortcut != ""){
             // console.log(`add shortcut ${shortcut}`);
             
@@ -317,6 +318,7 @@ export class SideBar {
                 this.elements.push(new Launcher(preElement, this, this.rootSidebar))
             } else if (preElement instanceof PreInteractor){
                 this.elements.push(new Interactor(preElement, this, this.rootSidebar, board))
+                
             } else if (preElement instanceof PreSwitch){
                 this.elements.push(new Switch(preElement, this, this.rootSidebar))
             }

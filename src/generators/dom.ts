@@ -5,6 +5,7 @@ import { GeneratorId } from "gramoloss";
 import { Integer, ListAttribute, Percentage } from "./attribute";
 import { GraphGenerator } from "./generator";
 import { CanvasCoord } from "../board/display/canvas_coord";
+import { INTERACTOR_TYPE } from "../interactors/interactor";
 
 
 const randomTournament = new GraphGenerator(GeneratorId.RandomTournament, "Random tournament", [new Integer("n", 5, 3)])
@@ -145,7 +146,14 @@ function activateGeneratorDiv(canvas: HTMLCanvasElement, gen: GraphGenerator, bo
                 return;
             }
         }
-        const mousePos = new CanvasCoord(e.pageX, e.pageY);
+
+        const selectionInteractor = board.interactors.get(INTERACTOR_TYPE.SELECTION);
+        if (typeof selectionInteractor != "undefined"){
+            console.log("Load Interactor: Selection")
+            selectionInteractor.select()
+        }
+        
+        const mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         board.addGraphToClipboard(gen.graph, mousePos)
         // lastGenerator = gen;
         turnOffGeneratorsDiv();
