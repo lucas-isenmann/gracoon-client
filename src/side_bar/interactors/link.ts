@@ -5,9 +5,9 @@ import { PreInteractor } from "../pre_interactor";
 import { Color, getCanvasColor } from "../../board/display/colors_v2";
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
-import { VertexElement } from "../../board/element";
-import { TargetPoint } from "../../board/elements/targetPoint";
-import { Segment } from "../../board/elements/segment";
+import { VertexElement } from "../../board/elements/vertex";
+import { LocalPoint } from "../../board/elements/localPoint";
+import { LocalSegment } from "../../board/elements/segment";
 
 
 
@@ -36,10 +36,10 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
     const shortcutLetter = orientation == ORIENTATION.UNDIRECTED ? "e" : "a";
     const iconSrc = orientation == ORIENTATION.UNDIRECTED ? "edition" : "arc";
     const linkInteractor = new LinkInteractor(id, info, shortcutLetter, iconSrc, "default", new Set([DOWN_TYPE.VERTEX, DOWN_TYPE.LINK]));
-    const targetPoint = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
+    const targetPoint = new LocalPoint(board, new CanvasCoord(0,0, board.camera));
     targetPoint.hide();
     targetPoint.setColor(Color.Red);
-    const constructionSegment = new Segment(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(0,0, board.camera), Color.Neutral);
+    const constructionSegment = new LocalSegment(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(0,0, board.camera), Color.Neutral);
     constructionSegment.hide();
 
 

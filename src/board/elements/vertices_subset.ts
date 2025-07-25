@@ -1,9 +1,10 @@
-import { CanvasCoord } from "./display/canvas_coord";
-import { Color, getCanvasColor } from "./display/colors_v2";
-import { BoardElementType, ClientBoard, SELECTION_COLOR } from "./board";
-import { BoardElement, VertexElement } from "./element";
+import { CanvasCoord } from "../display/canvas_coord";
+import { Color, getCanvasColor } from "../display/colors_v2";
+import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../board";
+import { BoardElement } from "./element";
 import { Coord } from "gramoloss";
-import { CanvasVect } from "./display/canvasVect";
+import { CanvasVect } from "../display/canvasVect";
+import { VertexElement } from "./vertex";
 
 export class VerticesSubset implements BoardElement{
     id: number;

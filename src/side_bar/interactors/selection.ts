@@ -11,11 +11,10 @@ import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
-import { VertexElement } from "../../board/element";
-import { Segment } from "../../board/elements/segment";
+import { VertexElement } from "../../board/elements/vertex";
 import { Color } from "../../board/display/colors_v2";
 import { Rectangle } from "../../board/elements/rectangle";
-import { TargetPoint } from "../../board/elements/targetPoint";
+import { LocalPoint } from "../../board/elements/localPoint";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -33,15 +32,15 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
     const boundingBox = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Red);
     boundingBox.hide();
-    const rotateIcon = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
+    const rotateIcon = new LocalPoint(board, new CanvasCoord(0,0, board.camera));
     rotateIcon.hide();
     let rotating = false;
     let rotationCenter = new Coord(0,0);
     let rotationCanvasCenter = new CanvasCoord(0,0, board.camera);
-    const resizeIcon = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
+    const resizeIcon = new LocalPoint(board, new CanvasCoord(0,0, board.camera));
     resizeIcon.hide();
     let resizing = false;
-    const rotaCenter = new TargetPoint(board, new CanvasCoord(0,0, board.camera));
+    const rotaCenter = new LocalPoint(board, new CanvasCoord(0,0, board.camera));
     rotaCenter.hide();
 
 
@@ -95,7 +94,6 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter.setLocalPos(pointed.pointedPos.x, pointed.pointedPos.y);
-                board.draw();
             }
             if (board.keyPressed.has("Control")) {
                 isRectangularSelecting = true;
@@ -110,7 +108,6 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter.setLocalPos(v.cameraCenter.x, v.cameraCenter.y);
-                board.draw();
             }
             previousCenterShift = CanvasVect.from_canvas_coords( pointed.pointedPos, v.cameraCenter);
         } 

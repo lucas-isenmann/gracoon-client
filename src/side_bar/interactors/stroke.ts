@@ -4,7 +4,7 @@ import { PreInteractor } from "../pre_interactor";
 import { ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
 import { Option } from "gramoloss";
-import { StrokeElement } from "../../board/elements/stroke2";
+import { StrokeElement } from "../../board/elements/stroke";
 
 let lastStroke: Option<StrokeElement> = undefined;
 let indexLastStroke: Option<number> = undefined;

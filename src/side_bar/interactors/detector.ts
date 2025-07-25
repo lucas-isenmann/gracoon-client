@@ -4,7 +4,8 @@ import { PreInteractor } from '../pre_interactor';
 import { ClientBoard } from '../../board/board';
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from '../../interactors/pointed_element_data';
 import { Option } from 'gramoloss';
-import { LinkElement, VertexElement } from '../../board/element';
+import { VertexElement } from '../../board/elements/vertex';
+import { LinkElement } from '../../board/elements/link';
 
 // INTERACTOR DETECTOR
 

@@ -85,7 +85,6 @@ export function load_param(param: Parametor, board: ClientBoard) {
 
     if(param.is_live){
         update_parametor(board, paramLoaded);
-        board.requestDraw();
     }
         
     toggleListSeparator( true);
@@ -100,7 +99,7 @@ export function load_param(param: Parametor, board: ClientBoard) {
 
 
 
-export function update_params_loaded(board: ClientBoard, sensibilities:Set<SENSIBILITY>, force_compute?:boolean) {
+export function updateParamsLoaded(board: ClientBoard, sensibilities:Set<SENSIBILITY>, force_compute?:boolean) {
     // console.log("update_params_loaded ", sensibilities);
     if(force_compute === undefined){
         force_compute = false;
@@ -188,7 +187,6 @@ export function removeLoadedParam(loadedParam: ParametorLoaded, board: ClientBoa
     // Unhighlight all if loadedParam is verbose
     if (loadedParam.isVerbose){
         board.unhighlightAll();
-        board.requestDraw();
     }
 
     // Search for the loadedParam and delete it

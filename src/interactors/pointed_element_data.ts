@@ -2,9 +2,12 @@ import { Option } from "gramoloss";
 import { CanvasCoord } from "../board/display/canvas_coord";
 import { ClientRepresentation } from "../board/representations/client_representation";
 import { RESIZE_TYPE } from "./interactor";
-import { BoardElement, LinkElement, ShapeElement, VertexElement } from "../board/element";
+import { BoardElement } from "../board/elements/element";
 import { BoardElementType } from "../board/board";
-import { StrokeElement } from "../board/elements/stroke2";
+import { StrokeElement } from "../board/elements/stroke";
+import { LinkElement } from "../board/elements/link";
+import { ShapeElement } from "../board/elements/shape";
+import { VertexElement } from "../board/elements/vertex";
 
 
 export interface ELEMENT_DATA {

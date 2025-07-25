@@ -1,5 +1,5 @@
 import { User } from "./user";
-import { update_params_loaded } from "./parametors/parametor_manager";
+import { updateParamsLoaded } from "./parametors/parametor_manager";
 import { SENSIBILITY } from "./parametors/parametor";
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "./board/board";
@@ -9,10 +9,12 @@ import { handleErrorLog } from "./handlers/errorLog";
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
-import { LinkElement, ShapeElement, VertexElement } from "./board/element";
+import { VertexElement } from "./board/elements/vertex";
 import { setCurrentShape } from "./side_bar/interactors/rectangle";
 import { TextZoneElement } from "./board/elements/textZone";
-import { StrokeElement } from "./board/elements/stroke2";
+import { StrokeElement } from "./board/elements/stroke";
+import { ShapeElement } from "./board/elements/shape";
+import { LinkElement } from "./board/elements/link";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -279,7 +281,7 @@ export function setupHandlers(board: ClientBoard) {
                 if (typeof board.clipboardInitPos != "undefined") {
                     v.select()
                 }
-                update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
+                updateParamsLoaded(board, new Set([SENSIBILITY.ELEMENT]), false);
             } 
             else if (data.kind == "Link"){
                 // console.log("Create Link");
@@ -312,7 +314,7 @@ export function setupHandlers(board: ClientBoard) {
 
                 if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
                     new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color );
-                    update_params_loaded(board, new Set([SENSIBILITY.ELEMENT]), false);
+                    updateParamsLoaded(board, new Set([SENSIBILITY.ELEMENT]), false);
                 }
 
 

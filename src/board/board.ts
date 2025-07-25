@@ -6,7 +6,6 @@ import { Camera } from "./display/camera";
 import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
-import { drawBezierCurve, drawLine, drawCircle } from "./display/draw_basics";
 import { Color, colorsData, getCanvasColor } from "./display/colors_v2";
 import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
@@ -14,14 +13,17 @@ import { ELEMENT_DATA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DA
 import { Self } from "../self_user";
 import { Grid, GridType } from "./display/grid";
 import { makeid } from "../utils";
-import { BoardElement, LinkElement, LinkPreData, ShapeElement, VertexElement, VertexPreData } from "./element";
+import { BoardElement } from "./elements/element";
 import { Graph2, LinkData2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
-import { StrokeElement } from "./elements/stroke2";
-import { VerticesSubset } from "./vertices_subset";
+import { StrokeElement } from "./elements/stroke";
+import { VerticesSubset } from "./elements/vertices_subset";
 import { ShapePreData } from "./elements/rectangle";
 import { EntireZone } from "../parametors/zone";
 import { Interactor } from "../side_bar/side_bar";
+import { ShapeElement } from "./elements/shape";
+import { LinkElement, LinkPreData } from "./elements/link";
+import { VertexElement, VertexPreData } from "./elements/vertex";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'

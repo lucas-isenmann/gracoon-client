@@ -1,10 +1,9 @@
 import { Coord } from "gramoloss";
 import { CanvasCoord } from "../display/canvas_coord";
-import { BoardElement } from "../element";
+import { BoardElement } from "./element";
 import { BoardElementType, ClientBoard } from "../board";
 import { Color, getCanvasColor } from "../display/colors_v2";
 import { CanvasVect } from "../display/canvasVect";
-import { Camera } from "../display/camera";
 
 
 export class StrokeElement implements BoardElement {

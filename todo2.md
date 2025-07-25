@@ -1,3 +1,12 @@
+# TODO List 2
+
+- polar grid
+- triangle horizontal grid
+- select connected subgraph
+- hide innerlabels
+- generate graphviz for typst
+- export to SVG
+
 ## Board
 - resetGraph
 
@@ -26,9 +35,6 @@
 
 ## Latex
 
-## Tikz / SVG / Typst Generator
-
 ## Induced Graph of Board
 
-## Javascript/Python Editor
 

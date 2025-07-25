@@ -6,7 +6,7 @@ import { Color } from '../board/display/colors_v2';
 import { ClientDegreeWidthRep } from '../board/representations/degree_width_rep';
 import { BoardElementType, ClientBoard } from '../board/board';
 import { Graph2, VertexData2 } from '../board/graph2';
-import { VertexElement } from '../board/element';
+import { VertexElement } from '../board/elements/element';
 
 
 

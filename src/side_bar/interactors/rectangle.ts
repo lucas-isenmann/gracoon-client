@@ -4,8 +4,8 @@ import { INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { PointedElementData } from "../../interactors/pointed_element_data";
-import { ShapeElement } from "../../board/element";
 import { ShapePreData } from "../../board/elements/rectangle";
+import { ShapeElement } from "../../board/elements/shape";
 
 
 

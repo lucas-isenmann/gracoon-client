@@ -1,6 +1,6 @@
 import { Coord } from "gramoloss";
 import { CanvasCoord } from "../display/canvas_coord";
-import { BoardElement } from "../element";
+import { BoardElement } from "./element";
 import { BoardElementType, ClientBoard } from "../board";
 import { Color } from "../display/colors_v2";
 import { INTERACTOR_TYPE } from "../../interactors/interactor";

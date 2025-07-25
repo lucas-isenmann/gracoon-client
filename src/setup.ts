@@ -114,8 +114,14 @@ function setup() {
         [   
             new PreLauncher("undo", "Undo", "", localBoard.emitUndo),
             new PreLauncher("redo", "Redo", "", localBoard.emitRedo),
-            new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
-            new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
+            new PreFolder( "generator", [
+                new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
+                new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
+                new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {localBoard.addVerticesSubsetFromSelection();}),
+                new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
+            ]),
+            
+            
             new PreFolder( "grid", [
                 new PreSwitch(false, "triangular_grid", "Vertical triangular grid", () => {
                     localBoard.setGridType(GridType.GridVerticalTriangular);
@@ -147,9 +153,7 @@ function setup() {
                     }
                 } 
             }),
-            new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {
-                localBoard.addVerticesSubsetFromSelection();
-            }),
+            
             new PreFolder("export", [
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
                         // const tikzStr = TikZ_create_file_data(localBoard.graph);
@@ -192,7 +196,6 @@ function setup() {
                 });
             }),
             new PreLauncher("help", "Help", "", launchHelpPopUp),
-            new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
             new PreLauncher("script_editor", "Script editor", "",() => {document.getElementById('editor-container')?.classList.toggle('hidden')})
 
     ]);
@@ -253,7 +256,6 @@ function setupStanchionDrawer(board: ClientBoard){
     //     const twistMode = board.getVariableValue("twistRelative") ? TwistMode.Relative : TwistMode.Absolute;
     //     const crossMode = board.getVariableValue("crossModeCut") ? CrossMode.Cut : CrossMode.DoublePath;
 
-    //     board.draw();
     //     if ( typeof width == "number" && typeof crossRatio == "number" && typeof durete == "number" && typeof h == "number" && typeof adaptToEdgeLength == "boolean" && typeof twistValue == "number"){
     //         board.graph.drawCombinatorialMap(undefined, board.ctx, h, crossRatio, adaptToEdgeLength, twistValue, durete, width, twistMode, crossMode);
     //     }

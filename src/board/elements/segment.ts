@@ -1,11 +1,10 @@
-import { Coord } from "gramoloss";
 import { BoardElementType, ClientBoard } from "../board";
 import { CanvasCoord } from "../display/canvas_coord";
 import { CanvasVect } from "../display/canvasVect";
 import { Color, getCanvasColor } from "../display/colors_v2";
-import { BoardElement } from "../element";
+import { BoardElement } from "./element";
 
-export class Segment implements BoardElement {
+export class LocalSegment implements BoardElement {
     cameraCenter: CanvasCoord;
     serverId: number = 0;
     boardElementType: BoardElementType = BoardElementType.Local;

@@ -103,11 +103,9 @@ export class ParametorLoaded {
                 }
                 this.nameSpan.classList.add("parametor-verbose")
                 this.parametor.showCertificate(board, this.certificate);
-                board.requestDraw();
             } else {
                 this.nameSpan.classList.remove("parametor-verbose");
                 board.unhighlightAll();
-                board.requestDraw();
             }
         });
         div_hidden_buttons.appendChild(verboseButton);
@@ -127,7 +125,6 @@ export class ParametorLoaded {
             svg_reload_parametor.src = "/img/parametor/reload.svg";
             svg_reload_parametor.addEventListener('click', ()=>{
                 update_parametor(board, paramLoaded );
-                board.requestDraw();
             });
             svg_reload_parametor.classList.add("reload_img");
             div_hidden_buttons.appendChild(div_button);

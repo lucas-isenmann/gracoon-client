@@ -4,7 +4,8 @@ import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
 import { TextZoneElement } from "../../board/elements/textZone";
-import { LinkElement, VertexElement } from "../../board/element";
+import { VertexElement } from "../../board/elements/vertex";
+import { LinkElement } from "../../board/elements/link";
 
 
 
