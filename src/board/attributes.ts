@@ -23,9 +23,7 @@ function addIntegerInput(element: Grid, property: string, content: HTMLDivElemen
     label.htmlFor = input.id;
 
     input.onchange = (event: Event) => {
-        console.log("hey")
         element.set(property, input.value ) ;
-        board.draw();
     }
 
     content.appendChild(label);

@@ -113,7 +113,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
     // Mouse move
     linkInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
-        const p = board.alignPosition(e, new Set(), board.canvas, board.camera);
+        const p = board.alignPosition(e, new Set(), board.camera);
         targetPoint.setCanvasPos(p);
         constructionSegment.setEndPoint(p);
         return false;
@@ -137,7 +137,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         const firstVertexIndex = (typeof pointed != "undefined" && pointed.data instanceof ELEMENT_DATA_VERTEX) ? pointed.data.element.serverId : linkInteractor.indexLastCreatedVertex;
         
 
-        const selectedVertex = board.getSpecificElementNearby(board.alignPosition(e, new Set(), board.canvas, board.camera), BoardElementType.Vertex, 15);
+        const selectedVertex = board.getSpecificElementNearby(board.alignPosition(e, new Set(), board.camera), BoardElementType.Vertex, 15);
         console.log(selectedVertex);
         if (selectedVertex instanceof VertexElement){
             if ( firstVertexIndex != selectedVertex.serverId) { // there is a vertex nearby and it is not the previous one
@@ -148,7 +148,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
         } else {
             const link = board.nearbyLink(e);
             if (typeof link == "undefined"){
-                const aligned_mouse_pos = board.alignPosition(e, new Set(), board.canvas, board.camera);
+                const aligned_mouse_pos = board.alignPosition(e, new Set(), board.camera);
                 const serverPos = aligned_mouse_pos.toCoord();
                 board.emitAddElement(
                     board.createVertexPreData(serverPos), (response) => { 

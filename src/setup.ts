@@ -84,15 +84,13 @@ function setup() {
 
     setupHandlers(localBoard);
 
-    localBoard.canvas.width = window.innerWidth;
-    localBoard.canvas.height = window.innerHeight;
     window.addEventListener('resize', function () { 
-        localBoard.resizeCanvas(); 
+        //
     }, false);
     document.addEventListener('contextmenu', event => event.preventDefault());
     setupInteractions(localBoard);
 
-    setup_generators_div(localBoard.canvas, localBoard);
+    setup_generators_div( localBoard);
     setup_modifyers_div(localBoard);
 
     // Graph Parameters
@@ -121,24 +119,18 @@ function setup() {
             new PreFolder( "grid", [
                 new PreSwitch(false, "triangular_grid", "Vertical triangular grid", () => {
                     localBoard.setGridType(GridType.GridVerticalTriangular);
-                    localBoard.draw();
                 }, () => {
                     localBoard.setGridType(undefined);
-                    localBoard.draw();
                 }),
                 new PreSwitch(false, "grid", "Rectangular grid", () => {
                     localBoard.setGridType(GridType.GridRect);
-                    localBoard.draw();
                 }, () => {
                     localBoard.setGridType(undefined);
-                    localBoard.draw();
                 }),
                 new PreSwitch(false, "grid_polar", "Polar grid", () => {
                     localBoard.setGridType(GridType.GridPolar);
-                    localBoard.draw();
                 }, () => {
                     localBoard.setGridType(undefined);
-                    localBoard.draw();
                 }),
             ]),
             new PreSwitch(true, "align", "Align vertices to other vertices", () => {

@@ -38,7 +38,7 @@ let lastGenerator: Option<GraphGenerator>;
 
 
 
-export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoard) {
+export function setup_generators_div( board: ClientBoard) {
     const [main_div, content] = createPopup("generators_div", "Generators");
     content.style.display = "flex";
     content.classList.add("scrolling_y","non_scrolling_bar");
@@ -79,7 +79,7 @@ export function setup_generators_div(canvas: HTMLCanvasElement, board: ClientBoa
         text.classList.add("generator_item");
         text.innerHTML = gen.humanName;
         text.onclick = () => {
-            activateGeneratorDiv(canvas, gen, board);
+            activateGeneratorDiv(gen, board);
         }
         generators.appendChild(text)
     }
@@ -98,7 +98,7 @@ export function turn_on_generators_div() {
     div.style.display = "block";
 }
 
-function activateGeneratorDiv(canvas: HTMLCanvasElement, gen: GraphGenerator, board: ClientBoard) {
+function activateGeneratorDiv( gen: GraphGenerator, board: ClientBoard) {
     const div = document.getElementById("generator_configuration");
     if (div == null) return;
     div.innerHTML = ""; // TODO clear better ??

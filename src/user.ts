@@ -48,7 +48,6 @@ export class User {
                     const interval_id = setInterval(()=>{
                         const canvas = document.getElementById('main') as HTMLCanvasElement;
                         const ctx = canvas.getContext('2d');
-                        requestAnimationFrame(function () { board.draw() });
     
                         if(Date.now() - this.timerRefresh > 4000){
                             // The interval kill itself after the user does not move for 4secs 

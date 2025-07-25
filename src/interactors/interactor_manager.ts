@@ -88,7 +88,6 @@ export function setupInteractions(board: ClientBoard) {
         }
         socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
 
-        board.requestDraw();
     });
 
     // ----------------------------------------------------------------
@@ -100,15 +99,13 @@ export function setupInteractions(board: ClientBoard) {
         // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
-        mousePos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
+        mousePos = board.alignPosition(mousePos, new Set(), board.camera);
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
         board.alignement_horizontal_y = undefined;
         board.alignement_vertical_x = undefined;
-        board.requestDraw()
         lastPointedElement = undefined;
-        board.canvas.style.cursor = "default";
     })
 
 
@@ -150,26 +147,24 @@ export function setupInteractions(board: ClientBoard) {
             //     board.selfUser.unfollow(board.selfUser.following);
             // }
             // socket.emit("my_view", board.camera.camera.x, board.camera.camera.y, board.camera.zoom);
-            board.requestDraw();
-            board.canvas.style.cursor = "grab";
+            board.svgContainer.style.cursor = "grab";
         } else if (typeof board.interactorLoaded != "undefined") {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
                 const element = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
                 if ( element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
                     if (typeof element.resizeType != "undefined"){
-                        board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
+                        // board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
                     } else {
-                        board.canvas.style.cursor = "grab";
+                        board.svgContainer.style.cursor = "grab";
                     }
                 } else {
-                    board.canvas.style.cursor = "default";
+                    board.svgContainer.style.cursor = "default";
                 }
             } else {
-                board.canvas.style.cursor = "default";
+                board.svgContainer.style.cursor = "default";
             }
             if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
-                board.requestDraw();
             }
         }
 
@@ -208,15 +203,14 @@ export function setupInteractions(board: ClientBoard) {
         // else
          if (e.buttons == 2){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
+            const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons,  undefined );
         } else if (typeof board.interactorLoaded != "undefined"){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
+            const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
             const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, data );
             board.interactorLoaded.mousedown(board, lastPointedElement);
-            board.requestDraw();
         }
             
     })
@@ -225,20 +219,19 @@ export function setupInteractions(board: ClientBoard) {
     // -----------------------------------------------------------
     // Touch Events
 
-    board.canvas.addEventListener('touchstart', (et: TouchEvent) => {
+    board.svgContainer.addEventListener('touchstart', (et: TouchEvent) => {
         // console.log("touchstart");
         mousePos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY, board.camera);
 
         if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
         const pointedPos = mousePos.copy();
-        const magnetPos = board.alignPosition(mousePos, new Set(), board.canvas, board.camera);
+        const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
         lastPointedElement = new PointedElementData(pointedPos, magnetPos, 0, data );
         board.interactorLoaded.mousedown(board, lastPointedElement);
-        board.requestDraw();
     });
 
-    board.canvas.addEventListener('touchmove', (e) => {
+    board.svgContainer.addEventListener('touchmove', (e) => {
         // console.log("touchmove")
         mousePos = new CanvasCoord(e.touches[0].clientX, e.touches[0].clientY, board.camera);
         if ( typeof board.selfUser.canvasPos != "undefined"){
@@ -249,7 +242,6 @@ export function setupInteractions(board: ClientBoard) {
 
         if ( typeof lastPointedElement != "undefined" && typeof board.interactorLoaded != "undefined"){
             if (board.interactorLoaded.mousemove(board, lastPointedElement, mousePos)) {
-                board.requestDraw();
             }
         }
         
@@ -257,14 +249,13 @@ export function setupInteractions(board: ClientBoard) {
         socket.emit("moving_cursor", mouse_server_coord.x, mouse_server_coord.y);
     });
 
-    board.canvas.addEventListener('touchend', (e) => {
+    board.svgContainer.addEventListener('touchend', (e) => {
         board.selfUser.canvasPos = undefined;
         if ( typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
         board.alignement_horizontal_y = undefined;
         board.alignement_vertical_x = undefined;
-        board.requestDraw();
         lastPointedElement = undefined;
 
     });

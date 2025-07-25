@@ -69,7 +69,6 @@ export function setupHandlers(board: ClientBoard) {
             board.camera.camera = new Coord(x, y);
             board.camera.zoom = zoom;
             board.updateAfterCameraChange();
-            board.requestDraw();
         }
         else{
             // console.log("reset....");
@@ -93,7 +92,6 @@ export function setupHandlers(board: ClientBoard) {
             board.otherUsers.set(id, new User(id, label, color, board.camera));
         }
         board.update_user_list_div();
-        requestAnimationFrame(function () { board.draw() });
     }
 
 
@@ -130,7 +128,6 @@ export function setupHandlers(board: ClientBoard) {
             board.otherUsers.set(id, new User(id, label, color, board.camera,  newPos));
             board.update_user_list_div();
         }
-        requestAnimationFrame(function () { board.draw() });
     }
 
 
@@ -141,7 +138,6 @@ export function setupHandlers(board: ClientBoard) {
         }
         board.otherUsers.delete(userid);
         board.update_user_list_div();
-        requestAnimationFrame(function () { board.draw() });
     }
 
     
@@ -342,7 +338,6 @@ export function setupHandlers(board: ClientBoard) {
                 // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
             }
         }
-        board.requestDraw();
         board.resetGraph()
     }
 
@@ -439,7 +434,6 @@ export function setupHandlers(board: ClientBoard) {
         // if (weightUpdate){
         //     update_params_loaded(g, new Set([SENSIBILITY.WEIGHT]), false);
         // }
-        board.requestDraw();
         board.resetGraph()
     }
 

@@ -1,7 +1,5 @@
 import { INTERACTOR_TYPE } from "../interactors/interactor";
-import { boardElementType, BoardElementType, ClientBoard } from "./board";
-import { ClientLink } from "./link";
-import { ClientVertex } from "./vertex";
+import { BoardElementType, ClientBoard } from "./board";
 
 
 /*

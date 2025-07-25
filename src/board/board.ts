@@ -1,4 +1,4 @@
-import {  Coord, EmbeddedGraph, GeneratorId, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
+import { Coord, EmbeddedGraph, GeneratorId, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -84,8 +84,6 @@ export class ClientBoard  {
     camera: Camera;
     variables: Map<string, Var>;
     variablesDiv: HTMLDivElement;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
     selfUser: Self;
     colorSelected: Color;
     keyPressed: Set<string>;
@@ -167,12 +165,6 @@ export class ClientBoard  {
     
 
 
-        this.canvas = document.createElement("canvas");
-        container.appendChild(this.canvas);
-        this.canvas.id = "main";
-        const ctx = this.canvas.getContext('2d');
-        if (ctx == null) throw Error("Cannot get context 2d of canvas");
-        this.ctx = ctx; 
 
         
 
@@ -311,16 +303,7 @@ export class ClientBoard  {
         new EntireZone(this);
 
 
-        const board = this;
-        this.canvas.onmouseleave = ((e) => {
-            board.isDrawingInteractor = false;
-            board.draw();
-        });
-    
-        this.canvas.onmouseenter = ((e) => {
-            board.isDrawingInteractor = true;
-            board.draw();
-        })
+        
 
         
     }
@@ -614,7 +597,7 @@ export class ClientBoard  {
     }
     
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
-    alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>, canvas: HTMLCanvasElement, camera: Camera): CanvasCoord {
+    alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>,camera: Camera): CanvasCoord {
         this.alignmentLineHori.setAttribute("display", "none");
         this.alignmentLineVert.setAttribute("display", "none");
         
@@ -645,13 +628,13 @@ export class ClientBoard  {
         }
         if ( this.grid.type == GridType.GridRect ) {
             const grid_size = this.grid.grid_size;
-            for (let x = camera.camera.x % grid_size; x < canvas.width; x += grid_size) {
+            for (let x = camera.camera.x % grid_size; x < window.innerWidth; x += grid_size) {
                 if (Math.abs(x - posToAlign.x) <= 15) {
                     alignedPos.x = x;
                     break;
                 }
             }
-            for (let y = camera.camera.y % grid_size; y < canvas.height; y += grid_size) {
+            for (let y = camera.camera.y % grid_size; y < window.innerHeight; y += grid_size) {
                 if (Math.abs(y - posToAlign.y) <= 15) {
                     alignedPos.y = y;
                     break;
@@ -781,44 +764,6 @@ export class ClientBoard  {
 
 
 
-    /**
-     * Draw a Bezier Curve with 2 control points (therefore it is a cubic curve).
-     */
-    drawBezierCurve(ctx: CanvasRenderingContext2D, p1: Coord, c1: Coord, c2: Coord, p2: Coord, color: string, width: number){
-        const canvasp1 = this.camera.create_canvas_coord(p1);
-        const canvasc1 = this.camera.create_canvas_coord(c1);
-        const canvasc2 = this.camera.create_canvas_coord(c2);
-        const canvasp2 = this.camera.create_canvas_coord(p2);
-        const scaledWidth = width*this.camera.zoom;
-        drawBezierCurve(this.ctx, canvasp1, canvasc1, canvasc2, canvasp2, color, scaledWidth);
-    }
-
-    drawLine(p1: Coord, p2: Coord, color: string, width: number){
-        const canvasP1 = this.camera.create_canvas_coord(p1);
-        const canvasP2 = this.camera.create_canvas_coord(p2);
-        const scaledWidth = width*this.camera.zoom;
-        drawLine(canvasP1, canvasP2, this.ctx, color, scaledWidth);
-    }
-
-    drawLineUnscaled(p1: Coord, p2: Coord, color: string, width: number){
-        const canvasP1 = this.camera.create_canvas_coord(p1);
-        const canvasP2 = this.camera.create_canvas_coord(p2);
-        drawLine(canvasP1, canvasP2, this.ctx, color, width);
-    }
-
-    drawCanvasLine(p1: CanvasCoord, p2: CanvasCoord, color: string, width: number){
-        const scaledWidth = width*this.camera.zoom;
-        drawLine(p1, p2, this.ctx, color, scaledWidth);
-    }
-
-    drawCircle(center: Coord, radius: number, color: string, alpha: number){
-        const canvasCenter = this.camera.create_canvas_coord(center);
-        drawCircle(canvasCenter, color, radius, alpha, this.ctx)
-    }
-
-    drawCanvasCircle(center: CanvasCoord, radius: number, color: string, alpha: number){
-        drawCircle(center, color, radius, alpha, this.ctx)
-    }
     
 
     /**
@@ -839,79 +784,11 @@ export class ClientBoard  {
 
     
 
-    /**
-     * The alignement lines with other vertices.
-     */
-    drawAlignements() {
-        // if (typeof this.alignement_horizontal_y == "number" ) {
-        //     drawLine(new CanvasCoord(0, this.alignement_horizontal_y), new CanvasCoord(window.innerWidth, this.alignement_horizontal_y), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
-        // }
-        // if (typeof this.alignement_vertical_x == "number") {
-        //     drawLine(new CanvasCoord(this.alignement_vertical_x, 0), new CanvasCoord(this.alignement_vertical_x, window.innerHeight), this.ctx, COLOR_ALIGNEMENT_LINE, 3);
-        // }
-    }
-
-
-    drawInteractor() {
-        if (this.isDrawingInteractor && typeof this.interactorLoaded != "undefined"){
-            this.interactorLoaded.draw(this, this.selfUser.canvasPos)
-        }
-    }
+    
 
 
     
 
-    drawFollowing(){
-        if( typeof this.selfUser.following != "undefined"){
-            const following_user = this.otherUsers.get(this.selfUser.following);
-            if( typeof following_user != "undefined"){
-                this.ctx.beginPath();
-                this.ctx.strokeStyle = following_user.multicolor.color;
-                this.ctx.lineWidth = 10;
-                this.ctx.rect(0,0,1000,1000);
-                this.ctx.stroke();
-            }
-            else{
-                this.selfUser.following = undefined;
-            }
-        }
-    }
-
-    draw() {
-        this.drawBackground();
-        // this.representations.forEach(rep => rep.draw(this.ctx, this.camera));
-        // this.areas.forEach(area => area.draw(this));
-        this.drawAlignements();
-
-        this.otherUsers.forEach(user => user.draw(this.canvas, this.ctx));
-        this.drawInteractor();
-        
-    }
-
-    /**
-     * Only request a draw.
-     */
-    requestDraw(){
-        const board = this;
-        requestAnimationFrame(function () { board.draw() })
-    }
-    
-
-    resizeCanvas() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        // camera.window_height = window.innerHeight;
-        // camera.window_width = window.innerWidth;
-        const board = this;
-        requestAnimationFrame(function () { board.draw() })
-    }
-
-    drawBackground() {
-        this.ctx.beginPath();
-        this.ctx.fillStyle = COLOR_BACKGROUND;
-        this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fill();
-    }
 
     deleteTextZone(serverId: number){
         for (const [key, element] of this.elements){
@@ -1464,9 +1341,6 @@ export class ClientBoard  {
         socket.emit(SocketMsgType.SUBDIVIDE_LINK, linkIndex, pos, weight, color, callback);
     }
 
-    emitGenerateGraph(generatorId: GeneratorId, params: Array<any>) {
-        socket.emit(SocketMsgType.GENERATE_GRAPH, new CanvasCoord(this.canvas.width/2,this.canvas.height/2, this.camera).serverPos , generatorId, params );
-    }
 
     emitRedo() {
         socket.emit(SocketMsgType.REDO);
@@ -1685,41 +1559,8 @@ export class ClientBoard  {
 
 
 
-    /**
-     * For the moment it only center the view on the vertices
-     */
-    centerViewOnEverything(){
-        let top_left_corner = new CanvasCoord(-this.canvas.width/2, -this.canvas.height/2, this.camera);
-        let bot_right_corner = new CanvasCoord(this.canvas.width/2, this.canvas.height/2, this.camera);
 
-        const v = this.elements.values().next().value;
-
-        if (typeof v != "undefined"){
-            let xMin = v.cameraCenter.x;
-            let yMin = v.cameraCenter.y;
-            let xMax = v.cameraCenter.x;
-            let yMax = v.cameraCenter.y;
     
-            for(const u of this.elements.values()){
-                xMin = Math.min(xMin, u.cameraCenter.x);
-                yMin = Math.min(yMin, u.cameraCenter.y);
-                xMax = Math.max(xMax, u.cameraCenter.x);
-                yMax = Math.max(yMax, u.cameraCenter.y);
-            }
-
-            top_left_corner = new CanvasCoord(xMin, yMin, this.camera);
-            bot_right_corner = new CanvasCoord(xMax, yMax, this.camera);
-        }
-        
-
-        this.centerCameraOnRectangle(top_left_corner, bot_right_corner);
-    }
-
-
-    centerCameraOnRectangle(c1: CanvasCoord, c2: CanvasCoord){
-        this.camera.centerOnRectangle(c1, c2, this.canvas);
-        this.updateAfterCameraChange();
-    }
 
 
 

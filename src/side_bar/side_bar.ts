@@ -213,9 +213,8 @@ export class Interactor extends Element {
         board.interactorLoaded = interactor;
         board.interactorLoadedId = interactor.id;
     
-        board.canvas.style.cursor = interactor.cursorStyle;
+        board.svgContainer.style.cursor = interactor.cursorStyle;
         interactor.trigger(board, undefined);
-        board.requestDraw();
     }
 }
 

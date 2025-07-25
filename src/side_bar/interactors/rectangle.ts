@@ -34,7 +34,7 @@ export function createRectangleInteractor(board: ClientBoard){
     
     shapeInteractor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if ( typeof currentRectangle != "undefined" && typeof firstCorner != "undefined") {
-            const mouseMagnetPos = board.alignPosition(e, new Set(), board.canvas, board.camera);
+            const mouseMagnetPos = board.alignPosition(e, new Set(), board.camera);
             const oppositeCorner = board.camera.createServerCoord(mouseMagnetPos);
 
             if ( firstCorner.x <= oppositeCorner.x && firstCorner.y <= oppositeCorner.y){
