@@ -215,7 +215,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             
             // console.log(selectedElements)
             const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
-            board.emit_translate_elements(selectedElements, shift.sub(previousShift));
+            board.emitTranslateElements(selectedElements, shift.sub(previousShift));
             previousShift.set_from(shift);
             
             previousCanvasShift.set_from(shift);

@@ -1,4 +1,4 @@
-import { Coord, EmbeddedGraph, GeneratorId, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
+import { Coord, EmbeddedGraph, GeneratorId, linesIntersection, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -118,7 +118,6 @@ export class ClientBoard  {
     // Display parameters
     private darkMode: boolean;
     isDrawingInteractor: boolean;
-    grid: Grid;
     isAligning: boolean;
     alignement_horizontal_y: Option<number>;
     alignement_vertical_x: Option<number>;
@@ -126,10 +125,14 @@ export class ClientBoard  {
     alignmentLineVert: SVGLineElement;
     alignmentLineHori: SVGLineElement;
 
+    // Grids
+    grid: Grid;
     gridSquarePattern: SVGElement;
     gridVerticalTriangularPattern: SVGElement;
     gridVerticalTriangularPatternPath: SVGElement;
-    gridElement: SVGElement;
+    gridLayer: SVGElement;
+    gridPolarCircles: Array<SVGCircleElement> = new Array();
+    gridPolarLines: Array<SVGLineElement> = new Array();
 
 
     constructor(container: HTMLElement){
@@ -177,17 +180,14 @@ export class ClientBoard  {
         const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
 
 
-        // SQUARE PATTERN
-        // <pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse">
-        //      <path d="M 8 0 L 0 0 0 8" fill="none" stroke="gray" stroke-width="0.5"/>
-        // </pattern>
+        // Rectangular Grid
         const squarePattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
         squarePattern.setAttribute("id", "smallGrid");
-        squarePattern.setAttribute("width", this.grid.grid_size.toString())
-        squarePattern.setAttribute("height", this.grid.grid_size.toString());
+        squarePattern.setAttribute("width", this.grid.gridSize.toString())
+        squarePattern.setAttribute("height", this.grid.gridSize.toString());
         squarePattern.setAttribute("patternUnits", "userSpaceOnUse")
         const squarePatternPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        squarePatternPath.setAttribute("d", `M ${this.grid.grid_max_size} 0 L 0 0 0 ${this.grid.grid_max_size}`);
+        squarePatternPath.setAttribute("d", `M ${this.grid.gridMaxSize} 0 L 0 0 0 ${this.grid.gridMaxSize}`);
         squarePatternPath.setAttribute("stroke", "rgb(77, 77, 77)")
         squarePatternPath.setAttribute("fill", "none")
         squarePatternPath.setAttribute("stroke-width", "0.5")
@@ -199,7 +199,7 @@ export class ClientBoard  {
         // Vertical Triangular Grid
         const verticalTriangularPattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
         verticalTriangularPattern.setAttribute("id", "VerticalTriangular");
-        const w = this.grid.grid_size;
+        const w = this.grid.gridSize;
         const h = w*Math.sqrt(3);
         verticalTriangularPattern.setAttribute("width", w.toString())
         verticalTriangularPattern.setAttribute("height", h.toString());
@@ -221,9 +221,36 @@ export class ClientBoard  {
         this.gridVerticalTriangularPattern = verticalTriangularPattern;
         
 
+        // Polar Grid - Circles
+        for (let i = 0; i < 20; i ++){
+            const polarCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            polarCircle.setAttribute("cx", `${this.grid.polarCenter.x}`); 
+            polarCircle.setAttribute("cy", `${this.grid.polarCenter.y}`);
+            polarCircle.setAttribute("r", `${this.grid.gridSize*2*(i+1)}`); 
+            polarCircle.setAttribute("fill", "transparent")
+            polarCircle.setAttribute("stroke", "rgb(77, 77, 77)");
+            polarCircle.setAttribute("display", "none")
+            this.svgContainer.appendChild(polarCircle);
+            this.gridPolarCircles.push(polarCircle);
+        }
 
+        // Polar Grid - Lines
+        for (let i = 0; i < this.grid.polarDivision; i ++){
+            const polarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            polarLine.setAttribute("x1", `${this.grid.polarCenter.x}`); 
+            polarLine.setAttribute("y1", `${this.grid.polarCenter.y}`);
+            polarLine.setAttribute("x2",`${this.grid.polarCenter.x + Math.cos(i*2*3.14/this.grid.polarDivision)*1000 }` )
+            polarLine.setAttribute("y2",`${this.grid.polarCenter.y + Math.sin(i*2*3.14/this.grid.polarDivision)*1000 }` )
+            polarLine.setAttribute("stroke", "rgb(77, 77, 77)"); 
+            polarLine.setAttribute("display", "none")
+            this.svgContainer.appendChild(polarLine);
+            this.gridPolarLines.push(polarLine);
+        }
 
+        
+        
 
+        // Arrow heads of different colors
         for (const color of colorsData){
             const markerId = `arrow-head-${color[0]}`;
             const arrowMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
@@ -247,14 +274,14 @@ export class ClientBoard  {
         this.svgContainer.insertBefore(defs, this.svgContainer.firstChild);
 
        
-        // Grid
-        const gridElement = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        gridElement.setAttribute("width", "100%");
-        gridElement.setAttribute("height", "100%");
-        gridElement.setAttribute("fill", "url(#smallGrid)")
-        gridElement.setAttribute("display", "none")
-        this.svgContainer.appendChild(gridElement)
-        this.gridElement = gridElement;
+        // Grid Layer
+        const gridLayer = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        gridLayer.setAttribute("width", "100%");
+        gridLayer.setAttribute("height", "100%");
+        gridLayer.setAttribute("fill", "url(#smallGrid)")
+        gridLayer.setAttribute("display", "none")
+        this.svgContainer.appendChild(gridLayer)
+        this.gridLayer = gridLayer;
 
 
         // Vertical Line Alignment
@@ -311,8 +338,19 @@ export class ClientBoard  {
     }
 
 
-    updateVerticalTriangularGrid(){
-        const w = this.grid.grid_size;
+    updateGridAfterCameraChange(){
+
+        this.grid.updateToZoom(this.camera.zoom);
+
+
+        // Square Grid
+        this.gridSquarePattern.setAttribute("width", this.grid.gridSize.toString());
+        this.gridSquarePattern.setAttribute("height", this.grid.gridSize.toString());
+        this.gridSquarePattern.setAttribute("x", this.camera.camera.x.toString());
+        this.gridSquarePattern.setAttribute("y", this.camera.camera.y.toString())
+
+        // Triangular Grid
+        const w = this.grid.gridSize;
         const h = w*Math.sqrt(3);
         this.gridVerticalTriangularPattern.setAttribute("width", w.toString())
         this.gridVerticalTriangularPattern.setAttribute("height", h.toString());
@@ -324,6 +362,69 @@ export class ClientBoard  {
 
         this.gridVerticalTriangularPattern.setAttribute("x", this.camera.camera.x.toString());
         this.gridVerticalTriangularPattern.setAttribute("y", this.camera.camera.y.toString());
+
+
+        // Polar Grid
+        this.grid.polarCenter.updateAfterCameraChange();
+
+        const c = this.grid.polarCenter.toCoord();
+        const cTopLeft = new CanvasCoord(0, 0, this.camera).toCoord();
+        const cBotRight = new CanvasCoord(window.innerWidth, window.innerHeight, this.camera).toCoord();
+        const cBotLeft = new CanvasCoord(0, window.innerHeight, this.camera).toCoord();
+        const cTopRight = new CanvasCoord(window.innerWidth, 0, this.camera).toCoord();
+
+        const d1 = Math.sqrt(cBotRight.dist2(this.grid.polarCenter.toCoord()));
+        const d2 = Math.sqrt(cBotLeft.dist2(this.grid.polarCenter.toCoord()));
+        const d3 = Math.sqrt(cTopLeft.dist2(this.grid.polarCenter.toCoord()));
+        const d4 = Math.sqrt(cTopRight.dist2(this.grid.polarCenter.toCoord()));
+        
+        let min = Math.min(d1, d2, d3, d4);
+        let max = Math.max(d1, d2, d3, d4);
+
+
+        if (0 <= this.grid.polarCenter.x && this.grid.polarCenter.x <= window.innerWidth){
+            const dBot = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(1,0)).dist2(c));
+            const dTop = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(1,0)).dist2(c));
+            min = Math.min(min, dBot, dTop);
+            max = Math.max(max, dBot, dTop);
+        }
+        if ( 0 <= this.grid.polarCenter.y  && this.grid.polarCenter.y <= window.innerHeight){
+            const dLeft = Math.sqrt(c.orthogonal_projection(cBotLeft, new Vect(0,1)).dist2(c));
+            const dRight = Math.sqrt(c.orthogonal_projection(cTopRight, new Vect(0,1)).dist2(c));
+            min = Math.min(min, dLeft, dRight);
+            max = Math.max(max, dLeft, dRight);
+        }
+
+        const mini = (0 <= this.grid.polarCenter.x
+             && this.grid.polarCenter.x <= window.innerWidth 
+             && 0 <= this.grid.polarCenter.y 
+             && this.grid.polarCenter.y <= window.innerHeight ) ? 0 :  Math.floor(min*this.camera.zoom/(this.grid.gridSize*2));
+        // for (let i = mini ; i <= max*camera.zoom/(this.grid_size*2) ; i ++ ){
+        //     drawArc(ctx, center, color, i*this.grid_size*2, 1, 1);
+        // }
+
+        for (const [i,circle] of this.gridPolarCircles.entries()){
+            circle.setAttribute("cx", `${this.grid.polarCenter.x}`);
+            circle.setAttribute("cy", `${this.grid.polarCenter.y}`);
+            circle.setAttribute("r", `${this.grid.gridSize*2*(i+1+mini)}`)
+        }
+
+        for (const [i,polarLine] of this.gridPolarLines.entries()){
+            const end = new Coord(c.x + Math.cos(i*2*3.14/this.grid.polarDivision), c.y + Math.sin(i*2*3.14/this.grid.polarDivision) );
+            
+            let inter1 = ( i > this.grid.polarDivision/2) ? linesIntersection(c, end, cTopLeft, cTopRight  ) : linesIntersection(c, end, cBotLeft, cBotRight  );
+            if (i == 0){
+                inter1 = linesIntersection(c, end, cTopRight, cBotRight );
+            }
+            
+            if (typeof inter1 != "undefined"){
+                const inter1c = CanvasCoord.fromCoord(inter1, this.camera);
+                polarLine.setAttribute("x1", `${this.grid.polarCenter.x}`); 
+                polarLine.setAttribute("y1", `${this.grid.polarCenter.y}`);
+                polarLine.setAttribute("x2", `${inter1c.x}`)
+                polarLine.setAttribute("y2", `${inter1c.y}`)
+            }
+        }
     }
 
     resetGraph(){
@@ -494,7 +595,7 @@ export class ClientBoard  {
         const cShift = shift.sub(previousCanvasShift);
 
         const selection = this.getSelectedElements();
-        this.emit_translate_elements(selection, this.camera.server_vect(cShift) )
+        this.emitTranslateElements(selection, this.camera.server_vect(cShift) )
         previousCanvasShift.set_from(shift);
         
         // for (const element of this.elements.values()){
@@ -629,7 +730,7 @@ export class ClientBoard  {
             }
         }
         if ( this.grid.type == GridType.GridRect ) {
-            const grid_size = this.grid.grid_size;
+            const grid_size = this.grid.gridSize;
             for (let x = camera.camera.x % grid_size; x < window.innerWidth; x += grid_size) {
                 if (Math.abs(x - posToAlign.x) <= 15) {
                     alignedPos.x = x;
@@ -643,7 +744,7 @@ export class ClientBoard  {
                 }
             }
         } else  if ( this.grid.type == GridType.GridVerticalTriangular ) {
-            const grid_size = this.grid.grid_size;
+            const grid_size = this.grid.gridSize;
             const h = grid_size*Math.sqrt(3)/2;
 
             // Find the corners of the rectangle containing the point
@@ -701,7 +802,7 @@ export class ClientBoard  {
             }
             
         } else if (this.grid.type == GridType.GridPolar){
-            const size = this.grid.grid_size;
+            const size = this.grid.gridSize;
             const center = this.grid.polarCenter;
             const p = alignedPos;
 
@@ -856,7 +957,7 @@ export class ClientBoard  {
     eraseAt(e: CanvasCoord, eraseDistance: number) : boolean{
         for (const element of this.elements.values()){
             if (element.isNearby(e, eraseDistance)){
-                this.emit_delete_elements([[element.boardElementType, element.serverId]]);
+                this.emitDeleteElements([[element.boardElementType, element.serverId]]);
                 return true;
             }
         }
@@ -922,12 +1023,10 @@ export class ClientBoard  {
     }
 
     translateCamera(shift: CanvasVect){
-
-        this.gridSquarePattern.setAttribute("x", this.camera.camera.x.toString());
-        this.gridSquarePattern.setAttribute("y", this.camera.camera.y.toString());
+        
         
 
-        this.updateVerticalTriangularGrid();
+        this.updateGridAfterCameraChange();
 
         this.camera.translate_camera(shift);
         this.updateAfterCameraChange();
@@ -938,32 +1037,13 @@ export class ClientBoard  {
     }
 
     updateAfterCameraChange(){
-
-
-        this.grid.updateToZoom(this.camera.zoom);
-
-        this.gridSquarePattern.setAttribute("width", this.grid.grid_size.toString());
-        this.gridSquarePattern.setAttribute("height", this.grid.grid_size.toString());
-        this.gridSquarePattern.setAttribute("x", this.camera.camera.x.toString());
-        this.gridSquarePattern.setAttribute("y", this.camera.camera.y.toString())
-        
-        this.updateVerticalTriangularGrid()
+        this.updateGridAfterCameraChange()
 
         for (const element of this.elements.values()){
             element.updateAfterCameraChange()
         }
-
-        
         // for (const rep of this.representations.values()){
         //     rep.update_after_camera_change(this.camera);
-        // }
-        
-
-        // for (const v of this.graph.vertices.values()) {
-        //     v.update_after_view_modification(this.camera);
-        // }
-        // for (const link of this.graph.links.values()) {
-        //     link.update_after_view_modification(this.camera);
         // }
         this.updateOtherUsersCanvasPos()
     }
@@ -1058,7 +1138,7 @@ export class ClientBoard  {
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
-                this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
+                this.emitTranslateElements([[BoardElementType.Vertex, element.serverId]], shift)
             }
         }
     }
@@ -1082,7 +1162,7 @@ export class ClientBoard  {
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
-                this.emit_translate_elements([[BoardElementType.Vertex, element.serverId]], shift)
+                this.emitTranslateElements([[BoardElementType.Vertex, element.serverId]], shift)
             }
         }
     }
@@ -1352,11 +1432,11 @@ export class ClientBoard  {
         socket.emit(SocketMsgType.UNDO);
     }
 
-    emit_translate_elements(indices: Array<[BoardElementType,number]>, shift: Vect){
+    emitTranslateElements(indices: Array<[BoardElementType,number]>, shift: Vect){
         socket.emit(SocketMsgType.TRANSLATE_ELEMENTS, indices, shift);
     }
 
-    emit_delete_elements(indices: Array<[BoardElementType,number]>){
+    emitDeleteElements(indices: Array<[BoardElementType,number]>){
         // console.log("emit delete elements: ", indices);
         socket.emit(SocketMsgType.DELETE_ELEMENTS, this.agregId, indices);
     }
@@ -1571,7 +1651,7 @@ export class ClientBoard  {
         return this.darkMode;
     }
 
-    toggle_dark_mode(){
+    toggleDarkMode(){
         if(this.darkMode == false){
             this.darkMode = true;
             COLOR_BACKGROUND = "#1e1e1e";
@@ -1611,18 +1691,32 @@ export class ClientBoard  {
 
     setGridType(type: Option<GridType>) {
         this.grid.type = type;
+        for (const polarCircle of this.gridPolarCircles){
+            polarCircle.setAttribute("display", "none");
+        }
+        for (const polarLine of this.gridPolarLines){
+            polarLine.setAttribute("display", "none");
+        }
+        
+
         if (typeof type == "undefined"){
-            this.gridElement.setAttribute("display", "none");
+            this.gridLayer.setAttribute("display", "none");
         }
         else if (type == GridType.GridRect){
-            this.gridElement.setAttribute("fill", "url(#smallGrid)");
-            this.gridElement.setAttribute("display", "");
+            this.gridLayer.setAttribute("fill", "url(#smallGrid)");
+            this.gridLayer.setAttribute("display", "");
         } else if (type == GridType.GridVerticalTriangular){
-            this.gridElement.setAttribute("fill", "url(#VerticalTriangular)");
-            this.gridElement.setAttribute("display", "");
+            this.gridLayer.setAttribute("fill", "url(#VerticalTriangular)");
+            this.gridLayer.setAttribute("display", "");
         } else if (type == GridType.GridPolar){
-            this.gridElement.setAttribute("fill", "url(#Polar)");
-            this.gridElement.setAttribute("display", "");
+            this.gridLayer.setAttribute("fill", "transparent");
+            this.gridLayer.setAttribute("display", "");
+            for (const polarLine of this.gridPolarLines){
+                polarLine.setAttribute("display", "");
+            }
+            for (const polarCircle of this.gridPolarCircles){
+                polarCircle.setAttribute("display", "");
+            }
         }
     }
 

@@ -102,7 +102,7 @@ export class TextZoneElement implements BoardElement {
                     const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY, board.camera);
                     const cshift = CanvasVect.from_canvas_coords(textZone.lastMousePos, new_mouse_pos);
                     const shift = board.camera.server_vect(cshift);
-                    board.emit_translate_elements([[BoardElementType.TextZone, serverId]], shift);
+                    board.emitTranslateElements([[BoardElementType.TextZone, serverId]], shift);
                     textZone.lastMousePos = new_mouse_pos;
                 }
                 window.addEventListener("mousemove", move_div);
@@ -112,7 +112,7 @@ export class TextZoneElement implements BoardElement {
                 }
                 window.addEventListener("mouseup", stop_event);
             } else if (board.interactorLoadedId == INTERACTOR_TYPE.ERASER){
-                board.emit_delete_elements([[BoardElementType.TextZone, serverId]]);
+                board.emitDeleteElements([[BoardElementType.TextZone, serverId]]);
             }
         }
 

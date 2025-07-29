@@ -38,7 +38,7 @@ export function setupInteractions(board: ClientBoard) {
             
             
             if (e.key == "Delete") {
-                board.emit_delete_elements(board.getSelectedElements());
+                board.emitDeleteElements(board.getSelectedElements());
                 return;
             }
             if ( board.keyPressed.has("Control") && e.key.toLowerCase() == "c" ){

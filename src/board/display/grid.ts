@@ -18,20 +18,20 @@ export class Grid {
     polarCenter: CanvasCoord;
     polarDivision: number; // >= 5
 
-    grid_size: number;
-    grid_min_size: number;
-    grid_max_size: number;
-    grid_initial_size: number;
+    gridSize: number;
+    gridMinSize: number;
+    gridMaxSize: number;
+    gridInitialSize: number;
 
     constructor(camera: Camera){
         this.type = undefined;
 
         this.polarCenter = new CanvasCoord(window.innerWidth/2, window.innerHeight/2, camera);
         this.polarDivision = 6;
-        this.grid_min_size = 40;
-        this.grid_max_size = 100;
-        this.grid_initial_size = 70;
-        this.grid_size = this.grid_initial_size;
+        this.gridMinSize = 40;
+        this.gridMaxSize = 100;
+        this.gridInitialSize = 70;
+        this.gridSize = this.gridInitialSize;
     }
 
     get(property: string): Option<string>{
@@ -46,12 +46,12 @@ export class Grid {
     }
 
     updateToZoom(newZoom: number){
-        this.grid_size = this.grid_initial_size * newZoom;
-        while (this.grid_size > this.grid_max_size){
-            this.grid_size /= 2;
+        this.gridSize = this.gridInitialSize * newZoom;
+        while (this.gridSize > this.gridMaxSize){
+            this.gridSize /= 2;
         }
-        while (this.grid_size < this.grid_min_size){
-            this.grid_size *= 2;
+        while (this.gridSize < this.gridMinSize){
+            this.gridSize *= 2;
         }
     }
 

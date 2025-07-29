@@ -199,7 +199,7 @@ class ScriptManager {
                 for (const v of this.board.g.vertices.values()){
                     elements.push( [BoardElementType.Vertex, v.index] )
                 }
-                this.board.emit_delete_elements(elements)
+                this.board.emitDeleteElements(elements)
                 this.board.emitPasteGraph(gr);
             }
             
@@ -299,7 +299,7 @@ export function createEditor(container: HTMLElement, board: ClientBoard){
             for (const v of board.g.vertices.values()){
                 elements.push( [BoardElementType.Vertex, v.index] )
             }
-            board.emit_delete_elements(elements)
+            board.emitDeleteElements(elements)
             board.emitPasteGraph(gr);
         }).catch(error => {
             console.error('Error:', error);

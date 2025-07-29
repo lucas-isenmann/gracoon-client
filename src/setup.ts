@@ -145,7 +145,7 @@ function setup() {
                 localBoard.isAligning = false;
             }),
             new PreLauncher("dark_mode", "Switch to dark/light mode", "", () => {
-                localBoard.toggle_dark_mode();
+                localBoard.toggleDarkMode();
                 for( const color of colorsData.keys()){
                     const colorChoiceDiv = document.getElementById("color_choice_" + color);
                     if (colorChoiceDiv != null){
