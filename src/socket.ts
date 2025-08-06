@@ -9,7 +9,7 @@ import { handleErrorLog } from "./handlers/errorLog";
 
 import { io } from "socket.io-client";
 import { Color } from "./board/display/colors_v2";
-import { VertexElement } from "./board/elements/vertex";
+import { BoardVertex } from "./board/elements/vertex";
 import { setCurrentShape } from "./side_bar/interactors/rectangle";
 import { TextZoneElement } from "./board/elements/textZone";
 import { StrokeElement } from "./board/elements/stroke";
@@ -277,7 +277,7 @@ export function setupHandlers(board: ClientBoard) {
                 const y = data.element.data.pos.y as number;
                 const weight = data.element.data.weight as string;
                 const color = data.element.data.color as Color;
-                const v = new VertexElement(board, data.index, x, y, "", weight, color );
+                const v = new BoardVertex(board, data.index, x, y, "", weight, color );
                 if (typeof board.clipboardInitPos != "undefined") {
                     v.select()
                 }
@@ -300,10 +300,10 @@ export function setupHandlers(board: ClientBoard) {
                 // update_params_loaded(g, new Set([SENSIBILITY.ELEMENT]), false);
 
                 // Check if startIndex and endIndex vertices exist
-                let startVertex: undefined | VertexElement = undefined;
-                let endVertex: undefined | VertexElement = undefined;
+                let startVertex: undefined | BoardVertex = undefined;
+                let endVertex: undefined | BoardVertex = undefined;
                 for (const element of board.elements.values()){
-                    if (element instanceof VertexElement){
+                    if (element instanceof BoardVertex){
                         if (element.serverId == startIndex){
                             startVertex = element;
                         } else if (element.serverId == endIndex){
@@ -499,7 +499,7 @@ export function setupHandlers(board: ClientBoard) {
         // edges = new_graph.edges marche pas car bizarrement ça ne copie pas les méthodes ...
 
         for (const element of board.elements.values()){
-            if (element instanceof VertexElement){
+            if (element instanceof BoardVertex){
                 board.deleteVertex(element.serverId);
             } else if(element instanceof LinkElement) {
                 board.deleteLink(element.serverId);
@@ -507,7 +507,7 @@ export function setupHandlers(board: ClientBoard) {
         }
 
         for (const data of rawVertices) {
-            new VertexElement(board, data[0], data[1].data.pos.x, data[1].data.pos.y, "", data[1].data.weight, data[1].data.color as Color)
+            new BoardVertex(board, data[0], data[1].data.pos.x, data[1].data.pos.y, "", data[1].data.weight, data[1].data.color as Color)
         }
 
         for (const data of rawLinks) {
@@ -527,10 +527,10 @@ export function setupHandlers(board: ClientBoard) {
 
             // Check if startIndex and endIndex vertices exist
 
-            let startVertex: undefined | VertexElement = undefined;
-            let endVertex: undefined | VertexElement = undefined;
+            let startVertex: undefined | BoardVertex = undefined;
+            let endVertex: undefined | BoardVertex = undefined;
             for (const element of board.elements.values()){
-                if (element instanceof VertexElement){
+                if (element instanceof BoardVertex){
                     if (element.serverId == rawLink.startVertex.index){
                         startVertex = element;
                     } else if (element.serverId == rawLink.endVertex.index){

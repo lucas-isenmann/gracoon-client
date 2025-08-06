@@ -7,7 +7,7 @@ import { BoardElementType } from "../board/board";
 import { StrokeElement } from "../board/elements/stroke";
 import { LinkElement } from "../board/elements/link";
 import { ShapeElement } from "../board/elements/shape";
-import { VertexElement } from "../board/elements/vertex";
+import { BoardVertex } from "../board/elements/vertex";
 
 
 export interface ELEMENT_DATA {
@@ -16,8 +16,8 @@ export interface ELEMENT_DATA {
 }
 
 export class ELEMENT_DATA_VERTEX {
-    element: VertexElement;
-    constructor(v: VertexElement){
+    element: BoardVertex;
+    constructor(v: BoardVertex){
         this.element = v;
     }
 }

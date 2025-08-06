@@ -4,7 +4,7 @@ import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../board";
 import { BoardElement } from "./element";
 import { Coord } from "gramoloss";
 import { CanvasVect } from "../display/canvasVect";
-import { VertexElement } from "./vertex";
+import { BoardVertex } from "./vertex";
 
 export class VerticesSubset implements BoardElement{
     id: number;
@@ -45,7 +45,7 @@ export class VerticesSubset implements BoardElement{
 
         for (const vId of vertices){
             const element = this.board.elements.get(vId);
-            if (element instanceof VertexElement){
+            if (element instanceof BoardVertex){
                 this.points.push(element.cameraCenter.serverPos)
             }
         }

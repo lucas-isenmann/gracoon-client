@@ -5,7 +5,7 @@ import { PreInteractor } from "../pre_interactor";
 import { Color, getCanvasColor } from "../../board/display/colors_v2";
 import { BoardElementType, ClientBoard } from "../../board/board";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
-import { VertexElement } from "../../board/elements/vertex";
+import { BoardVertex } from "../../board/elements/vertex";
 import { LocalPoint } from "../../board/elements/localPoint";
 import { LocalSegment } from "../../board/elements/segment";
 
@@ -139,7 +139,7 @@ export function createLinkInteractor(board: ClientBoard, orientation: ORIENTATIO
 
         const selectedVertex = board.getSpecificElementNearby(board.alignPosition(e, new Set(), board.camera), BoardElementType.Vertex, 15);
         console.log(selectedVertex);
-        if (selectedVertex instanceof VertexElement){
+        if (selectedVertex instanceof BoardVertex){
             if ( firstVertexIndex != selectedVertex.serverId) { // there is a vertex nearby and it is not the previous one
                 board.emitAddElement(
                     board.createLinkPreData(firstVertexIndex, selectedVertex.serverId, orientation)

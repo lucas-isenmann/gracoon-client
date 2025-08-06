@@ -4,7 +4,7 @@ import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { PreInteractor } from "../pre_interactor";
 import { TextZoneElement } from "../../board/elements/textZone";
-import { VertexElement } from "../../board/elements/vertex";
+import { BoardVertex } from "../../board/elements/vertex";
 import { LinkElement } from "../../board/elements/link";
 
 
@@ -31,7 +31,7 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
             input.style.left = "100px";
 
             input.value = "";
-            if (element instanceof VertexElement){
+            if (element instanceof BoardVertex){
                 input.value = element.innerLabel;
             } else if (element instanceof LinkElement){
                 input.value = element.label;
@@ -46,7 +46,7 @@ export function createTextInteractor(board: ClientBoard): PreInteractor{
 
             input.onkeyup = (e) => {
                 if ( input.textContent != null){
-                    if (element instanceof VertexElement){
+                    if (element instanceof BoardVertex){
                         board.emitUpdateElement(element.boardElementType, element.serverId, "weight", input.value);
                     } else if (element instanceof LinkElement){
                         board.emitUpdateElement(element.boardElementType, element.serverId, "weight", input.value);

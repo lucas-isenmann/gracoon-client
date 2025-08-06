@@ -22,7 +22,7 @@ export class VertexPreData {
 
 
 
-export class VertexElement implements BoardElement {
+export class BoardVertex implements BoardElement {
 
     cameraCenter: CanvasCoord;
     // serverCenter: Coord;
@@ -57,9 +57,9 @@ export class VertexElement implements BoardElement {
         board.verticesGroup.appendChild(circle);
         
         // Set circle attributes
-        circle.setAttribute("cx", `${this.cameraCenter.x}`);    // Center x coordinate
-        circle.setAttribute("cy", `${this.cameraCenter.y}`);    // Center y coordinate
-        circle.setAttribute("r", "5");     // Radius
+        circle.setAttribute("cx", `${this.cameraCenter.x}`);
+        circle.setAttribute("cy", `${this.cameraCenter.y}`);
+        circle.setAttribute("r", "5"); 
         circle.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode())); // Use provided color instead of hardcoded red
         circle.style.transformBox = "fill-box";
         
@@ -81,7 +81,21 @@ export class VertexElement implements BoardElement {
         board.elements.set(this.id, this);
         board.elementCounter += 1;
 
+        if (board.showInnerLabels == false){
+            this.hideInnerLabel()
+        }
+
         board.resetGraph() 
+    }
+
+    hideInnerLabel(){
+        this.innerLabelSVG.setAttribute("display", "none");
+        this.disk.setAttribute("r", "2")
+    }
+
+    showInnerLabel(){
+        this.innerLabelSVG.removeAttribute("display");
+        this.disk.setAttribute("r", "5")
     }
 
 

@@ -23,7 +23,7 @@ import { EntireZone } from "../parametors/zone";
 import { Interactor } from "../side_bar/side_bar";
 import { ShapeElement } from "./elements/shape";
 import { LinkElement, LinkPreData } from "./elements/link";
-import { VertexElement, VertexPreData } from "./elements/vertex";
+import { BoardVertex, VertexPreData } from "./elements/vertex";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -135,6 +135,10 @@ export class ClientBoard  {
     gridPolarLines: Array<SVGLineElement> = new Array();
 
 
+    // Graph
+    showInnerLabels: boolean = true;
+
+
     constructor(container: HTMLElement){
 
         this.g = new Graph2();
@@ -166,13 +170,6 @@ export class ClientBoard  {
 
         this.isGraphClipboardGenerated = false;  
         
-
-    
-
-
-
-        
-
         
 
         // Init arrow head markers
@@ -338,6 +335,30 @@ export class ClientBoard  {
     }
 
 
+
+    toggleInnerLabels(b: boolean){
+        if (b == false){
+            this.showInnerLabels = false;
+            for (const elt of this.elements.values()){
+                if (elt instanceof BoardVertex){
+                    elt.hideInnerLabel();
+                }
+            }
+        }
+        else {
+            this.showInnerLabels = true;
+            for (const elt of this.elements.values()){
+                if (elt instanceof BoardVertex){
+                    elt.showInnerLabel();
+                }
+            }
+        }
+    }
+
+
+
+
+
     updateGridAfterCameraChange(){
 
         this.grid.updateToZoom(this.camera.zoom);
@@ -431,7 +452,7 @@ export class ClientBoard  {
         // console.log("reset Graph")
         this.g = new Graph2();
         for (const element of this.elements.values()){
-            if (element instanceof VertexElement){
+            if (element instanceof BoardVertex){
                 this.g.setVertex(element.serverId, new VertexData2(element.cameraCenter.serverPos, element.color, element.innerLabel, element.outerLabel) );
             }
         }
@@ -447,7 +468,7 @@ export class ClientBoard  {
         for (const [type, serverId, highlightValue] of indices){
             for (const element of this.elements.values()){
                 if (element.boardElementType == type && element.serverId == serverId  ){
-                    if (element instanceof VertexElement || element instanceof LinkElement){
+                    if (element instanceof BoardVertex || element instanceof LinkElement){
                         element.setHighlight(highlightValue)
                     }
                     break;
@@ -458,7 +479,7 @@ export class ClientBoard  {
 
     highlightVertex(serverId: number, value: number){
         for (const element of this.elements.values()){
-            if (element.serverId == serverId && element instanceof VertexElement ){
+            if (element.serverId == serverId && element instanceof BoardVertex ){
                 element.setHighlight(value)
                 break;
             }
@@ -668,9 +689,9 @@ export class ClientBoard  {
     }
 
 
-    getVertex(serverId: number): undefined | VertexElement {
+    getVertex(serverId: number): undefined | BoardVertex {
         for (const element of this.elements.values()){
-            if (element instanceof VertexElement && element.serverId == serverId){
+            if (element instanceof BoardVertex && element.serverId == serverId){
                 return element;
             }
         }
@@ -905,7 +926,7 @@ export class ClientBoard  {
     deleteVertex(serverId: number){
         // console.log("Board: delete vertex", serverId)
         for (const [key, element] of this.elements){
-            if (element instanceof VertexElement && element.serverId == serverId){
+            if (element instanceof BoardVertex && element.serverId == serverId){
                 element.delete();
                 this.elements.delete(key);
             }
@@ -1063,7 +1084,7 @@ export class ClientBoard  {
     addVerticesSubsetFromSelection(){
         const selectedVertices = [];
         for (const element of this.elements.values()){
-            if (element instanceof VertexElement && element.isSelected){
+            if (element instanceof BoardVertex && element.isSelected){
                 selectedVertices.push(element.id);
             }
         }
@@ -1113,7 +1134,7 @@ export class ClientBoard  {
 
     initRotateSelection(){
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 element.startRotate();
             }
         }
@@ -1121,7 +1142,7 @@ export class ClientBoard  {
 
     localRotateSelection(center: Coord, angle: number){
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 element.setAngle(center, angle);
             }
         }
@@ -1129,12 +1150,12 @@ export class ClientBoard  {
 
     endLocalRotateSelection(center: Coord, angle: number){
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 element.setAngle(center, angle);
             }
         }
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
@@ -1145,7 +1166,7 @@ export class ClientBoard  {
 
     localResizeSelection(center: Coord, ratio: number){
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 element.applyScale(center, ratio);
             }
         }
@@ -1153,12 +1174,12 @@ export class ClientBoard  {
 
     endLocalResizeSelection(center: Coord, ratio: number){
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 element.applyScale(center, ratio);
             }
         }
         for (const element of this.elements.values()){
-            if (element.isSelected && element instanceof VertexElement){
+            if (element.isSelected && element instanceof BoardVertex){
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
                 const cshift = this.camera.create_canvas_vect(shift);
                 element.translate(cshift.opposite())
@@ -1246,7 +1267,7 @@ export class ClientBoard  {
         // }
 
         for (const element of this.elements.values()){
-            if ( interactable_element_type.has(DOWN_TYPE.VERTEX) && element instanceof VertexElement){
+            if ( interactable_element_type.has(DOWN_TYPE.VERTEX) && element instanceof BoardVertex){
                 if (element.isNearby(pos, 15)){
                     return new ELEMENT_DATA_VERTEX(element);
                 }
@@ -1343,7 +1364,7 @@ export class ClientBoard  {
 
     unhighlightAll(){
         for (const element of this.elements.values()){
-            if (element instanceof VertexElement || element instanceof LinkElement){
+            if (element instanceof BoardVertex || element instanceof LinkElement){
                 element.unHighlight();
             }
         }
@@ -1358,7 +1379,7 @@ export class ClientBoard  {
     getSelectedVertices(): Set<number> {
         const set = new Set<number>();
         for (const element of this.elements.values()){
-            if (element instanceof VertexElement){
+            if (element instanceof BoardVertex){
                 if (element.isSelected){
                     set.add(element.serverId);
                 }
@@ -1503,7 +1524,7 @@ export class ClientBoard  {
         if ( sendVerticesSelection){
             const verticesSelection = new Array<number>();
             for (const vertex of this.elements.values()){
-                if (vertex instanceof VertexElement && vertex.isSelected){
+                if (vertex instanceof BoardVertex && vertex.isSelected){
                     verticesSelection.push(vertex.serverId);
                 }
             }

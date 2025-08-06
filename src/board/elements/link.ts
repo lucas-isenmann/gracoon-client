@@ -5,7 +5,7 @@ import katex from "katex";
 import { BoardElementType, ClientBoard } from "../board";
 import { CanvasCoord } from "../display/canvas_coord";
 import { CanvasVect } from "../display/canvasVect";
-import { VertexElement } from "./vertex";
+import { BoardVertex } from "./vertex";
 
 export class LinkPreData {
     startIndex: number;
@@ -33,8 +33,8 @@ export class LinkElement implements BoardElement {
     boardElementType: BoardElementType;
     color: Color;
     isSelected: boolean = false;
-    startVertex: VertexElement;
-    endVertex: VertexElement;
+    startVertex: BoardVertex;
+    endVertex: BoardVertex;
     line: SVGLineElement;
     isDirected: boolean;
     board: ClientBoard;
@@ -45,7 +45,7 @@ export class LinkElement implements BoardElement {
     
 
 
-    constructor(board: ClientBoard, serverId: number, startVertex: VertexElement, endVertex: VertexElement, directed: boolean, label: string, color: Color){
+    constructor(board: ClientBoard, serverId: number, startVertex: BoardVertex, endVertex: BoardVertex, directed: boolean, label: string, color: Color){
         this.id = board.elementCounter;
         this.cameraCenter = new CanvasCoord(0,0, board.camera);
         this.color = color;

@@ -119,6 +119,11 @@ function setup() {
                 new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
                 new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {localBoard.addVerticesSubsetFromSelection();}),
                 new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
+                new PreSwitch(false, "grid", "Show/Hide Inner Labels", () => {
+                    localBoard.toggleInnerLabels(false);
+                }, () => {
+                    localBoard.toggleInnerLabels(true);
+                })
             ]),
             
             

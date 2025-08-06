@@ -4,7 +4,7 @@ import { PreInteractor } from '../pre_interactor';
 import { ClientBoard } from '../../board/board';
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from '../../interactors/pointed_element_data';
 import { Option } from 'gramoloss';
-import { VertexElement } from '../../board/elements/vertex';
+import { BoardVertex } from '../../board/elements/vertex';
 import { LinkElement } from '../../board/elements/link';
 
 // INTERACTOR DETECTOR
@@ -26,7 +26,7 @@ export function createDetectorInteractor(board: ClientBoard){
         infobox.style.left = String(pos.x+10) + "px";
     }
 
-    function set_vertex_infobox(vertex: VertexElement, pos: CanvasCoord){
+    function set_vertex_infobox(vertex: BoardVertex, pos: CanvasCoord){
         set_element_infobox(pos);
         infobox.innerHTML = 
         "Vertex index: " + vertex.id + "<br>" +

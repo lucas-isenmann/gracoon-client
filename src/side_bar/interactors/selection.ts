@@ -11,7 +11,7 @@ import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { GridType } from "../../board/display/grid";
 import { blurProperties, showProperties } from "../../board/attributes";
-import { VertexElement } from "../../board/elements/vertex";
+import { BoardVertex } from "../../board/elements/vertex";
 import { Color } from "../../board/display/colors_v2";
 import { Rectangle } from "../../board/elements/rectangle";
 import { LocalPoint } from "../../board/elements/localPoint";
@@ -104,7 +104,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             }
         } 
         // Mouse down on Vertex
-        else if ( pointed.data.element instanceof VertexElement){
+        else if ( pointed.data.element instanceof BoardVertex){
             const v = pointed.data.element;
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter.setLocalPos(v.cameraCenter.x, v.cameraCenter.y);
@@ -371,7 +371,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             
             const vertexMoved = pointed.data.element;
             for( const v of board.elements.values()){
-                if( v instanceof VertexElement && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.cameraCenter, 10)){
+                if( v instanceof BoardVertex && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.cameraCenter, 10)){
                     board.emitVerticesMerge(v.serverId, pointed.data.element.serverId);
                     break;
                 }
