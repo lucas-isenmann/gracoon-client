@@ -113,21 +113,21 @@ export class ParametorLoaded {
 
         // Reload button
         if(!this.parametor.is_live){
-            let div_button = document.createElement("div");
-            div_button.classList.add("hidden_button_div", "hidden_reload");
+            let divButton = document.createElement("div");
+            divButton.classList.add("hidden_button_div", "hidden_reload");
 
-            let svg_reload_parametor = document.createElement("img");
-            div_button.appendChild(svg_reload_parametor);
+            let svgReloadParametor = document.createElement("img");
+            divButton.appendChild(svgReloadParametor);
 
-            svg_reload_parametor.classList.add("white_svg", "hidden_button");
-            svg_reload_parametor.id = "img_reload_" + this.id;
-            svg_reload_parametor.title = "Recompute parameter";
-            svg_reload_parametor.src = "/img/parametor/reload.svg";
-            svg_reload_parametor.addEventListener('click', ()=>{
+            svgReloadParametor.classList.add("white_svg", "hidden_button");
+            svgReloadParametor.id = "img_reload_" + this.id;
+            svgReloadParametor.title = "Recompute parameter";
+            svgReloadParametor.src = "/img/parametor/reload.svg";
+            svgReloadParametor.addEventListener('click', ()=>{
                 update_parametor(board, paramLoaded );
             });
-            svg_reload_parametor.classList.add("reload_img");
-            div_hidden_buttons.appendChild(div_button);
+            svgReloadParametor.classList.add("reload_img");
+            div_hidden_buttons.appendChild(divButton);
         }
         else{
             let empty_reload_parametor = document.createElement("span");

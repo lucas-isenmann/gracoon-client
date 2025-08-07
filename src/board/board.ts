@@ -1,4 +1,4 @@
-import { Coord, EmbeddedGraph, GeneratorId, linesIntersection, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
+import { Board, Coord, EmbeddedGraph, GeneratorId, linesIntersection, Option, ORIENTATION, TextZone, Vect } from "gramoloss";
 import { DOWN_TYPE, RESIZE_TYPE } from "../interactors/interactor";
 import { GraphModifyer } from "../modifyers/modifyer";
 import { socket } from "../socket";
@@ -134,9 +134,11 @@ export class ClientBoard  {
     gridPolarCircles: Array<SVGCircleElement> = new Array();
     gridPolarLines: Array<SVGLineElement> = new Array();
 
+    // Elements attributes
+    attributesDiv: HTMLDivElement = document.createElement("div");
 
     // Graph
-    showInnerLabels: boolean = true;
+    showInnerLabels: boolean = false;
 
 
     constructor(container: HTMLElement){
@@ -329,15 +331,86 @@ export class ClientBoard  {
         new EntireZone(this);
 
 
-        
+        // Attributes
+        this.attributesDiv.id = "attributes-div";
+        container.appendChild(this.attributesDiv);
+
+        // Delete elements
+        const bin = document.createElement("img");
+        bin.src = "/img/icons/bin.svg"
+        bin.classList.add("attribute")
+        this.attributesDiv.appendChild(bin);
+        bin.onclick = () => {
+            this.emitDeleteElements(this.getSelectedElements());
+            this.clearSelection();
+        }
+
+        // Color elements
+        for (const color of colorsData){
+            const colorPicker = document.createElement("div");
+            colorPicker.classList.add("attributes-color")
+            colorPicker.classList.add("attribute")
+            colorPicker.style.backgroundColor = getCanvasColor(color[0], this.darkMode);
+            this.attributesDiv.appendChild(colorPicker);
+            colorPicker.onclick = () => {
+                for (const [type, serverId]  of this.getSelectedElements()){
+                    this.emitUpdateElement( type, serverId, "color", color[0]);
+                }
+                this.clearSelection();
+            }
+        }
+
+
+        // Dashed style
+        const lineStyleDashed = document.createElement("img");
+        lineStyleDashed.src = "/img/icons/stroke_dashed.svg"
+        lineStyleDashed.classList.add("attribute")
+        this.attributesDiv.appendChild(lineStyleDashed);
+        lineStyleDashed.onclick = () => {
+            for (const [type, serverId]  of this.getSelectedElements()){
+                if (type == BoardElementType.Link){
+                    this.emitUpdateElement( type, serverId, "strokeStyle", "dashed");
+                }
+            }
+            this.clearSelection();
+        }
+
+        // Normal style
+        const lineStyleNormal = document.createElement("img");
+        lineStyleNormal.src = "/img/icons/stroke_normal.svg"
+        lineStyleNormal.classList.add("attribute")
+        this.attributesDiv.appendChild(lineStyleNormal);
+        lineStyleNormal.onclick = () => {
+            for (const [type, serverId]  of this.getSelectedElements()){
+                if (type == BoardElementType.Link){
+                    this.emitUpdateElement( type, serverId, "strokeStyle", "normal");
+                }
+            }
+            this.clearSelection();
+        }
 
         
     }
 
 
+    showAttributes(){
+        this.attributesDiv.style.display = "block";
+        const [x,y,w,h] = this.getSelectionBoundingBox()
+
+        const pos = CanvasCoord.fromCoord(new Coord(x,y), this.camera);
+        this.attributesDiv.style.top = `${pos.y+10}px`;
+        this.attributesDiv.style.left = `${pos.x+10+w*this.camera.zoom}px`
+
+    }
+
+    hideAttributes(){
+        this.attributesDiv.style.display = "none";
+    }
+
+
 
     toggleInnerLabels(b: boolean){
-        if (b == false){
+        if (this.showInnerLabels){
             this.showInnerLabels = false;
             for (const elt of this.elements.values()){
                 if (elt instanceof BoardVertex){
@@ -1076,6 +1149,7 @@ export class ClientBoard  {
                 element.select();
             }
         }
+        this.showAttributes()
     }
 
     /**
@@ -1098,16 +1172,16 @@ export class ClientBoard  {
 
     /**
      * 
-     * @returns x, y, width, height
+     * @returns [x, y, width, height] in Server Coord
      */
-    getSelectionBoundingBox() {
+    getSelectionBoundingBox(): [number, number, number, number] {
         let noSelection = true;
         let x = 0;
         let y = 0;
         let maxX = 0;
         let maxY = 0;
         for (const element of this.elements.values()) {
-            if (element.isSelected && element instanceof LinkElement == false){
+            if (element.isSelected){
                 // console.log("selected:", element.serverCenter)
                 if (noSelection){
                     noSelection = false;
@@ -1122,7 +1196,6 @@ export class ClientBoard  {
                 maxY = maxY > element.cameraCenter.serverPos.y ? maxY : element.cameraCenter.serverPos.y;
             }
         }
-        // console.log(x,y, maxX, maxY)
         return [x, y, maxX-x, maxY-y]
     }
 
@@ -1359,7 +1432,7 @@ export class ClientBoard  {
     }
 
     deselectAll(){
-        this.clearAllSelections();
+        this.clearSelection();
     }
 
     unhighlightAll(){
@@ -1398,10 +1471,11 @@ export class ClientBoard  {
         return t;
     }
 
-    clearAllSelections() {
+    clearSelection() {
         for (const element of this.elements.values()){
             element.deselect();
         }
+        this.hideAttributes()
     }
 
     setC1(serverId: number, x: number, y: number){

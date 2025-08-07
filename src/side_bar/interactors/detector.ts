@@ -51,7 +51,7 @@ export function createDetectorInteractor(board: ClientBoard){
     interactor.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof pointed == "undefined") return false;
 
-        board.clearAllSelections();
+        board.clearSelection();
         const element = board.get_element_nearby(e, interactor.interactable_element_type);
         if ( element instanceof ELEMENT_DATA_VERTEX ){
             set_vertex_infobox(element.element, e);

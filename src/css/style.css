@@ -4,6 +4,7 @@
 @import url('elements/stroke.css');
 @import url('elements/verticesSubset.css');
 @import url('code_editor.css');
+@import url('attributes.css');
 
 html,
 body {

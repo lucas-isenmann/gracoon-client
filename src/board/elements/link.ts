@@ -13,6 +13,7 @@ export class LinkPreData {
     orientation: ORIENTATION;
     weight: string;
     color: Color;
+    strokeStyle: string = "normal";
 
     constructor(startIndex: number, endIndex: number, orientation: ORIENTATION, weight: string, color: Color){
         this.startIndex = startIndex;
@@ -40,12 +41,14 @@ export class LinkElement implements BoardElement {
     board: ClientBoard;
     highlight: number | undefined;
 
+    strokeStyle: string = "normal";
+
     label: string = "";
     labelSVG: SVGForeignObjectElement;
     
 
 
-    constructor(board: ClientBoard, serverId: number, startVertex: BoardVertex, endVertex: BoardVertex, directed: boolean, label: string, color: Color){
+    constructor(board: ClientBoard, serverId: number, startVertex: BoardVertex, endVertex: BoardVertex, directed: boolean, label: string, color: Color, strokeStyle: string){
         this.id = board.elementCounter;
         this.cameraCenter = new CanvasCoord(0,0, board.camera);
         this.color = color;
@@ -68,6 +71,7 @@ export class LinkElement implements BoardElement {
         this.line.setAttribute("stroke-width", "2");
         this.line.classList.add("link")
         this.line.style.transformBox = "fill-box";
+        this.setDashArray(strokeStyle);
 
         if (this.isDirected) {
             const markerId = `arrow-head-${this.color}`;
@@ -113,6 +117,15 @@ export class LinkElement implements BoardElement {
     setLabel(value: string) {
         this.label = value;
         this.labelSVG.innerHTML = katex.renderToString(this.label);
+    }
+
+    setDashArray(style: string){
+        this.strokeStyle = style;
+        if (style == "normal"){
+            this.line.removeAttribute("stroke-dasharray");
+        } else if (style == "dashed"){
+            this.line.setAttribute("stroke-dasharray", "10,10");
+        }
     }
 
     updateAfterCameraChange() {
@@ -170,7 +183,7 @@ export class LinkElement implements BoardElement {
         //         }
         //     }
         // }
-        return this.startVertex.isInRect(c1, c2) || this.endVertex.isInRect(c1, c2);
+        return this.startVertex.isInRect(c1, c2) && this.endVertex.isInRect(c1, c2);
     }
 
 

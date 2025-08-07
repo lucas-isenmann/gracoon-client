@@ -1,0 +1,28 @@
+
+#attributes-div {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    top: 0;
+    left: 0;
+    display: none;
+
+    padding: 20px;
+    color: white;
+    background-color: rgb(56, 56, 56);
+    border-radius: 50px;
+}
+
+
+.attribute {
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    margin: 3px;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.attribute:hover {
+    border: 3px solid black;
+}

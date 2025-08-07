@@ -1,5 +1,5 @@
 
-/* @keyframes vertexCreate {
+@keyframes vertexCreate {
     0% {
         transform-origin: center;
         transform: scale(4);
@@ -16,14 +16,14 @@
         transform: scale(1); }
     to { transform-origin: center;
         transform: scale(2); }
-  }
+}
 
   @keyframes deselectVertex {
     from { transform-origin: center;
         transform: scale(2); }
     to { transform-origin: center;
         transform: scale(1); }
-  } */
+  }
 
 @keyframes pulseStroke {
     0%, 100% { stroke-width: 4; }
@@ -51,7 +51,9 @@
 }
 
 .vertex.selected {
-    fill: rgb(214, 245, 38);
+    /* fill: rgb(214, 245, 38); */
+    transform-origin: center;
+    transform: scale(2); 
     /* animation: selectVertex 0.5s ease-out forwards; */
 }
 

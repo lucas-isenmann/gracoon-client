@@ -294,6 +294,7 @@ export function setupHandlers(board: ClientBoard) {
                 }
                 const color = data.element.data.color as Color;
                 const weight = data.element.data.weight as string;
+                const strokeStyle = data.element.data.strokeStyle as string;
 
                 // const newLinkData = new ClientLinkData(cp, color, weight, board.camera);
                 // const newLink = board.graph.setLink(data.index, startIndex, endIndex, orient, newLinkData);
@@ -313,7 +314,7 @@ export function setupHandlers(board: ClientBoard) {
                 }
 
                 if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
-                    new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color );
+                    new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color, strokeStyle);
                     updateParamsLoaded(board, new Set([SENSIBILITY.ELEMENT]), false);
                 }
 
@@ -384,6 +385,9 @@ export function setupHandlers(board: ClientBoard) {
 
             const link = board.getLink(data.index);
             if (typeof link == "undefined") return;
+            if (data.param == "strokeStyle"){
+                link.setDashArray(data.value);
+            }
             if (data.param == "weight"){
                 const text = data.value as string;
                 link.setLabel(text);
@@ -489,7 +493,7 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleResetGraph(
         rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, color: string}}]], 
-        rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string} }]], 
+        rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string, strokeStyle: string} }]], 
         sensibilities: [SENSIBILITY])
          {
         console.log("[Handle] resetGraph");
@@ -540,7 +544,7 @@ export function setupHandlers(board: ClientBoard) {
             }
 
             if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
-                new LinkElement(board, data[0], startVertex, endVertex, orient == ORIENTATION.DIRECTED, rawLink.data.weight, rawLink.data.color as Color);
+                new LinkElement(board, data[0], startVertex, endVertex, orient == ORIENTATION.DIRECTED, rawLink.data.weight, rawLink.data.color as Color, rawLink.data.strokeStyle);
             }
 
 

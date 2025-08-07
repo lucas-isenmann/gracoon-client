@@ -338,13 +338,13 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 rotaCenter.show();
 
             } else {
-                board.clearAllSelections();
+                board.clearSelection();
             }
         }
         else if (hasMoved == false){
             if (board.keyPressed.has("Shift")){
                 if (board.keyPressed.has("Control") == false) { 
-                    board.clearAllSelections();
+                    board.clearSelection();
                 }
                 if (pointed.data instanceof ELEMENT_DATA_VERTEX){
                     board.selectConnectedComponent(pointed.data.element.serverId);
@@ -360,9 +360,10 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                         pointed.data.element.select();
                     }
                     else {
-                        board.clearAllSelections();
+                        board.clearSelection();
                         pointed.data.element.select();
                     }
+                    board.showAttributes();
                 }
             }
 

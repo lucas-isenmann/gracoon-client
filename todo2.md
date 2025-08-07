@@ -4,8 +4,10 @@
 - triangle horizontal grid
 - select connected subgraph
 - hide innerlabels
-- generate graphviz for typst
+- export graphviz for typst
 - export to SVG
+- change title
+- align on vertices when moving
 
 ## Board
 - resetGraph

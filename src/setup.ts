@@ -117,9 +117,10 @@ function setup() {
             new PreFolder( "generator", [
                 new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
                 new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
-                new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {localBoard.addVerticesSubsetFromSelection();}),
+                // new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {localBoard.addVerticesSubsetFromSelection();}),
                 new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
-                new PreSwitch(false, "grid", "Show/Hide Inner Labels", () => {
+                new PreLauncher("script_editor", "Script editor", "",() => {document.getElementById('editor-container')?.classList.toggle('hidden')}),
+                new PreSwitch(false, "vertices_labels", "Show/Hide Inner Labels", () => {
                     localBoard.toggleInnerLabels(false);
                 }, () => {
                     localBoard.toggleInnerLabels(true);
@@ -201,7 +202,6 @@ function setup() {
                 });
             }),
             new PreLauncher("help", "Help", "", launchHelpPopUp),
-            new PreLauncher("script_editor", "Script editor", "",() => {document.getElementById('editor-container')?.classList.toggle('hidden')})
 
     ]);
 
