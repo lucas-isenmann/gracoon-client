@@ -5,7 +5,7 @@ import { ClientBoard } from '../../board/board';
 import { ELEMENT_DATA_LINK, ELEMENT_DATA_VERTEX, PointedElementData } from '../../interactors/pointed_element_data';
 import { Option } from 'gramoloss';
 import { BoardVertex } from '../../board/elements/vertex';
-import { LinkElement } from '../../board/elements/link';
+import { BoardLinkElement } from '../../board/elements/link';
 
 // INTERACTOR DETECTOR
 
@@ -37,7 +37,7 @@ export function createDetectorInteractor(board: ClientBoard){
         "canvas_y: " + Math.floor(vertex.cameraCenter.y);
     }
 
-    function set_link_infobox(link: LinkElement, pos: CanvasCoord){
+    function set_link_infobox(link: BoardLinkElement, pos: CanvasCoord){
         set_element_infobox(pos);
         infobox.innerHTML = JSON.stringify(link, null, "&nbsp&nbsp&nbsp").replace(/\n/g, "<br />");;
     }

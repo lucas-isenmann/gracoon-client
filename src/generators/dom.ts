@@ -138,7 +138,6 @@ function activateGeneratorDiv( gen: GraphGenerator, board: ClientBoard) {
         for ( const p of gen.attributes){
             params.push(p.value)
         }
-        // board.emitGenerateGraph( gen.id, params);
 
 
         for( const attribute of gen.attributes.values() ){

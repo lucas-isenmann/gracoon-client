@@ -19,10 +19,10 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     constructor(board: ClientBoard, c1: Coord, c2: Coord){
         super(board.graph,c1,c2);
         this.board = board;
-        this.canvas_corner_top_left = board.camera.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = board.camera.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = board.camera.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = board.camera.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = board.camera.createCanvasCoord(this.top_left_corner());
+        this.canvas_corner_bottom_left = board.camera.createCanvasCoord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = board.camera.createCanvasCoord(this.bot_right_corner());
+        this.canvas_corner_top_right = board.camera.createCanvasCoord(this.top_right_corner());
         this.overVertex = undefined;
     }
 
@@ -87,7 +87,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
         
         // draw arcs
         for (const [index1, x1] of this.x.entries()){
-            const canvas_coord1 = this.board.camera.create_canvas_coord(new Coord(x1,y));
+            const canvas_coord1 = this.board.camera.createCanvasCoord(new Coord(x1,y));
             for (const [index2, x2] of this.x.entries()){
                 if (x1 < x2){
                     if (this.board.graph.hasLink(index2, index1, ORIENTATION.DIRECTED)){
@@ -97,7 +97,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
                         } else {
                             this.board.ctx.strokeStyle = "blue";
                         }
-                        const canvas_coord2 = this.board.camera.create_canvas_coord(new Coord(x2,y));
+                        const canvas_coord2 = this.board.camera.createCanvasCoord(new Coord(x2,y));
                         const xmiddle = (canvas_coord1.x + canvas_coord2.x)/2;
                         this.board.ctx.beginPath();
                         this.board.ctx.moveTo(canvas_coord1.x, canvas_coord1.y);
@@ -111,7 +111,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
 
         // draw points
         for (const [index, x] of this.x.entries()){
-            const canvas_coord = this.board.camera.create_canvas_coord(new Coord(x,y));
+            const canvas_coord = this.board.camera.createCanvasCoord(new Coord(x,y));
             drawCircle(canvas_coord, "black", 14, 1, this.board.ctx);
             drawCircle(canvas_coord, "blue", 12, 1, this.board.ctx);
             drawCircle(canvas_coord, "black", 10, 1, this.board.ctx);
@@ -153,7 +153,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
             }
             this.board.ctx.font = "17px Arial";
             const measure = this.board.ctx.measureText(String(dwc));
-            const pos = this.board.camera.create_canvas_coord(new Coord(x1,y));
+            const pos = this.board.camera.createCanvasCoord(new Coord(x1,y));
             if (dwc == dw){
                 drawCircle(new CanvasCoord(pos.x, pos.y + 25), "red", 10, 0.5, this.board.ctx);
             }
@@ -171,7 +171,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
            
             this.board.ctx.font = "17px Arial";
             const measure = this.board.ctx.measureText(String(indegree));
-            const pos = this.board.camera.create_canvas_coord(new Coord(x1,y));
+            const pos = this.board.camera.createCanvasCoord(new Coord(x1,y));
             if ( this.board.isDarkMode()){
                 this.board.ctx.fillStyle = "white";
             } else {
@@ -184,16 +184,16 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     update_after_camera_change(camera: Camera){
-        this.canvas_corner_top_left = camera.create_canvas_coord(this.top_left_corner());
-        this.canvas_corner_bottom_left = camera.create_canvas_coord(this.bot_left_corner());
-        this.canvas_corner_bottom_right = camera.create_canvas_coord(this.bot_right_corner());
-        this.canvas_corner_top_right = camera.create_canvas_coord(this.top_right_corner());
+        this.canvas_corner_top_left = camera.createCanvasCoord(this.top_left_corner());
+        this.canvas_corner_bottom_left = camera.createCanvasCoord(this.bot_left_corner());
+        this.canvas_corner_bottom_right = camera.createCanvasCoord(this.bot_right_corner());
+        this.canvas_corner_top_right = camera.createCanvasCoord(this.top_right_corner());
     }
 
     click_over(pos: CanvasCoord, camera: Camera): number | string {
         const y = this.getYLine();
         for ( const [index, x] of this.x.entries()){
-            const canvas_coord = camera.create_canvas_coord(new Coord(x,y));
+            const canvas_coord = camera.createCanvasCoord(new Coord(x,y));
             if (canvas_coord.is_nearby(pos, 200)){
                 this.overVertex = index;
                 return index;
@@ -204,7 +204,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     translate_element_by_canvas_vect(index: number, cshift: CanvasVect, camera: Camera){
-        const shift = camera.server_vect(cshift);
+        const shift = camera.serverVect(cshift);
         const x = this.x.get(index);
         if (typeof x != "undefined"){
             this.x.set(index, x + shift.x);
@@ -212,7 +212,7 @@ export class ClientDegreeWidthRep extends DegreeWidthRep<ClientVertex, ClientLin
     }
 
     translate_by_canvas_vect(cshift: CanvasVect, camera: Camera){
-        const shift = camera.server_vect(cshift);
+        const shift = camera.serverVect(cshift);
         for (const [index, x] of this.x.entries()){
             if (typeof x != "undefined"){
                 this.x.set(index, x + shift.x);

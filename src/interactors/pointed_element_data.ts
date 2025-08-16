@@ -5,7 +5,7 @@ import { RESIZE_TYPE } from "./interactor";
 import { BoardElement } from "../board/elements/element";
 import { BoardElementType } from "../board/board";
 import { StrokeElement } from "../board/elements/stroke";
-import { LinkElement } from "../board/elements/link";
+import { BoardLinkElement } from "../board/elements/link";
 import { ShapeElement } from "../board/elements/shape";
 import { BoardVertex } from "../board/elements/vertex";
 
@@ -23,15 +23,15 @@ export class ELEMENT_DATA_VERTEX {
 }
 
 export class ELEMENT_DATA_LINK {
-    element: LinkElement;
-    constructor(l: LinkElement){
+    element: BoardLinkElement;
+    constructor(l: BoardLinkElement){
         this.element = l;
     }
 }
 
 export class ELEMENT_DATA_CONTROL_POINT {
-    element: LinkElement;
-    constructor(l: LinkElement){
+    element: BoardLinkElement;
+    constructor(l: BoardLinkElement){
         this.element = l;
     }
 }

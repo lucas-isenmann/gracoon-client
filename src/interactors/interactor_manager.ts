@@ -76,9 +76,9 @@ export function setupInteractions(board: ClientBoard) {
 
     board.svgContainer.addEventListener("wheel", function (e) {
         if (e.deltaY > 0) {
-            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY, board.camera), 1 / 1.1);
+            board.camera.applyZoomToCenter(new CanvasCoord(e.pageX, e.pageY, board.camera), 1 / 1.1);
         } else {
-            board.camera.apply_zoom_to_center(new CanvasCoord(e.pageX, e.pageY, board.camera), 1.1);
+            board.camera.applyZoomToCenter(new CanvasCoord(e.pageX, e.pageY, board.camera), 1.1);
         }
         board.updateAfterCameraChange();
 
@@ -99,7 +99,7 @@ export function setupInteractions(board: ClientBoard) {
         // console.log("mouseup")
         mousePos = new CanvasCoord(e.pageX, e.pageY, board.camera);
         board.selfUser.canvasPos = new CanvasCoord(e.pageX, e.pageY, board.camera);
-        mousePos = board.alignPosition(mousePos, new Set(), board.camera);
+        mousePos = board.alignPosition(mousePos, new Set());
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
@@ -203,11 +203,11 @@ export function setupInteractions(board: ClientBoard) {
         // else
          if (e.buttons == 2){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
+            const magnetPos = board.alignPosition(mousePos, new Set());
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons,  undefined );
         } else if (typeof board.interactorLoaded != "undefined"){
             const pointedPos = mousePos.copy();
-            const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
+            const magnetPos = board.alignPosition(mousePos, new Set());
             const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, data );
             board.interactorLoaded.mousedown(board, lastPointedElement);
@@ -226,7 +226,7 @@ export function setupInteractions(board: ClientBoard) {
         if (typeof board.interactorLoaded == "undefined") return;
         const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
         const pointedPos = mousePos.copy();
-        const magnetPos = board.alignPosition(mousePos, new Set(), board.camera);
+        const magnetPos = board.alignPosition(mousePos, new Set());
         lastPointedElement = new PointedElementData(pointedPos, magnetPos, 0, data );
         board.interactorLoaded.mousedown(board, lastPointedElement);
     });

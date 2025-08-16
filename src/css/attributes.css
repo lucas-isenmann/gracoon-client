@@ -26,3 +26,32 @@
 .attribute:hover {
     border: 3px solid black;
 }
+
+
+/* Attribute input */
+.attribute-input {
+    height: 30px;
+    border-radius: 20px;
+    background-color: #1a1a1a;
+    padding-left: 15px;
+    color: white;
+    border: none;
+    outline: none;
+    transition: all 0.3s ease;
+    max-width: 300px;
+    margin-bottom: 10px;
+}
+
+.attribute-input:hover {
+    background-color: #2d2d2d;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.attribute-input:focus {
+    background-color: #333;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.attribute-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}

@@ -1,6 +1,8 @@
 import { ORIENTATION } from "gramoloss";
 import { Color } from "./display/colors_v2";
 import { Graph2 } from "./graph2";
+import { ClientBoard } from "./board";
+import { ShapeElement } from "./elements/shape";
 
 
 
@@ -60,15 +62,27 @@ function genHeader(g: Graph2) {
 % \\usepackage{tikz}
 % \\usetikzlibrary{calc, arrows.meta}
 \\begin{tikzpicture}
-    [
-        yscale=-1,
-        node_style/.style={circle, draw, inner sep=0.05cm} ${arcStyle}
-    ]
-    \\def\\fscale{5} % Change this to scale the coordinates without scaling the text
+    [ node_style/.style={circle, draw, inner sep=0.05cm} ${arcStyle} ]
+    \\def\\fscale{2} % Change this to scale the coordinates without scaling the text
 `
 }
 
 
+function coordinates(posX: number, posY: number, minX: number, minY: number, w: number, h: number, figSize: number): [number, number] {
+    let x = (posX - minX)/w - 0.5
+    let y = (posY - minY)/h - 0.5
+
+    if (w >= h){
+        x *= figSize
+        y *= figSize*h/w
+    } else {
+        x *= figSize *w/h
+        y *= figSize
+    }
+    x = Number(x.toFixed(3));
+    y = Number(-y.toFixed(3));
+    return [x,y]
+}
 
 
 /**
@@ -79,11 +93,11 @@ function genHeader(g: Graph2) {
     \node[node_style] (v) at (4.2, 2.8) {$v$};
     \node[node_style] (a) at (4.2, 3.2) {$a$};
  */
-function defineNodes(g: Graph2, figSize: number) {
+function defineNodes(g: Graph2, figSize: number): [string, number, number, number, number] {
 
-    figSize /= 2;
+    figSize /= 1;
 
-    if (g.vertices.size == 0){ return ""};
+    if (g.vertices.size == 0){ return ["", 0,0,1,1]};
 
     let minX = Infinity
     let maxX = -Infinity;
@@ -100,8 +114,6 @@ function defineNodes(g: Graph2, figSize: number) {
     const w = maxX - minX;
     const h = maxY - minY;
 
-    console.log(w, h)
-
 
     let str = `\t% Draw nodes\n`
     for (const [id, v] of g.vertices) {
@@ -109,18 +121,7 @@ function defineNodes(g: Graph2, figSize: number) {
         if (v.data.innerLabel != ""){
             label = `{$${v.data.innerLabel}$}`
         }
-        let x = (v.data.pos.x - minX)/w - 0.5
-        let y = (v.data.pos.y - minY)/h - 0.5
-
-        if (w >= h){
-            x *= figSize
-            y *= figSize*h/w
-        } else {
-            x *= figSize *w/h
-            y *= figSize
-        }
-        x = Number(x.toFixed(2));
-        y = Number(y.toFixed(2));
+        let [x,y] = coordinates(v.data.pos.x, v.data.pos.y, minX, minY, w, h, figSize);
 
         let color = "";
         if (v.data.color != Color.Neutral){
@@ -135,7 +136,7 @@ function defineNodes(g: Graph2, figSize: number) {
         str += `\t \\node[node_style${color}${outLabel}] (${id}) at ($\\fscale*(${x}, ${y})$) ${label};\n`;
         // str += `\t \\node[node_style${color}${outLabel}] (${id}) at (${x}, ${y}) ${label};\n`;
     }
-    return str;
+    return [str, minX, minY, w,h];
 }
 
 /**
@@ -148,7 +149,7 @@ function defineNodes(g: Graph2, figSize: number) {
     \draw[arc_style] (v) to[bend left=30] node[midway, left] {1} (a);
     \draw[arc_style] (a) to[bend left=30] node[midway, right] {1/2} (v);
  */
-function createLinks(g: Graph2) {
+function createLinks(g: Graph2): string {
     let str = "\t% Draw edges and arcs\n";
     for (const link of g.links.values()) {
 
@@ -188,6 +189,34 @@ function createLinks(g: Graph2) {
 }
 
 
+function createRectangles(board: ClientBoard, minX: number, minY: number, w: number, h: number, figSize: number): string{
+    let str = "";
+
+    // \draw[rounded corners=5pt, color=gray]
+    //      ($\fscale*(0.17-0.2, -0.33-0.2)$) --
+    //     ($\fscale*(0.5+0.2, -0.33-0.2)$) -- 
+    //     ($\fscale*(0.5+0.2, 0.33+0.2)$) -- 
+    //     ($\fscale*(0.17-0.2, 0.33+0.2)$) -- cycle;
+
+    for (const element of board.elements.values()){
+        if (element instanceof ShapeElement){
+            let [x1,y1] = coordinates(element.canvasC1.serverPos.x , element.canvasC1.serverPos.y, minX, minY, w, h, figSize);
+            let [x2,y2] = coordinates(element.canvasC2.serverPos.x , element.canvasC2.serverPos.y, minX, minY, w, h, figSize);
+
+            str += 
+            `
+    \\draw[rounded corners=5pt, color=gray]
+        ($\\fscale*(${x1}, ${y1})$) --
+        ($\\fscale*(${x1}, ${y2})$) -- 
+        ($\\fscale*(${x2}, ${y2})$) -- 
+        ($\\fscale*(${x2}, ${y1})$) -- cycle;
+`
+        }
+    }
+    return str;
+}
+
+
 /**
  * 
  * // usepackage tikze
@@ -197,11 +226,13 @@ function createLinks(g: Graph2) {
  * @param figSize 
  * @returns 
  */
-export function generateTikz2(g: Graph2, figSize: number) {
+export function generateTikz2(board: ClientBoard, figSize: number) {
     let latex = "";
-    latex += genHeader(g);
-    latex += defineNodes(g, figSize) + "\n";
-    latex += createLinks(g);
+    latex += genHeader(board.g);
+    const [str, minX, minY, w,h] = defineNodes(board.g, figSize);
+    latex += str + "\n";
+    latex += createLinks(board.g);
+    latex += createRectangles(board, minX, minY, w,h, figSize);
     latex += "\\end{tikzpicture}\n";
     return latex;
 }

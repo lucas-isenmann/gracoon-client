@@ -164,7 +164,7 @@ function setup() {
                 new PreLauncher("export_tex", "Export graph in Tikz", "", () => {
                         // const tikzStr = TikZ_create_file_data(localBoard.graph);
                         localBoard.resetGraph();
-                        const tikzStr = generateTikz2(localBoard.g, 2);
+                        const tikzStr = generateTikz2(localBoard, 2);
                         // console.log(btoa(localBoard.graph.compressToString()))
                         const a = document.createElement("a");
                         a.href = window.URL.createObjectURL(new Blob([tikzStr], { type: "text/plain" }));

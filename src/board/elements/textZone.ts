@@ -101,7 +101,7 @@ export class TextZoneElement implements BoardElement {
                     console.log("moveDiv");
                     const new_mouse_pos = new CanvasCoord(e.pageX, e.pageY, board.camera);
                     const cshift = CanvasVect.from_canvas_coords(textZone.lastMousePos, new_mouse_pos);
-                    const shift = board.camera.server_vect(cshift);
+                    const shift = board.camera.serverVect(cshift);
                     board.emitTranslateElements([[BoardElementType.TextZone, serverId]], shift);
                     textZone.lastMousePos = new_mouse_pos;
                 }

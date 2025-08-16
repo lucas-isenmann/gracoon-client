@@ -23,7 +23,7 @@ export class User {
          
         if (typeof pos !== 'undefined') {
             this.pos = pos;
-            this.canvasPos = camera.create_canvas_coord(this.pos);
+            this.canvasPos = camera.createCanvasCoord(this.pos);
         }
         else{
             this.pos = undefined;
@@ -60,7 +60,7 @@ export class User {
         
         this.pos = newPos;
         if (typeof this.pos != "undefined"){
-            this.canvasPos = board.camera.create_canvas_coord(this.pos);
+            this.canvasPos = board.camera.createCanvasCoord(this.pos);
         } else {
             this.canvasPos = undefined;
         }

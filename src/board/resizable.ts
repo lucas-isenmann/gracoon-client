@@ -18,8 +18,8 @@ export function translate_by_canvas_vect<R extends Resizable>(element: R, shift:
     element.canvas_corner_bottom_right.translateByCanvasVect(shift);
     element.canvas_corner_top_left.translateByCanvasVect(shift);
     element.canvas_corner_top_right.translateByCanvasVect(shift);
-    element.c1.translate(view.server_vect(shift));
-    element.c2.translate(view.server_vect(shift));
+    element.c1.translate(view.serverVect(shift));
+    element.c2.translate(view.serverVect(shift));
 }
 
 export function is_click_over<R extends Resizable>(element: R, pos: CanvasCoord){

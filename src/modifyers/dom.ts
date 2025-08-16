@@ -117,7 +117,7 @@ function activateModifyerDiv(board: ClientBoard, mod: GraphModifyer) {
                 return;
             }
         }
-        board.emit_apply_modifyer(mod);
+        board.emitApplyModifyer(mod);
         turnOffModifyersDiv();
     }
     div.appendChild(modifyButton);

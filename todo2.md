@@ -1,9 +1,9 @@
 # TODO List 2
 
-- polar grid
+- polar grid: center on a vertex or barycenter
+- polar grid: change the subdivision
 - triangle horizontal grid
 - select connected subgraph
-- hide innerlabels
 - export graphviz for typst
 - export to SVG
 - change title
@@ -17,7 +17,6 @@
 
 ## Vertex
 - autoNumerotation
-- outerLabel
 - doubleclick on it
 
 ## Link

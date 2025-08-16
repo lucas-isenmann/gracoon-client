@@ -3,14 +3,13 @@
 // INTERACTOR SELECTION
 
 import { Coord, Option, Vect } from "gramoloss";
-import { BoardElementType, ClientBoard, SELECTION_COLOR } from "../../board/board";
+import { BoardElementType, ClientBoard } from "../../board/board";
 import { CanvasVect } from "../../board/display/canvasVect";
 import { CanvasCoord } from "../../board/display/canvas_coord";
-import { DOWN_TYPE, INTERACTOR_TYPE, RESIZE_TYPE } from "../../interactors/interactor";
+import { DOWN_TYPE, INTERACTOR_TYPE } from "../../interactors/interactor";
 import { PreInteractor } from "../pre_interactor";
 import { ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/pointed_element_data";
 import { GridType } from "../../board/display/grid";
-import { blurProperties, showProperties } from "../../board/attributes";
 import { BoardVertex } from "../../board/elements/vertex";
 import { Color } from "../../board/display/colors_v2";
 import { Rectangle } from "../../board/elements/rectangle";
@@ -25,6 +24,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     let hasMoved = false;
 
     const selectedElements = Array<[BoardElementType,number]>();
+    let selectedIndices = new Set<number>;
 
     let isRectangularSelecting = false;
     const rectSelection = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Green);
@@ -52,17 +52,17 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     // Mouse down
     selectionV2.mousedown = (( board: ClientBoard, pointed: PointedElementData) => {
         // console.log("Selection mouse down")
-        // console.log(pointed.data?.element);
+        // console.log(pointed.data?.element.serverId);
 
         // Rotate
-        if (rotateIcon.isNearby(pointed.pointedPos, 20)){
+        if (rotateIcon.disk.style.display == "block" && rotateIcon.isNearby(pointed.pointedPos, 20)){
             rotating = true;
             board.initRotateSelection()
             return;
         }
 
         // Resize
-        if (resizeIcon.isNearby(pointed.pointedPos, 20)){
+        if (resizeIcon.disk.style.display == "block" && resizeIcon.isNearby(pointed.pointedPos, 20)){
             resizing = true;
             board.initRotateSelection()
             return;
@@ -71,6 +71,7 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         // Compute Selected Elements
         if (typeof pointed.data != "undefined"){
             if (pointed.data.element.isSelected){
+                selectedIndices = board.getSelectedIndices();
                 const s2 = board.getSelectedElements();
                 selectedElements.splice(0, selectedElements.length);
                 for (const a of s2){
@@ -79,19 +80,16 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             } else {
                 selectedElements.length = 0;
                 selectedElements.push([pointed.data.element.boardElementType, pointed.data.element.serverId]);
+                selectedIndices = new Set([pointed.data.element.id])
             }
         }
         
-        blurProperties();
         hasMoved = false;
         previousShift = new Vect(0,0);
         previousCanvasShift = new CanvasVect(0,0);
 
         // Mouse down on nothing
         if ( typeof pointed.data === "undefined") {
-            if (pointed.buttonType == 2){
-                showProperties(board.grid, pointed.pointedPos, board);
-            }
             if (pointed.buttonType == 2 && board.grid.type == GridType.GridPolar) {
                 board.grid.polarCenter.setLocalPos(pointed.pointedPos.x, pointed.pointedPos.y);
             }
@@ -171,6 +169,13 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     // Mouse Move
     selectionV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         // console.log("Selection : Mouse move")
+        // console.log(pointed?.data?.element.serverId);
+        // console.log(selectedElements)
+        // console.log("selection")
+        // for(const a of selectedElements){
+        //     console.log(a);
+        // }
+
         hasMoved = true;
 
         
@@ -184,8 +189,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             board.localRotateSelection(rotationCenter, angle);
 
             const [x,y,w,h] = board.getSelectionBoundingBox();
-            const c1 = board.camera.create_canvas_coord(new Coord(x,y))
-            const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+            const c1 = board.camera.createCanvasCoord(new Coord(x,y))
+            const c2 = board.camera.createCanvasCoord(new Coord(x+w, y+h));
             boundingBox.setStartPoint(c1);
             boundingBox.setEndPoint(c2)
 
@@ -199,8 +204,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
             board.localResizeSelection(rotationCenter, ratio);
 
             const [x,y,w,h] = board.getSelectionBoundingBox();
-            const c1 = board.camera.create_canvas_coord(new Coord(x,y))
-            const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+            const c1 = board.camera.createCanvasCoord(new Coord(x,y))
+            const c2 = board.camera.createCanvasCoord(new Coord(x+w, y+h));
             boundingBox.setStartPoint(c1);
             boundingBox.setEndPoint(c2)
             return false;
@@ -209,13 +214,12 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
         // Translate the Pointed Element or the Selected Elements
         if (typeof pointed.data != "undefined"){
             e.translateByCanvasVect(previousCenterShift);
-            // e = board.graph.align_position(e, selected_vertices, board.canvas, board.camera);
-            // e = board.graph.align_position(e, new Set([pointed.data.element.serverId]), board.canvas, board.camera);
+            e = board.alignPosition(e, selectedIndices);
             e.translateByCanvasVect(previousCenterShift.opposite());
             
             // console.log(selectedElements)
-            const shift = board.camera.server_vect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
-            board.emitTranslateElements(selectedElements, shift.sub(previousShift));
+            const shift = board.camera.serverVect(CanvasVect.from_canvas_coords(pointed.pointedPos, e));
+            board.emitTranslateElements(selectedElements, shift.sub(previousShift) );
             previousShift.set_from(shift);
             
             previousCanvasShift.set_from(shift);
@@ -232,8 +236,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
                 previousCanvasShift.set_from(shift);
 
                 const [x,y,w,h] = board.getSelectionBoundingBox();
-                const c1 = board.camera.create_canvas_coord(new Coord(x,y))
-                const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+                const c1 = board.camera.createCanvasCoord(new Coord(x,y))
+                const c2 = board.camera.createCanvasCoord(new Coord(x+w, y+h));
                 boundingBox.setStartPoint(c1);
                 boundingBox.setEndPoint(c2)
                 rotationCanvasCenter.x = (c1.x + c2.x)/2
@@ -319,8 +323,8 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
                 
                 const [x,y,w,h] = board.getSelectionBoundingBox();
-                const c1 = board.camera.create_canvas_coord(new Coord(x,y))
-                const c2 = board.camera.create_canvas_coord(new Coord(x+w, y+h));
+                const c1 = board.camera.createCanvasCoord(new Coord(x,y))
+                const c2 = board.camera.createCanvasCoord(new Coord(x+w, y+h));
                 boundingBox.setStartPoint(c1);
                 boundingBox.setEndPoint(c2)
                 boundingBox.show();
@@ -369,7 +373,6 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
 
 
         } else if ( pointed.data instanceof ELEMENT_DATA_VERTEX){
-            
             const vertexMoved = pointed.data.element;
             for( const v of board.elements.values()){
                 if( v instanceof BoardVertex && v.serverId != pointed.data.element.serverId && vertexMoved.isNearby(v.cameraCenter, 10)){

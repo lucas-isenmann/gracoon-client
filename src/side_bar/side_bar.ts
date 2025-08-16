@@ -180,6 +180,9 @@ export class Interactor extends Element {
                 if ( document.activeElement != null && document.activeElement.classList.contains("content_editable") ){
                     return;
                 }
+                if (this.document.activeElement instanceof HTMLInputElement){
+                    return;
+                }
                 if (preInteractor.shortcut.toLowerCase() == e.key.toLowerCase() && board.keyPressed.has("Control") == false ){
                     interactor.select();
                 }

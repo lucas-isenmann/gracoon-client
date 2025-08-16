@@ -14,7 +14,7 @@ import { setCurrentShape } from "./side_bar/interactors/rectangle";
 import { TextZoneElement } from "./board/elements/textZone";
 import { StrokeElement } from "./board/elements/stroke";
 import { ShapeElement } from "./board/elements/shape";
-import { LinkElement } from "./board/elements/link";
+import { BoardLinkElement } from "./board/elements/link";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -173,7 +173,7 @@ export function setupHandlers(board: ClientBoard) {
     function handleTranslateElements(data: { shift: {x: number, y: number}, indices: [[string, number]]}, sensibilities: [SENSIBILITY]){
         // console.log("handleTranslateElements", data);
         const shift = new Vect(data.shift.x, data.shift.y);
-        const cshift = board.camera.create_canvas_vect(shift);
+        const cshift = board.camera.createCanvasVect(shift);
         for (const [kind, index] of data.indices){
             if (kind == "Rectangle"){
                 board.translateElement(BoardElementType.Rectangle, index, cshift);
@@ -251,9 +251,9 @@ export function setupHandlers(board: ClientBoard) {
                 data.element.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const stroke = new StrokeElement(board, data.element.color, board.camera.create_canvas_coord(positions[0]), data.element.width )
+                const stroke = new StrokeElement(board, data.element.color, board.camera.createCanvasCoord(positions[0]), data.element.width )
                 for (let i = 1; i < positions.length; i ++){
-                    stroke.push(board.camera.create_canvas_coord(positions[i]));
+                    stroke.push(board.camera.createCanvasCoord(positions[i]));
                 }
             } 
             else if (data.kind == "TextZone"){
@@ -314,7 +314,7 @@ export function setupHandlers(board: ClientBoard) {
                 }
 
                 if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
-                    new LinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color, strokeStyle);
+                    new BoardLinkElement(board, data.index, startVertex, endVertex, orient == ORIENTATION.DIRECTED, weight, color, strokeStyle);
                     updateParamsLoaded(board, new Set([SENSIBILITY.ELEMENT]), false);
                 }
 
@@ -375,8 +375,10 @@ export function setupHandlers(board: ClientBoard) {
             if (typeof vertex == "undefined") return;
             if (data.param == "weight"){
                 const text = data.value as string;
-                vertex.setInnerLabel(text);
+                vertex.setOuterLabel(text);
                 weightUpdate = true;
+            } else if (data.param == "innerLabel"){
+                vertex.setInnerLabel(data.value);
             }
         }else if (data.kind == "Link"){
             if (data.param == "color"){
@@ -477,9 +479,9 @@ export function setupHandlers(board: ClientBoard) {
                 rawStroke.positions.forEach((e: { x: number; y: number; }) => {
                     positions.push(new Coord(e.x, e.y));
                 });
-                const stroke = new StrokeElement(board, rawStroke.color as Color, board.camera.create_canvas_coord(positions[0]), rawStroke.width )
+                const stroke = new StrokeElement(board, rawStroke.color as Color, board.camera.createCanvasCoord(positions[0]), rawStroke.width )
                 for (let i = 1; i < positions.length; i ++){
-                    stroke.push(board.camera.create_canvas_coord(positions[i]));
+                    stroke.push(board.camera.createCanvasCoord(positions[i]));
                 }
             }
         }
@@ -492,7 +494,7 @@ export function setupHandlers(board: ClientBoard) {
 
 
     function handleResetGraph(
-        rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, color: string}}]], 
+        rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, innerLabel: string, color: string}}]], 
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string, strokeStyle: string} }]], 
         sensibilities: [SENSIBILITY])
          {
@@ -505,13 +507,13 @@ export function setupHandlers(board: ClientBoard) {
         for (const element of board.elements.values()){
             if (element instanceof BoardVertex){
                 board.deleteVertex(element.serverId);
-            } else if(element instanceof LinkElement) {
+            } else if(element instanceof BoardLinkElement) {
                 board.deleteLink(element.serverId);
             }
         }
 
         for (const data of rawVertices) {
-            new BoardVertex(board, data[0], data[1].data.pos.x, data[1].data.pos.y, "", data[1].data.weight, data[1].data.color as Color)
+            new BoardVertex(board, data[0], data[1].data.pos.x, data[1].data.pos.y, data[1].data.innerLabel, data[1].data.weight, data[1].data.color as Color)
         }
 
         for (const data of rawLinks) {
@@ -544,7 +546,7 @@ export function setupHandlers(board: ClientBoard) {
             }
 
             if (typeof startVertex != "undefined" && typeof endVertex != "undefined"){
-                new LinkElement(board, data[0], startVertex, endVertex, orient == ORIENTATION.DIRECTED, rawLink.data.weight, rawLink.data.color as Color, rawLink.data.strokeStyle);
+                new BoardLinkElement(board, data[0], startVertex, endVertex, orient == ORIENTATION.DIRECTED, rawLink.data.weight, rawLink.data.color as Color, rawLink.data.strokeStyle);
             }
 
 

@@ -14,22 +14,22 @@ export class Camera {
     }
 
     // zoom factor is multiply by r
-    apply_zoom_to_center(center: CanvasCoord, r: number) {
+    applyZoomToCenter(center: CanvasCoord, r: number) {
         this.zoom *= r;
         this.camera.x = center.x + (this.camera.x - center.x) * r;
         this.camera.y = center.y + (this.camera.y - center.y) * r;
     }
 
-    translate_camera(shift: CanvasVect){
+    translateCamera(shift: CanvasVect){
         this.camera.x += shift.x;
         this.camera.y += shift.y;
     }
 
-    server_vect(v: CanvasVect): Vect{
+    serverVect(v: CanvasVect): Vect{
         return new Vect( v.x/this.zoom, v.y/this.zoom);
     }
 
-    create_canvas_vect(v: Vect): CanvasVect {
+    createCanvasVect(v: Vect): CanvasVect {
         return new CanvasVect(v.x*this.zoom, v.y*this.zoom)
     }
 
@@ -52,7 +52,7 @@ export class Camera {
         return this.createServerCoord(c2);
     }
 
-    create_canvas_coord(c: Coord){
+    createCanvasCoord(c: Coord){
         return new CanvasCoord(c.x*this.zoom + this.camera.x, c.y*this.zoom+this.camera.y, this);
     }
 
@@ -71,12 +71,12 @@ export class Camera {
         const shift_x = (canvas.width - w)/2 - Math.min(c1.x, c2.x);
         const shift_y = (canvas.height - h)/2 - Math.min(c1.y, c2.y);
 
-        this.translate_camera(new Vect(shift_x, shift_y));
+        this.translateCamera(new Vect(shift_x, shift_y));
 
         const ratio_w = canvas.width/w;
         const ratio_h = canvas.height/h;
         const center = new CanvasCoord(canvas.width/2, canvas.height/2, this);
-        this.apply_zoom_to_center(center, Math.min(ratio_h, ratio_w)*0.8);
+        this.applyZoomToCenter(center, Math.min(ratio_h, ratio_w)*0.8);
     }
 }
 

@@ -1,16 +1,12 @@
 import { CanvasCoord } from "../display/canvas_coord";
-import { Color, getCanvasColor } from "../display/colors_v2";
-import { BoardElementType, ClientBoard } from "../board";
+import { Color } from "../display/colors_v2";
+import { BoardElementType } from "../board";
 import { CanvasVect } from "../display/canvasVect";
-import { Coord } from "gramoloss";
-import katex from "katex";
-import { highlightColors } from "../display/highlight_colors";
-import { LinkElement } from "./link";
 
 
 export interface BoardElement {
+    id: number;
     cameraCenter: CanvasCoord;
-    // serverCenter: Coord; // à virer
     serverId: number;
     boardElementType: BoardElementType;
     delete: () => void;

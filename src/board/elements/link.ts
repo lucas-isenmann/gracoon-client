@@ -26,7 +26,7 @@ export class LinkPreData {
 
 
 
-export class LinkElement implements BoardElement {
+export class BoardLinkElement implements BoardElement {
     cameraCenter: CanvasCoord;
     // serverCenter: Coord;
     id: number;
@@ -90,9 +90,9 @@ export class LinkElement implements BoardElement {
         innerLabelSVG.setAttribute("y", `${this.cameraCenter.y}`);
         innerLabelSVG.setAttribute("width", "50px");
         innerLabelSVG.setAttribute("height", "3em");
-        innerLabelSVG.textContent = this.label;
         innerLabelSVG.classList.add("link-label");
         this.labelSVG = innerLabelSVG;
+        this.setLabel(label)
 
     
 
@@ -151,6 +151,7 @@ export class LinkElement implements BoardElement {
 
     delete(){
         this.line.remove();
+        this.labelSVG.remove();
     }
 
     setColor (color: Color) {

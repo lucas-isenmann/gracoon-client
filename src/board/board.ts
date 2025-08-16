@@ -22,7 +22,7 @@ import { ShapePreData } from "./elements/rectangle";
 import { EntireZone } from "../parametors/zone";
 import { Interactor } from "../side_bar/side_bar";
 import { ShapeElement } from "./elements/shape";
-import { LinkElement, LinkPreData } from "./elements/link";
+import { BoardLinkElement, LinkPreData } from "./elements/link";
 import { BoardVertex, VertexPreData } from "./elements/vertex";
 
 
@@ -68,7 +68,6 @@ export enum SocketMsgType {
     LOAD_JSON = "load_json",
     GET_JSON = "get_json",
     SUBDIVIDE_LINK = "subdivide_link",
-    GENERATE_GRAPH = "generate-graph",
     GetParameterInfo = "get-parameter-info",
     PARSE_DOT = "import_file"
 }
@@ -105,6 +104,8 @@ export class ClientBoard  {
     shapesGroup: SVGElement;
     linksGroup: SVGElement;
     verticesGroup: SVGElement;
+    labelsGroup: SVGGElement = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
 
     // Clipboard
     isGraphClipboardGenerated: boolean;
@@ -136,6 +137,9 @@ export class ClientBoard  {
 
     // Elements attributes
     attributesDiv: HTMLDivElement = document.createElement("div");
+    outerLabelInput: HTMLInputElement = document.createElement("input");
+    innerLabelInput: HTMLInputElement = document.createElement("input");
+
 
     // Graph
     showInnerLabels: boolean = false;
@@ -312,10 +316,12 @@ export class ClientBoard  {
 
         this.shapesGroup.setAttribute("id", "shapes-layer");
         this.linksGroup.setAttribute("id", "links-layer");
+        this.labelsGroup.setAttribute("id", "labels-layer");
         this.verticesGroup.setAttribute("id", "vertices-layer");
 
         this.svgContainer.appendChild(this.shapesGroup);
         this.svgContainer.appendChild(this.linksGroup);
+        this.svgContainer.appendChild(this.labelsGroup);
         this.svgContainer.appendChild(this.verticesGroup);
         
 
@@ -334,6 +340,10 @@ export class ClientBoard  {
         // Attributes
         this.attributesDiv.id = "attributes-div";
         container.appendChild(this.attributesDiv);
+
+        this.attributesDiv.onmouseleave = () => {
+            this.hideAttributes()
+        }
 
         // Delete elements
         const bin = document.createElement("img");
@@ -389,6 +399,29 @@ export class ClientBoard  {
             this.clearSelection();
         }
 
+
+        // Outer Label
+        this.outerLabelInput.classList.add("attribute-input");
+        this.outerLabelInput.placeholder = "Label"
+        this.attributesDiv.appendChild(this.outerLabelInput);
+        this.outerLabelInput.oninput = () => {
+            const selection = this.getSelectedElements();
+            for (const [type, serverId] of selection){
+                this.emitUpdateElement(type, serverId, "weight", this.outerLabelInput.value )
+            }
+        }
+
+        // Inner Label
+        this.innerLabelInput.classList.add("attribute-input");
+        this.innerLabelInput.placeholder = "Inner Label"
+        this.attributesDiv.appendChild(this.innerLabelInput);
+        this.innerLabelInput.oninput = () => {
+            const selection = this.getSelectedElements();
+            for (const [type, serverId] of selection){
+                this.emitUpdateElement(type, serverId, "innerLabel", this.innerLabelInput.value )
+            }
+        }
+
         
     }
 
@@ -405,6 +438,8 @@ export class ClientBoard  {
 
     hideAttributes(){
         this.attributesDiv.style.display = "none";
+        this.innerLabelInput.value = "";
+        this.outerLabelInput.value = "";
     }
 
 
@@ -530,7 +565,7 @@ export class ClientBoard  {
             }
         }
         for (const element of this.elements.values()){
-            if (element instanceof LinkElement){
+            if (element instanceof BoardLinkElement){
                 this.g.addLink(element.startVertex.serverId, element.endVertex.serverId, element.isDirected ? ORIENTATION.DIRECTED : ORIENTATION.UNDIRECTED, new LinkData2(element.color, element.label));
             }
         }
@@ -541,7 +576,7 @@ export class ClientBoard  {
         for (const [type, serverId, highlightValue] of indices){
             for (const element of this.elements.values()){
                 if (element.boardElementType == type && element.serverId == serverId  ){
-                    if (element instanceof BoardVertex || element instanceof LinkElement){
+                    if (element instanceof BoardVertex || element instanceof BoardLinkElement){
                         element.setHighlight(highlightValue)
                     }
                     break;
@@ -561,7 +596,7 @@ export class ClientBoard  {
 
     highlightLink(serverId: number, value: number){
         for (const element of this.elements.values()){
-            if (element.serverId == serverId && element instanceof LinkElement ){
+            if (element.serverId == serverId && element instanceof BoardLinkElement ){
                 element.setHighlight(value)
                 break;
             }
@@ -689,7 +724,7 @@ export class ClientBoard  {
         const cShift = shift.sub(previousCanvasShift);
 
         const selection = this.getSelectedElements();
-        this.emitTranslateElements(selection, this.camera.server_vect(cShift) )
+        this.emitTranslateElements(selection, this.camera.serverVect(cShift) )
         previousCanvasShift.set_from(shift);
         
         // for (const element of this.elements.values()){
@@ -771,9 +806,9 @@ export class ClientBoard  {
         return undefined;
     }
 
-    getLink(serverId: number): undefined | LinkElement {
+    getLink(serverId: number): undefined | BoardLinkElement {
         for (const element of this.elements.values()){
-            if (element instanceof LinkElement && element.serverId == serverId){
+            if (element instanceof BoardLinkElement && element.serverId == serverId){
                 return element;
             }
         }
@@ -784,9 +819,9 @@ export class ClientBoard  {
    
 
 
-    nearbyLink(pos: CanvasCoord): Option<LinkElement>{
+    nearbyLink(pos: CanvasCoord): Option<BoardLinkElement>{
         for (const element of this.elements.values()){
-            if (element instanceof LinkElement && element.isNearby(pos, 30)){
+            if (element instanceof BoardLinkElement && element.isNearby(pos, 30)){
                 return element;
             }
         }
@@ -794,7 +829,7 @@ export class ClientBoard  {
     }
     
     // return a CanvasCoord near mouse_canvas_coord which aligned on other vertices or on the grid
-    alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>,camera: Camera): CanvasCoord {
+    alignPosition(posToAlign: CanvasCoord, excludedIndices: Set<number>): CanvasCoord {
         this.alignmentLineHori.setAttribute("display", "none");
         this.alignmentLineVert.setAttribute("display", "none");
         
@@ -825,13 +860,13 @@ export class ClientBoard  {
         }
         if ( this.grid.type == GridType.GridRect ) {
             const grid_size = this.grid.gridSize;
-            for (let x = camera.camera.x % grid_size; x < window.innerWidth; x += grid_size) {
+            for (let x = this.camera.camera.x % grid_size; x < window.innerWidth; x += grid_size) {
                 if (Math.abs(x - posToAlign.x) <= 15) {
                     alignedPos.x = x;
                     break;
                 }
             }
-            for (let y = camera.camera.y % grid_size; y < window.innerHeight; y += grid_size) {
+            for (let y = this.camera.camera.y % grid_size; y < window.innerHeight; y += grid_size) {
                 if (Math.abs(y - posToAlign.y) <= 15) {
                     alignedPos.y = y;
                     break;
@@ -842,8 +877,8 @@ export class ClientBoard  {
             const h = grid_size*Math.sqrt(3)/2;
 
             // Find the corners of the rectangle containing the point
-            const px = ((posToAlign.x-camera.camera.x)- (posToAlign.y-camera.camera.y)/Math.sqrt(3))/grid_size;
-            const py = (posToAlign.y-camera.camera.y)/h;
+            const px = ((posToAlign.x-this.camera.camera.x)- (posToAlign.y-this.camera.camera.y)/Math.sqrt(3))/grid_size;
+            const py = (posToAlign.y-this.camera.camera.y)/h;
             const i = Math.floor(px);
             const j = Math.floor(py);
             const corners = [
@@ -856,7 +891,7 @@ export class ClientBoard  {
             // align on the corners if the point is near enough
             for (let corner of corners){
                 // corner = corner.add(camera.camera);
-                corner.setLocalPos(corner.x + camera.camera.x, corner.y + camera.camera.y)
+                corner.setLocalPos(corner.x + this.camera.camera.x, corner.y + this.camera.camera.y)
                 if (Math.sqrt(corner.dist2(new CanvasCoord(posToAlign.x, posToAlign.y, this.camera) )) <= 2*15){
                     alignedPos.x = corner.x;
                     alignedPos.y = corner.y;
@@ -1003,7 +1038,7 @@ export class ClientBoard  {
                 element.delete();
                 this.elements.delete(key);
             }
-            if (element instanceof LinkElement && (element.startVertex.serverId == serverId || element.endVertex.serverId == serverId)){
+            if (element instanceof BoardLinkElement && (element.startVertex.serverId == serverId || element.endVertex.serverId == serverId)){
                 element.delete();
                 this.elements.delete(key);
             }
@@ -1033,7 +1068,7 @@ export class ClientBoard  {
     deleteLink(serverId: number){
         // console.log("Board: delete link", serverId)
         for (const [key, element] of this.elements){
-            if (element instanceof LinkElement && element.serverId == serverId){
+            if (element instanceof BoardLinkElement && element.serverId == serverId){
                 element.delete();
                 this.elements.delete(key);
             }
@@ -1122,7 +1157,7 @@ export class ClientBoard  {
 
         this.updateGridAfterCameraChange();
 
-        this.camera.translate_camera(shift);
+        this.camera.translateCamera(shift);
         this.updateAfterCameraChange();
         if(typeof this.selfUser.following != "undefined"){
             this.selfUser.unfollow(this.selfUser.following);
@@ -1230,7 +1265,7 @@ export class ClientBoard  {
         for (const element of this.elements.values()){
             if (element.isSelected && element instanceof BoardVertex){
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
-                const cshift = this.camera.create_canvas_vect(shift);
+                const cshift = this.camera.createCanvasVect(shift);
                 element.translate(cshift.opposite())
                 this.emitTranslateElements([[BoardElementType.Vertex, element.serverId]], shift)
             }
@@ -1254,7 +1289,7 @@ export class ClientBoard  {
         for (const element of this.elements.values()){
             if (element.isSelected && element instanceof BoardVertex){
                 const shift = element.posBeforeRotate.vectorTo(element.cameraCenter.serverPos);
-                const cshift = this.camera.create_canvas_vect(shift);
+                const cshift = this.camera.createCanvasVect(shift);
                 element.translate(cshift.opposite())
                 this.emitTranslateElements([[BoardElementType.Vertex, element.serverId]], shift)
             }
@@ -1345,7 +1380,7 @@ export class ClientBoard  {
                     return new ELEMENT_DATA_VERTEX(element);
                 }
             }
-            if ( interactable_element_type.has(DOWN_TYPE.LINK) && element instanceof LinkElement){
+            if ( interactable_element_type.has(DOWN_TYPE.LINK) && element instanceof BoardLinkElement){
                 if (element.isNearby(pos, 15)){
                     return new ELEMENT_DATA_LINK(element);
                 }
@@ -1437,7 +1472,7 @@ export class ClientBoard  {
 
     unhighlightAll(){
         for (const element of this.elements.values()){
-            if (element instanceof BoardVertex || element instanceof LinkElement){
+            if (element instanceof BoardVertex || element instanceof BoardLinkElement){
                 element.unHighlight();
             }
         }
@@ -1461,11 +1496,29 @@ export class ClientBoard  {
         return set;
     }
 
+    /**
+     * 
+     * @returns The type and the serverId of the selected elements
+     */
     getSelectedElements(): Array<[BoardElementType, number]> {
         const t = new Array<[BoardElementType, number]>();
         for (const element of this.elements.values()){
             if (element.isSelected){
                 t.push([element.boardElementType, element.serverId]);
+            }
+        }
+        return t;
+    }
+
+    /**
+     * This is different from getSelectedElements
+     * @returns the set of indices of the selected elements
+     */
+    getSelectedIndices(): Set<number> {
+        const t = new Set<number>();
+        for (const element of this.elements.values()){
+            if (element.isSelected){
+                t.add(element.id)
             }
         }
         return t;
@@ -1537,6 +1590,7 @@ export class ClientBoard  {
     }
 
     emitUpdateElement(type: BoardElementType, index: number, attribute: string, value: any){
+        console.log("emit update", type, index, attribute, value)
         socket.emit(SocketMsgType.UPDATE_ELEMENT, this.agregId, type, index, attribute, value);
     }
 
@@ -1587,7 +1641,7 @@ export class ClientBoard  {
         socket.emit(SocketMsgType.GetParameterInfo, paramId, callback);
     }
 
-    emit_apply_modifyer(modifyer: GraphModifyer){
+    emitApplyModifyer(modifyer: GraphModifyer){
         console.log("Emit: apply modifier")
         const attributes_data = new Array<string | number>();
         let sendVerticesSelection = false;
@@ -1690,7 +1744,7 @@ export class ClientBoard  {
     updateOtherUsersCanvasPos() {
         for (const user of this.otherUsers.values()){
             if ( typeof user.pos != "undefined"){
-                user.canvasPos = this.camera.create_canvas_coord(user.pos);
+                user.canvasPos = this.camera.createCanvasCoord(user.pos);
             }
         }
     }

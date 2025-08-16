@@ -6,7 +6,7 @@ import { CanvasVect } from "../display/canvasVect";
 import { Color, getCanvasColor } from "../display/colors_v2";
 import { highlightColors } from "../display/highlight_colors";
 import { BoardElement } from "./element";
-import { LinkElement } from "./link";
+import { BoardLinkElement } from "./link";
 
 export class VertexPreData {
     pos: Coord;
@@ -25,7 +25,6 @@ export class VertexPreData {
 export class BoardVertex implements BoardElement {
 
     cameraCenter: CanvasCoord;
-    // serverCenter: Coord;
     id: number;
     serverId: number;
     boardElementType: BoardElementType = BoardElementType.Vertex;
@@ -39,6 +38,7 @@ export class BoardVertex implements BoardElement {
     innerLabel: string;
     outerLabel: string;
     innerLabelSVG: SVGForeignObjectElement;
+    outerLabeSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
 
     constructor(board: ClientBoard, id: number, x: number, y: number, innerLabel: string, outerLabel: string, color: Color){
         this.id = board.elementCounter;
@@ -70,16 +70,24 @@ export class BoardVertex implements BoardElement {
         // InnerLabel
         const innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         board.verticesGroup.appendChild(innerLabelSVG);
-        innerLabelSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
-        innerLabelSVG.setAttribute("y", `${this.cameraCenter.y-12}`);
         innerLabelSVG.setAttribute("width", "50px");
         innerLabelSVG.setAttribute("height", "3em");
-        innerLabelSVG.innerHTML = this.serverId.toString()
         innerLabelSVG.classList.add("vertex-inner-label")
         this.innerLabelSVG = innerLabelSVG;
+        this.setInnerLabel(innerLabel);
+
+        // OuterLabel
+        this.outerLabeSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        board.labelsGroup.appendChild(this.outerLabeSVG);
+        this.outerLabeSVG.setAttribute("width", "50px");
+        this.outerLabeSVG.setAttribute("height", "3em");
+        this.outerLabeSVG.classList.add("vertex-outer-label")
+        this.setOuterLabel(outerLabel);
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
+
+        this.updateSVGposition();
 
         if (board.showInnerLabels == false){
             this.hideInnerLabel()
@@ -100,11 +108,18 @@ export class BoardVertex implements BoardElement {
 
 
     setInnerLabel(value: string) {
-        console.log("setInnerLabel", this.innerLabel, this.outerLabel)
         this.innerLabel = value;
-        console.log("done", this.innerLabel, this.outerLabel)
+        if (value == ""){
+            this.innerLabelSVG.innerHTML = this.serverId.toString();
+        } else {
+            this.innerLabelSVG.innerHTML = katex.renderToString(value);
+        }
+    }
 
-        this.innerLabelSVG.innerHTML = katex.renderToString(value);
+
+    setOuterLabel(value: string) {
+        this.outerLabel = value;
+        this.outerLabeSVG.innerHTML = katex.renderToString(value);
     }
 
     updateSVGposition(){
@@ -112,7 +127,10 @@ export class BoardVertex implements BoardElement {
         this.disk.setAttribute("cy", `${this.cameraCenter.y}`);   
         this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
         this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y-12}`);
+        this.outerLabeSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
+        this.outerLabeSVG.setAttribute("y", `${this.cameraCenter.y-30}`);
     }
+
 
     updateAfterCameraChange() {
         this.cameraCenter.updateAfterCameraChange();
@@ -139,6 +157,7 @@ export class BoardVertex implements BoardElement {
     delete(){
         this.disk.remove();
         this.innerLabelSVG.remove();
+        this.outerLabeSVG.remove();
     }
 
     isNearby (pos: CanvasCoord, d: number) {
@@ -190,7 +209,7 @@ export class BoardVertex implements BoardElement {
 
     updateIncidentLinks(){
         for (const element of this.board.elements.values()){
-            if (element instanceof LinkElement){
+            if (element instanceof BoardLinkElement){
                 const link = element;
                 if ( link.startVertex.serverId == this.serverId){
                     link.line.setAttribute("x1", this.cameraCenter.x.toString())

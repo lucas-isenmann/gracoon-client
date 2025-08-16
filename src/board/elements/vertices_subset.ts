@@ -72,7 +72,7 @@ export class VerticesSubset implements BoardElement{
     updatePathData(){
         // Generate SVG path command
         let pathData = this.convexHullPoints.reduce((path, point, index) => {
-            const canvasPos = this.board.camera.create_canvas_coord(point);
+            const canvasPos = this.board.camera.createCanvasCoord(point);
             const command = index === 0 ? 'M' : 'L';
             return `${path} ${command} ${canvasPos.x},${canvasPos.y}`;
         }, '');
