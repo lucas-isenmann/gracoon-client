@@ -1,4 +1,4 @@
-import { params_available_turn_on_div } from "../parametors/div_parametor";
+import { showParametersListDiv } from "../parametors/parameters_list_div";
 import { EntireZone } from "../parametors/zone";
 import { ClientBoard, COLOR_BACKGROUND } from "./board";
 
@@ -36,7 +36,7 @@ export function setupLoadedParam(board: ClientBoard, area_DOM: HTMLDivElement, z
     load_new_parametors_button.title = "Load a new parameter";
     load_new_parametors_button.id = "load_parametor_area_"+area_id;
     load_new_parametors_button.onclick = ((e) => {
-        params_available_turn_on_div();
+        showParametersListDiv();
         // todo choose parameter for this area
     });
     title_area_container.appendChild(load_new_parametors_button);

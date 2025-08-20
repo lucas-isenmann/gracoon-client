@@ -145,6 +145,10 @@ export class ClientBoard  {
     showInnerLabels: boolean = false;
 
 
+    // Parameters
+    loadedParametersDiv: HTMLDivElement = document.createElement("div")
+
+
     constructor(container: HTMLElement){
 
         this.g = new Graph2();
@@ -421,6 +425,11 @@ export class ClientBoard  {
                 this.emitUpdateElement(type, serverId, "innerLabel", this.innerLabelInput.value )
             }
         }
+
+
+        // Parameters
+        container.appendChild(this.loadedParametersDiv)
+        this.loadedParametersDiv.id = "loaded-parameters-div"
 
         
     }

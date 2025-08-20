@@ -1,5 +1,4 @@
 import { User } from "./user";
-import { updateParamsLoaded } from "./parametors/parametor_manager";
 import { SENSIBILITY } from "./parametors/parametor";
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "./board/board";
@@ -15,6 +14,7 @@ import { TextZoneElement } from "./board/elements/textZone";
 import { StrokeElement } from "./board/elements/stroke";
 import { ShapeElement } from "./board/elements/shape";
 import { BoardLinkElement } from "./board/elements/link";
+import { updateParamsLoaded } from "./parametors/parameters_list_div";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;

@@ -20,6 +20,7 @@
 .vertex {
     transform-origin: center;
     scale: 2;
+    stroke-width: 0;
     transition: filter 0.3s ease, scale 0.3s ease;
 
 }

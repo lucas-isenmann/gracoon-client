@@ -1,31 +1,26 @@
 import { Parametor } from "./parametor";
-import { params_loaded, removeLoadedParam, update_parametor } from "./parametor_manager";
 import { ClientBoard } from "../board/board";
 import { createPopup } from "../popup";
 import { marked } from "marked";
 import renderMathInElement from "../katex-auto-render/auto-render";
+import { paramsLoaded, removeLoadedParam, updateLoadedParameter } from "./parameters_list_div";
 
 export class ParametorLoaded {
     parametor: Parametor;
     id: string;
-    div: HTMLDivElement;
-    resultSpan: HTMLSpanElement;
-    nameSpan: HTMLSpanElement;
-    isVerbose: boolean;
-    certificate: any;
+    div: HTMLDivElement = document.createElement("div");
+    resultSpan: HTMLSpanElement = document.createElement("span");
+    nameSpan: HTMLSpanElement = document.createElement("span");
+    isVerbose: boolean = true;
+    certificate: any = undefined;
 
     constructor(parametor: Parametor, board: ClientBoard){
-        this.isVerbose = true;
-        this.certificate = undefined;
         this.parametor = parametor;
         this.id = parametor.id;
-        this.div = document.createElement("div");
-        this.nameSpan = document.createElement("span");
-        this.resultSpan = document.createElement("span");
-        this.setupDOM(board);
-    }
 
-    setupDOM(board: ClientBoard){
+        board.loadedParametersDiv.appendChild(this.div);
+
+
         const paramLoaded = this;
 
         let nbHiddenButtons = 2; // 1 for verbose 1 for remove
@@ -37,10 +32,10 @@ export class ParametorLoaded {
         }
 
         // Div for the parametor
-        this.div.classList.add("parametor_printed", "inactive_parametor");
+        this.div.classList.add("loaded-parameter", "inactive_parametor");
         this.div.id = "param_" + this.id;
 
-        //Div for label and result
+        // Div for label and result
         let div_label_and_result = document.createElement("div");
         div_label_and_result.classList.add("param_name_result_container", `hiding_buttons-${nbHiddenButtons}`);
         this.div.appendChild(div_label_and_result);
@@ -73,11 +68,11 @@ export class ParametorLoaded {
 
 
 
-        //Div for hidden_buttons
-        let div_hidden_buttons = document.createElement("div");
+        // Div for hidden_buttons
+        const divHiddenButtons = document.createElement("div");
 
-        div_hidden_buttons.classList.add("hidden_buttons_container", `hided_buttons-${nbHiddenButtons}`);
-        this.div.appendChild(div_hidden_buttons);
+        divHiddenButtons.classList.add("hidden_buttons_container", `hided_buttons-${nbHiddenButtons}`);
+        this.div.appendChild(divHiddenButtons);
 
         // Verbose button
         const verboseButton = document.createElement("div");
@@ -95,7 +90,7 @@ export class ParametorLoaded {
             this.isVerbose = !this.isVerbose;
             if (this.isVerbose){
                 board.unhighlightAll();
-                for (const p of params_loaded){
+                for (const p of paramsLoaded){
                     if (p.id != this.id){
                         p.isVerbose = false;
                         p.nameSpan.classList.remove("parametor-verbose");
@@ -108,7 +103,7 @@ export class ParametorLoaded {
                 board.unhighlightAll();
             }
         });
-        div_hidden_buttons.appendChild(verboseButton);
+        divHiddenButtons.appendChild(verboseButton);
 
 
         // Reload button
@@ -124,45 +119,45 @@ export class ParametorLoaded {
             svgReloadParametor.title = "Recompute parameter";
             svgReloadParametor.src = "/img/parametor/reload.svg";
             svgReloadParametor.addEventListener('click', ()=>{
-                update_parametor(board, paramLoaded );
+                updateLoadedParameter(board, paramLoaded );
             });
             svgReloadParametor.classList.add("reload_img");
-            div_hidden_buttons.appendChild(divButton);
+            divHiddenButtons.appendChild(divButton);
         }
         else{
             let empty_reload_parametor = document.createElement("span");
-            div_hidden_buttons.appendChild(empty_reload_parametor);
+            divHiddenButtons.appendChild(empty_reload_parametor);
         }
 
        
 
         // Remove button
-        let div_button = document.createElement("div");
-        div_button.classList.add("hidden_button_div", "hidden_trash");
+        const divButton = document.createElement("div");
+        divButton.classList.add("hidden_button_div", "hidden_trash");
 
-        let button = document.createElement('img');
-        div_button.appendChild(button);
+        const button = document.createElement('img');
+        divButton.appendChild(button);
         button.src = "/img/parametor/trash.svg";
         button.classList.add("remove_param_button", "white_svg", "hidden_button");
         button.title = "Remove parameter";
 
         button.addEventListener('click', () => { removeLoadedParam(paramLoaded, board); });
-        div_hidden_buttons.appendChild(div_button);
+        divHiddenButtons.appendChild(divButton);
 
 
          // Info button
          if(this.parametor.has_info){
-            let div_button = document.createElement("div");
-            div_button.classList.add("hidden_button_div", "hidden_info");
+            const divButton = document.createElement("div");
+            divButton.classList.add("hidden_button_div", "hidden_info");
 
-            let svg_info_parametor = document.createElement("img");
-            div_button.appendChild(svg_info_parametor);
+            const svgInfoParametor = document.createElement("img");
+            divButton.appendChild(svgInfoParametor);
 
-            svg_info_parametor.classList.add("white_svg", "hidden_button");
-            svg_info_parametor.id = "img_info_" + this.id;
-            svg_info_parametor.title = "Information on this parameter";
-            svg_info_parametor.src = "/img/parametor/info.svg";
-            svg_info_parametor.addEventListener('click', ()=>{
+            svgInfoParametor.classList.add("white_svg", "hidden_button");
+            svgInfoParametor.id = "img_info_" + this.id;
+            svgInfoParametor.title = "Information on this parameter";
+            svgInfoParametor.src = "/img/parametor/info.svg";
+            svgInfoParametor.addEventListener('click', ()=>{
                 const div = document.getElementById("parameter-info-" + this.id);
                 if (div){
                     div.style.display = "block";
@@ -185,11 +180,12 @@ export class ParametorLoaded {
 
             });
             // svg_info_parametor.classList.add("reload_img");
-            div_hidden_buttons.appendChild(div_button);
+            divHiddenButtons.appendChild(divButton);
         }
         // else{
         //     let empty_reload_parametor = document.createElement("span");
         //     div_hidden_buttons.appendChild(empty_reload_parametor);
         // }
     }
+
 }

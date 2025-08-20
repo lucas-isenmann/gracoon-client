@@ -1,5 +1,6 @@
 # TODO List 2
 
+- delete strokes and move them
 - polar grid: center on a vertex or barycenter
 - polar grid: change the subdivision
 - triangle horizontal grid
@@ -7,7 +8,6 @@
 - export graphviz for typst
 - export to SVG
 - change title
-- align on vertices when moving
 
 ## Board
 - resetGraph
@@ -23,7 +23,6 @@
 - loop
 - multi
 - control Points
-- styles
 
 ## Shape
 - ellipse
@@ -33,9 +32,5 @@
 ## TextZone
 
 ## Vertices subset
-
-## Latex
-
-## Induced Graph of Board
 
 

@@ -1,5 +1,4 @@
-import { params_available_turn_off_div, params_available_turn_on_div, update_params_available_div } from "./parametors/div_parametor";
-import { setup_parametors_available } from "./parametors/parametor_manager";
+import { showParametersListDiv, setupParametersListDiv } from "./parametors/parameters_list_div";
 import { setupHandlers, socket } from "./socket";
 import { setup_generators_div, turn_on_generators_div } from "./generators/dom";
 import { ClientBoard, INDEX_TYPE, SocketMsgType } from "./board/board";
@@ -94,18 +93,7 @@ function setup() {
     setup_modifyers_div(localBoard);
 
     // Graph Parameters
-    setup_parametors_available();
-    update_params_available_div(localBoard);
-
-    let params_loaded_button = document.getElementById("params_loaded_button");
-    params_loaded_button?.addEventListener('click', () => {
-        params_available_turn_on_div();
-    });
-
-    let params_available_button = document.getElementById("params_available_button");
-    params_available_button?.addEventListener('click', () => {
-        params_available_turn_off_div();
-    });
+    setupParametersListDiv(localBoard);
 
 
 
@@ -118,7 +106,7 @@ function setup() {
                 new PreLauncher("generator", "Show graph generators", "", turn_on_generators_div),
                 new PreLauncher("modifyer", "Show graph modifyers", "", turn_on_modifyers_div),
                 // new PreLauncher("addVerticesSubset", "Selection to Vertices Subset", "", () => {localBoard.addVerticesSubsetFromSelection();}),
-                new PreLauncher("load_parameter", "Parameter", "", params_available_turn_on_div),
+                new PreLauncher("load_parameter", "Parameter", "", showParametersListDiv),
                 new PreLauncher("script_editor", "Script editor", "",() => {document.getElementById('editor-container')?.classList.toggle('hidden')}),
                 new PreSwitch(false, "vertices_labels", "Show/Hide Inner Labels", () => {
                     localBoard.toggleInnerLabels(false);

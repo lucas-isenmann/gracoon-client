@@ -109,7 +109,7 @@ export class BoardVertex implements BoardElement {
 
     setInnerLabel(value: string) {
         this.innerLabel = value;
-        if (value == ""){
+        if (value == "" || typeof value == "undefined"){
             this.innerLabelSVG.innerHTML = this.serverId.toString();
         } else {
             this.innerLabelSVG.innerHTML = katex.renderToString(value);
