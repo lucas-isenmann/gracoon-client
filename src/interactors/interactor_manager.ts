@@ -103,8 +103,8 @@ export function setupInteractions(board: ClientBoard) {
         if (typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
-        board.alignement_horizontal_y = undefined;
-        board.alignement_vertical_x = undefined;
+        board.alignementHorizontalY = undefined;
+        board.alignementVerticalX = undefined;
         lastPointedElement = undefined;
     })
 
@@ -151,7 +151,7 @@ export function setupInteractions(board: ClientBoard) {
         } else if (typeof board.interactorLoaded != "undefined") {
             
             if (board.interactorLoaded.interactable_element_type.has(DOWN_TYPE.RESIZE)){
-                const element = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+                const element = board.getElementNearby(mousePos, board.interactorLoaded.interactable_element_type);
                 if ( element instanceof ELEMENT_DATA_RECTANGLE || element instanceof ELEMENT_DATA_REPRESENTATION){
                     if (typeof element.resizeType != "undefined"){
                         // board.canvas.style.cursor = RESIZE_TYPE.to_cursor(element.resizeType);
@@ -208,7 +208,7 @@ export function setupInteractions(board: ClientBoard) {
         } else if (typeof board.interactorLoaded != "undefined"){
             const pointedPos = mousePos.copy();
             const magnetPos = board.alignPosition(mousePos, new Set());
-            const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+            const data = board.getElementNearby(mousePos, board.interactorLoaded.interactable_element_type);
             lastPointedElement = new PointedElementData(pointedPos, magnetPos, e.buttons, data );
             board.interactorLoaded.mousedown(board, lastPointedElement);
         }
@@ -224,7 +224,7 @@ export function setupInteractions(board: ClientBoard) {
         mousePos = new CanvasCoord(et.touches[0].clientX, et.touches[0].clientY, board.camera);
 
         if (typeof board.interactorLoaded == "undefined") return;
-        const data = board.get_element_nearby(mousePos, board.interactorLoaded.interactable_element_type);
+        const data = board.getElementNearby(mousePos, board.interactorLoaded.interactable_element_type);
         const pointedPos = mousePos.copy();
         const magnetPos = board.alignPosition(mousePos, new Set());
         lastPointedElement = new PointedElementData(pointedPos, magnetPos, 0, data );
@@ -254,8 +254,8 @@ export function setupInteractions(board: ClientBoard) {
         if ( typeof mousePos != "undefined" && typeof board.interactorLoaded != "undefined"){
             board.interactorLoaded.mouseup(board, lastPointedElement, mousePos);
         }
-        board.alignement_horizontal_y = undefined;
-        board.alignement_vertical_x = undefined;
+        board.alignementHorizontalY = undefined;
+        board.alignementVerticalX = undefined;
         lastPointedElement = undefined;
 
     });

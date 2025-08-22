@@ -6,6 +6,7 @@ import { Color, getCanvasColor } from "../display/colors_v2";
 import { BoardElement } from "./element";
 
 export class LocalPoint implements BoardElement {
+    id: number = 0;
     cameraCenter: CanvasCoord;
     serverId: number = 0;
     boardElementType: BoardElementType = BoardElementType.Local;

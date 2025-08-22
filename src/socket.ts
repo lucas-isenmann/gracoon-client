@@ -1,4 +1,3 @@
-import { User } from "./user";
 import { SENSIBILITY } from "./parametors/parametor";
 import { Coord, ORIENTATION, Vect } from "gramoloss";
 import { BoardElementType, ClientBoard } from "./board/board";
@@ -15,6 +14,7 @@ import { StrokeElement } from "./board/elements/stroke";
 import { ShapeElement } from "./board/elements/shape";
 import { BoardLinkElement } from "./board/elements/link";
 import { updateParamsLoaded } from "./parametors/parameters_list_div";
+import { Colleague } from "./board/local_elements/colleague";
 
 
 const adress = import.meta.env.VITE_SERVER_ADDRESS;
@@ -66,16 +66,16 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleUpdateViewFollower(x:number, y:number, zoom:number, id:string){
         // console.log("FOLLOWING USER:", x,y,zoom, id);
-        if(board.otherUsers.has(id) && board.selfUser.following == id){
-            // console.log("Following......")
-            board.camera.camera = new Coord(x, y);
-            board.camera.zoom = zoom;
-            board.updateAfterCameraChange();
-        }
-        else{
-            // console.log("reset....");
-            board.selfUser.following = undefined;
-        }
+        // if(board.otherUsers.has(id) && board.selfUser.following == id){
+        //     // console.log("Following......")
+        //     board.camera.camera = new Coord(x, y);
+        //     board.camera.zoom = zoom;
+        //     board.updateAfterCameraChange();
+        // }
+        // else{
+        //     // console.log("reset....");
+        //     board.selfUser.following = undefined;
+        // }
     }
 
     function handleSendView(){
@@ -85,15 +85,15 @@ export function setupHandlers(board: ClientBoard) {
 
     function handleUpdateOtherUsers(id:string, label:string, color:string){
         // console.log(id, label, color);
-        const user = board.otherUsers.get(id);
-        if ( typeof user != "undefined") {
+        const user = board.localElements.get(id);
+        if ( typeof user != "undefined" && user instanceof Colleague) {
             user.setColor(color);
             user.label = label;
         }
         else {
-            board.otherUsers.set(id, new User(id, label, color, board.camera));
+            board.localElements.set(id, new Colleague(id, label, color, board));
         }
-        board.update_user_list_div();
+        board.updateColleaguesListDiv();
     }
 
 
@@ -121,14 +121,14 @@ export function setupHandlers(board: ClientBoard) {
         if (board.selfUser.id == null || id == board.selfUser.id){
             return;
         }
-        const user =  board.otherUsers.get(id);
-        if (typeof user != "undefined") {
+        const user =  board.localElements.get(id);
+        if (typeof user != "undefined" && user instanceof Colleague) {
             user.label = label;
-           user.set_pos(newPos, board);
+            user.setPos(newPos, board);
         }
         else {
-            board.otherUsers.set(id, new User(id, label, color, board.camera,  newPos));
-            board.update_user_list_div();
+            board.localElements.set(id, new Colleague(id, label, color, board,  newPos));
+            board.updateColleaguesListDiv();
         }
     }
 
@@ -138,20 +138,25 @@ export function setupHandlers(board: ClientBoard) {
         if(board.selfUser.following == userid){
             board.selfUser.unfollow(userid);
         }
-        board.otherUsers.delete(userid);
-        board.update_user_list_div();
+        board.localElements.delete(userid);
+        board.updateColleaguesListDiv();
     }
 
     
     function handleClients(users_entries: Array<[string, {label: string, color: string}]>){
-        board.otherUsers.clear();
+        console.log("handle: clients");
+        // board.otherUsers.clear();
+        for (const [id, element] of board.localElements.entries()){
+            if (element instanceof Colleague){
+                element.delete();
+            }
+        }
+
         for (const data of users_entries) {
             //TODO: Corriger ca: on est obligé de mettre de fausses coordonnées aux autres users à l'init car le serveur ne les stocke pas 
-            const new_user = new User(data[0], data[1].label, data[1].color, board.camera, new Coord(-100, -100));
-            board.otherUsers.set(data[0], new_user);
+            board.localElements.set(data[0], new Colleague(data[0], data[1].label, data[1].color, board, new Coord(-100, -100)));
         }
-        // console.log(users);
-        requestAnimationFrame(function () { board.update_user_list_div() });
+        requestAnimationFrame(function () { board.updateColleaguesListDiv() });
     }
 
 

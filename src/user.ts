@@ -1,113 +1,51 @@
 import { Coord, Option } from "gramoloss";
 import { ClientBoard } from "./board/board";
-import { Camera } from "./board/display/camera";
 import { CanvasCoord } from "./board/display/canvas_coord";
 import { drawUserLabel } from "./board/display/draw_basics";
 import { Multicolor } from "./board/display/multicolor";
 import { clamp } from "./utils";
+import { LocalPoint } from "./board/elements/localPoint";
 
 
 export class User {
     id: string;
     label: string;
     multicolor: Multicolor;
-    pos: Option<Coord>;
-    canvasPos: Option<CanvasCoord>;
+    canvasPos: Option<CanvasCoord> = undefined;
     timerRefresh : number; // Date since the last change of position
-    idTimeout : number | undefined; // Id of the time_out to kill when position is changed, "" if empty. 
+    idTimeout : number | undefined = undefined; // Id of the time_out to kill when position is changed, "" if empty. 
+    point: LocalPoint;
 
-    constructor(id: string, label: string, color: string, camera: Camera, pos?: Coord) {
+    constructor(id: string, label: string, color: string, board: ClientBoard, pos?: Coord) {
         this.id = id;
         this.label = label;
         this.multicolor = new Multicolor(color);
-         
         if (typeof pos !== 'undefined') {
-            this.pos = pos;
-            this.canvasPos = camera.createCanvasCoord(this.pos);
-        }
-        else{
-            this.pos = undefined;
-            this.canvasPos = undefined;
+            this.canvasPos = board.camera.createCanvasCoord(pos);
         }
         this.timerRefresh = Date.now();
-        this.idTimeout = undefined;
+
+        this.point = new LocalPoint(board, new CanvasCoord(300,300, board.camera));
+
+        this.point.disk.setAttribute("fill", this.multicolor.color);
+
     }
 
-    set_pos(newPos: Option<Coord>, board: ClientBoard) {
-
-        if (typeof newPos != "undefined"){
-            if( typeof this.pos == "undefined" || ( this.pos.x != newPos.x || this.pos.y != newPos.y ) ){ // If the user position is updated
-                this.timerRefresh = Date.now();
-                if( typeof this.idTimeout !== "undefined"){
-                    clearTimeout(this.idTimeout); // We clear the current timeout 
-                    this.idTimeout = undefined;
-                }
-                // We set a new timeout that starts after 2 seconds. 
-                this.idTimeout = setTimeout(() => {
-                    // We draw the canvas every 100ms
-                    const interval_id = setInterval(()=>{
-                        const canvas = document.getElementById('main') as HTMLCanvasElement;
-                        const ctx = canvas.getContext('2d');
-    
-                        if(Date.now() - this.timerRefresh > 4000){
-                            // The interval kill itself after the user does not move for 4secs 
-                            clearInterval(interval_id); 
-                        }
-                    }, 100);
-                }, 2000);
-            }
-        }
+    setPos(newPos: Option<Coord>, board: ClientBoard) {
         
-        this.pos = newPos;
-        if (typeof this.pos != "undefined"){
-            this.canvasPos = board.camera.createCanvasCoord(this.pos);
-        } else {
-            this.canvasPos = undefined;
-        }
     }
 
     setColor(color: string){
         this.multicolor.setColor(color);
+        this.point.disk.setAttribute("fill", this.multicolor.color);
+
     }
     
 
 
 
-
-
-
     draw_user_arrow(ctx: CanvasRenderingContext2D){
-        if ( typeof this.canvasPos == "undefined") return;
         
-        // Background
-        ctx.beginPath();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = this.multicolor.darken;
-        ctx.moveTo(this.canvasPos.x - 2, this.canvasPos.y + 1);
-        ctx.lineTo(this.canvasPos.x - 2, this.canvasPos.y + 21);
-        ctx.globalAlpha = 0.35;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-
-        //Arrow
-        ctx.beginPath();
-        ctx.fillStyle = this.multicolor.color;
-        ctx.moveTo(this.canvasPos.x, this.canvasPos.y);
-        ctx.lineTo(this.canvasPos.x + 13, this.canvasPos.y + 13);
-        ctx.lineTo(this.canvasPos.x + 5, this.canvasPos.y + 13);
-        ctx.lineTo(this.canvasPos.x, this.canvasPos.y + 20);
-        ctx.closePath();
-        ctx.fill();
-
-        // Bright sides
-        ctx.beginPath();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.multicolor.lighten;
-        ctx.moveTo(this.canvasPos.x, this.canvasPos.y);
-        ctx.lineTo(this.canvasPos.x + 13, this.canvasPos.y + 13);
-        ctx.lineTo(this.canvasPos.x + 5, this.canvasPos.y + 13);
-        ctx.lineTo(this.canvasPos.x, this.canvasPos.y + 20);
-        ctx.stroke();
     }
 
 

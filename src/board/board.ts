@@ -7,7 +7,6 @@ import { CanvasVect } from "./display/canvasVect";
 import { CanvasCoord } from "./display/canvas_coord";
 import { Var, VariableNumber, VariableBoolean } from "./variable";
 import { Color, colorsData, getCanvasColor } from "./display/colors_v2";
-import { User } from "../user";
 import { PreInteractor } from "../side_bar/pre_interactor";
 import { ELEMENT_DATA, ELEMENT_DATA_CONTROL_POINT, ELEMENT_DATA_LINK, ELEMENT_DATA_RECTANGLE, ELEMENT_DATA_REPRESENTATION, ELEMENT_DATA_REPRESENTATION_SUBELEMENT, ELEMENT_DATA_STROKE, ELEMENT_DATA_VERTEX } from "../interactors/pointed_element_data";
 import { Self } from "../self_user";
@@ -24,6 +23,8 @@ import { Interactor } from "../side_bar/side_bar";
 import { ShapeElement } from "./elements/shape";
 import { BoardLinkElement, LinkPreData } from "./elements/link";
 import { BoardVertex, VertexPreData } from "./elements/vertex";
+import { BoardLocalElement } from "./local_elements/local_element";
+import { Colleague } from "./local_elements/colleague";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -111,7 +112,8 @@ export class ClientBoard  {
     isGraphClipboardGenerated: boolean;
     clipboardInitPos: Option<CanvasCoord>;
 
-    otherUsers: Map<string, User>;
+    // LocalElements
+    localElements: Map<string, BoardLocalElement> = new Map();
 
 
     private agregId: string;
@@ -120,8 +122,8 @@ export class ClientBoard  {
     private darkMode: boolean;
     isDrawingInteractor: boolean;
     isAligning: boolean;
-    alignement_horizontal_y: Option<number>;
-    alignement_vertical_x: Option<number>;
+    alignementHorizontalY: Option<number>;
+    alignementVerticalX: Option<number>;
 
     alignmentLineVert: SVGLineElement;
     alignmentLineHori: SVGLineElement;
@@ -162,8 +164,7 @@ export class ClientBoard  {
         this.svgContainer.setAttribute("viewBox", " 0 100 100");
 
 
-        this.selfUser = new Self();
-        this.otherUsers = new Map();
+        this.selfUser = new Self(this);
         this.colorSelected = Color.Neutral;
         this.keyPressed = new Set<string>();
         this.interactorLoaded = undefined;
@@ -844,8 +845,8 @@ export class ClientBoard  {
         
         const alignedPos = new CanvasCoord(posToAlign.x, posToAlign.y, this.camera);
         if (this.isAligning) {
-            this.alignement_horizontal_y = undefined;
-            this.alignement_vertical_x = undefined;
+            this.alignementHorizontalY = undefined;
+            this.alignementVerticalX = undefined;
             for (const element of this.elements.values()){
                 if (excludedIndices.has(element.serverId) == false) {
                     if (Math.abs(element.cameraCenter.y - posToAlign.y) <= 15) { 
@@ -868,33 +869,33 @@ export class ClientBoard  {
             }
         }
         if ( this.grid.type == GridType.GridRect ) {
-            const grid_size = this.grid.gridSize;
-            for (let x = this.camera.camera.x % grid_size; x < window.innerWidth; x += grid_size) {
+            const gridSize = this.grid.gridSize;
+            for (let x = this.camera.camera.x % gridSize; x < window.innerWidth; x += gridSize) {
                 if (Math.abs(x - posToAlign.x) <= 15) {
                     alignedPos.x = x;
                     break;
                 }
             }
-            for (let y = this.camera.camera.y % grid_size; y < window.innerHeight; y += grid_size) {
+            for (let y = this.camera.camera.y % gridSize; y < window.innerHeight; y += gridSize) {
                 if (Math.abs(y - posToAlign.y) <= 15) {
                     alignedPos.y = y;
                     break;
                 }
             }
         } else  if ( this.grid.type == GridType.GridVerticalTriangular ) {
-            const grid_size = this.grid.gridSize;
-            const h = grid_size*Math.sqrt(3)/2;
+            const gridSize = this.grid.gridSize;
+            const h = gridSize*Math.sqrt(3)/2;
 
             // Find the corners of the rectangle containing the point
-            const px = ((posToAlign.x-this.camera.camera.x)- (posToAlign.y-this.camera.camera.y)/Math.sqrt(3))/grid_size;
+            const px = ((posToAlign.x-this.camera.camera.x)- (posToAlign.y-this.camera.camera.y)/Math.sqrt(3))/gridSize;
             const py = (posToAlign.y-this.camera.camera.y)/h;
             const i = Math.floor(px);
             const j = Math.floor(py);
             const corners = [
-                new CanvasCoord(i*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2, this.camera), // top left
-                new CanvasCoord((i+1)*grid_size + j*grid_size/2, Math.sqrt(3)*j*grid_size/2, this.camera), // top right
-                new CanvasCoord(i*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2, this.camera), // bottom left
-                new CanvasCoord((i+1)*grid_size + (j+1)*grid_size/2, Math.sqrt(3)*(j+1)*grid_size/2, this.camera) // bottom right
+                new CanvasCoord(i*gridSize + j*gridSize/2, Math.sqrt(3)*j*gridSize/2, this.camera), // top left
+                new CanvasCoord((i+1)*gridSize + j*gridSize/2, Math.sqrt(3)*j*gridSize/2, this.camera), // top right
+                new CanvasCoord(i*gridSize + (j+1)*gridSize/2, Math.sqrt(3)*(j+1)*gridSize/2, this.camera), // bottom left
+                new CanvasCoord((i+1)*gridSize + (j+1)*gridSize/2, Math.sqrt(3)*(j+1)*gridSize/2, this.camera) // bottom right
             ]
             
             // align on the corners if the point is near enough
@@ -1180,10 +1181,14 @@ export class ClientBoard  {
         for (const element of this.elements.values()){
             element.updateAfterCameraChange()
         }
+
+        for (const localElement of this.localElements.values()){
+            localElement.updateAfterCameraChange();
+        }
+
         // for (const rep of this.representations.values()){
         //     rep.update_after_camera_change(this.camera);
         // }
-        this.updateOtherUsersCanvasPos()
     }
 
 
@@ -1344,7 +1349,7 @@ export class ClientBoard  {
     }
 
 
-    get_element_nearby(pos: CanvasCoord, interactable_element_type: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
+    getElementNearby(pos: CanvasCoord, interactableElementType: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
 
         // if (interactable_element_type.has(DOWN_TYPE.REPRESENTATION_ELEMENT)){
         //     for (const [index, rep] of this.representations.entries()){
@@ -1384,23 +1389,23 @@ export class ClientBoard  {
         // }
 
         for (const element of this.elements.values()){
-            if ( interactable_element_type.has(DOWN_TYPE.VERTEX) && element instanceof BoardVertex){
+            if ( interactableElementType.has(DOWN_TYPE.VERTEX) && element instanceof BoardVertex){
                 if (element.isNearby(pos, 15)){
                     return new ELEMENT_DATA_VERTEX(element);
                 }
             }
-            if ( interactable_element_type.has(DOWN_TYPE.LINK) && element instanceof BoardLinkElement){
+            if ( interactableElementType.has(DOWN_TYPE.LINK) && element instanceof BoardLinkElement){
                 if (element.isNearby(pos, 15)){
                     return new ELEMENT_DATA_LINK(element);
                 }
             }
-            if (interactable_element_type.has(DOWN_TYPE.RECTANGLE) && element instanceof ShapeElement){
+            if (interactableElementType.has(DOWN_TYPE.RECTANGLE) && element instanceof ShapeElement){
                 if (element.isClickOver(pos)){
                     return new ELEMENT_DATA_RECTANGLE(element, undefined);
                 }
             }
 
-            if (interactable_element_type.has(DOWN_TYPE.STROKE) && element instanceof StrokeElement){
+            if (interactableElementType.has(DOWN_TYPE.STROKE) && element instanceof StrokeElement){
                 if (element.isNearby(pos, 15)){
                     return new ELEMENT_DATA_STROKE(element);
                 }
@@ -1747,23 +1752,22 @@ export class ClientBoard  {
 
 
 
-    /**
-     * Set the the canvasPos of users from their ServerPos in function of the camera.
-     */
-    updateOtherUsersCanvasPos() {
-        for (const user of this.otherUsers.values()){
-            if ( typeof user.pos != "undefined"){
-                user.canvasPos = this.camera.createCanvasCoord(user.pos);
-            }
-        }
-    }
+    
 
 
-    update_user_list_div() {
+    updateColleaguesListDiv() {
         const div = document.getElementById("user_list");
         if (div == null) return;
         div.innerHTML = "";
-        if (this.otherUsers.size === 0) {
+
+        let colleagues: Array<Colleague> = [];
+        for (const element of this.localElements.values()){
+            if (element instanceof Colleague){
+                colleagues.push(element);
+            }
+        }
+
+        if (colleagues.length === 0) {
             div.style.visibility = "hidden";
             // div.style.marginLeft = "0px";
             div.style.padding = "0px";
@@ -1774,7 +1778,7 @@ export class ClientBoard  {
             // div.style.marginLeft = "10px";
         }
     
-        for (let u of this.otherUsers.values()) {
+        for (const u of colleagues) {
             let newDiv = document.createElement("div");
             newDiv.classList.add("user");
             newDiv.style.color = u.multicolor.contrast;
@@ -1790,7 +1794,7 @@ export class ClientBoard  {
                     board.selfUser.unfollow(u.id);
                 }
                 else{
-                    board.selfUser.follow(u.id, board.otherUsers);
+                    board.selfUser.follow(u.id);
                 }
             }
             div.appendChild(newDiv);

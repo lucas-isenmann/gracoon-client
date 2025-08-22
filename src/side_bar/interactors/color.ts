@@ -87,7 +87,7 @@ export function createColorInteractor(board: ClientBoard): PreInteractor{
     color_interactorV2.mousemove = ((board: ClientBoard, pointed: Option<PointedElementData>, e: CanvasCoord) => {
         if (typeof pointed == "undefined") return false;
 
-        const elt = board.get_element_nearby(e, color_interactorV2.interactable_element_type);
+        const elt = board.getElementNearby(e, color_interactorV2.interactable_element_type);
         if (typeof elt != "undefined"){
             if ( elt.element.color != board.colorSelected){
                 board.emitUpdateElement( elt.element.boardElementType , elt.element.serverId, "color", board.colorSelected);

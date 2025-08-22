@@ -1,9 +1,8 @@
 import { Option } from "gramoloss";
-import { COLOR_BACKGROUND } from "./board/board";
+import { ClientBoard, COLOR_BACKGROUND } from "./board/board";
 import { CanvasCoord } from "./board/display/canvas_coord";
 import { Multicolor } from "./board/display/multicolor";
 import { socket } from "./socket";
-import { User } from "./user";
 
 
 export class Self{
@@ -12,13 +11,15 @@ export class Self{
     id: Option<string>;
     following: string | undefined;
     canvasPos: Option<CanvasCoord>;
+    board: ClientBoard;
 
-    constructor(){
+    constructor(board: ClientBoard){
         this.label = undefined;
         this.multicolor = undefined;
         this.id = undefined;
         this.following = undefined;
         this.canvasPos = undefined;
+        this.board = board;
     }
 
     init(id: string, label: string, color: string){
@@ -40,18 +41,18 @@ export class Self{
     }
 
 
-    follow(id: string, users: Map<string, User>){
-        const u = users.get(id);
-        if( typeof u != "undefined" ){
-            const borderDIV = document.getElementById("border");
-            if (borderDIV == null) return;
-            this.following = id;
-            borderDIV.style.borderColor = u.multicolor.color;
-            socket.emit("follow", id);
-        }
-        else{
-            this.following = undefined;
-        }
+    follow(id: string){
+        // const u = this.board.localElements.get(id);
+        // if( typeof u != "undefined" ){
+        //     const borderDIV = document.getElementById("border");
+        //     if (borderDIV == null) return;
+        //     this.following = id;
+        //     borderDIV.style.borderColor = u.multicolor.color;
+        //     socket.emit("follow", id);
+        // }
+        // else{
+        //     this.following = undefined;
+        // }
     }
 
     unfollow(id:string){
