@@ -4,6 +4,17 @@ import { CanvasCoord } from "../display/canvas_coord";
 import { Color, getCanvasColor } from "../display/colors_v2";
 import { BoardElement } from "./element";
 import { CanvasVect } from "../display/canvasVect";
+import katex from "katex";
+
+
+export class ShapePreData {
+    pos: Coord;
+    color: Color;
+    constructor(pos: Coord, color: Color){
+        this.pos = pos;
+        this.color = color;
+    }
+}
 
 export class ShapeElement implements BoardElement {
     cameraCenter: CanvasCoord;
@@ -22,6 +33,11 @@ export class ShapeElement implements BoardElement {
     canvasCornerTopRight : CanvasCoord;
     canvasC1: CanvasCoord;
     canvasC2: CanvasCoord;
+
+    innerLabel: string = "";
+    outerLabel: string = "";
+    innerLabelSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+    outerLabeSVG = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
     
 
 
@@ -46,10 +62,10 @@ export class ShapeElement implements BoardElement {
         board.shapesGroup.appendChild(this.shape);
 
         // Set SVG Element attributes
-        this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
-        this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
-        this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
-        this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
+        // this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
+        // this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
+        // this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
+        // this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
         this.shape.setAttribute("stroke", getCanvasColor(this.color, board.isDarkMode()));
         this.shape.setAttribute("stroke-width", "2");
         this.shape.setAttribute("fill", getCanvasColor(this.color, board.isDarkMode()));
@@ -59,12 +75,39 @@ export class ShapeElement implements BoardElement {
 
         
 
+        // InnerLabel
+        board.verticesGroup.appendChild(this.innerLabelSVG);
+        this.innerLabelSVG.setAttribute("width", "50px");
+        this.innerLabelSVG.setAttribute("height", "3em");
+        this.innerLabelSVG.classList.add("vertex-inner-label")
+        this.setInnerLabel("");
+
+        // OuterLabel
+        board.labelsGroup.appendChild(this.outerLabeSVG);
+        this.outerLabeSVG.setAttribute("width", "50px");
+        this.outerLabeSVG.setAttribute("height", "3em");
+        this.outerLabeSVG.classList.add("vertex-outer-label")
+        this.setOuterLabel("");
 
         this.cameraCenter = new CanvasCoord( (this.canvasC1.x + this.canvasC2.x)/2, (this.canvasC1.y + this.canvasC2.y)/2, board.camera);
+
+        this.updateCanvasCorner();
 
         board.elements.set(this.id, this);
         board.elementCounter += 1;
         this.board = board;
+    }
+
+
+    setInnerLabel(value: string) {
+        this.innerLabel = value;
+        this.innerLabelSVG.innerHTML = katex.renderToString(value);
+    }
+
+
+    setOuterLabel(value: string) {
+        this.outerLabel = value;
+        this.outerLabeSVG.innerHTML = katex.renderToString(value);
     }
 
     private updateCanvasCorner(){
@@ -81,6 +124,11 @@ export class ShapeElement implements BoardElement {
         this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
         this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
         this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
+    
+        this.innerLabelSVG.setAttribute("x", `${this.cameraCenter.x-25}`);
+        this.innerLabelSVG.setAttribute("y", `${this.cameraCenter.y-12}`);
+        this.outerLabeSVG.setAttribute("x", `${this.canvasC1.x}`);
+        this.outerLabeSVG.setAttribute("y", `${this.canvasC1.y}`);
     }
 
     updateAfterCameraChange() {
@@ -93,6 +141,8 @@ export class ShapeElement implements BoardElement {
 
     delete(){
         this.shape.remove();
+        this.innerLabelSVG.remove();
+        this.outerLabeSVG.remove();
     }
 
     setCorners(c1: Coord, c2: Coord){
@@ -173,18 +223,20 @@ export class ShapeElement implements BoardElement {
         this.canvasC1.translateByCanvasVect(cshift);
         this.canvasC2.translateByCanvasVect(cshift);
 
-        this.canvasCornerBottomLeft.translateByCanvasVect(cshift);
-        this.canvasCornerBottomRight.translateByCanvasVect(cshift);
-        this.canvasCornerTopLeft.translateByCanvasVect(cshift);
-        this.canvasCornerTopRight.translateByCanvasVect(cshift);
+        this.updateCanvasCorner();
+
+        // this.canvasCornerBottomLeft.translateByCanvasVect(cshift);
+        // this.canvasCornerBottomRight.translateByCanvasVect(cshift);
+        // this.canvasCornerTopLeft.translateByCanvasVect(cshift);
+        // this.canvasCornerTopRight.translateByCanvasVect(cshift);
 
 
 
 
-        this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
-        this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
-        this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
-        this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
+        // this.shape.setAttribute("x", this.canvasCornerTopLeft.x.toString());
+        // this.shape.setAttribute("y", this.canvasCornerTopLeft.y.toString())
+        // this.shape.setAttribute("width", (this.canvasCornerBottomRight.x - this.canvasCornerBottomLeft.x).toString());
+        // this.shape.setAttribute("height", (this.canvasCornerBottomRight.y - this.canvasCornerTopLeft.y).toString());
     }
 
     select(){

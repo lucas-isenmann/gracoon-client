@@ -3,21 +3,16 @@ import { BoardElementType, ClientBoard } from "../board";
 import { CanvasCoord } from "../display/canvas_coord";
 import { CanvasVect } from "../display/canvasVect";
 import { Color, getCanvasColor } from "../display/colors_v2";
-import { BoardElement } from "./element";
+import { BoardElement } from "../elements/element";
+import { BoardLocalElement } from "./local_element";
 
 
-export class ShapePreData {
-    pos: Coord;
-    color: Color;
-    constructor(pos: Coord, color: Color){
-        this.pos = pos;
-        this.color = color;
-    }
-}
 
-export class Rectangle implements BoardElement {
+
+// TODO put to Local
+export class Rectangle implements BoardLocalElement {
+    id: string;
     cameraCenter: CanvasCoord;
-    serverId: number = 0;
     boardElementType: BoardElementType = BoardElementType.Local;
     color: Color = Color.Red;
     isSelected: boolean = false;
@@ -35,7 +30,8 @@ export class Rectangle implements BoardElement {
     svg: SVGRectElement;
     
 
-    constructor(board: ClientBoard, pos: CanvasCoord, pos2: CanvasCoord, color: Color) {
+    constructor(id: string, board: ClientBoard, pos: CanvasCoord, pos2: CanvasCoord, color: Color) {
+        this.id = id;
         this.board = board;
         this.cameraCenter = pos;
         this.color = color;

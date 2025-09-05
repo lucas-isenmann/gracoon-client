@@ -17,7 +17,6 @@ import { Graph2, LinkData2, VertexData2 } from "./graph2";
 import { TextZoneElement } from "./elements/textZone";
 import { StrokeElement } from "./elements/stroke";
 import { VerticesSubset } from "./elements/vertices_subset";
-import { ShapePreData } from "./elements/rectangle";
 import { EntireZone } from "../parametors/zone";
 import { Interactor } from "../side_bar/side_bar";
 import { ShapeElement } from "./elements/shape";
@@ -25,6 +24,7 @@ import { BoardLinkElement, LinkPreData } from "./elements/link";
 import { BoardVertex, VertexPreData } from "./elements/vertex";
 import { BoardLocalElement } from "./local_elements/local_element";
 import { Colleague } from "./local_elements/colleague";
+import { ShapePreData } from "./elements/shape";
 
 
 export const SELECTION_COLOR = 'gray' // avant c'était '#00ffff'
@@ -412,7 +412,7 @@ export class ClientBoard  {
         this.outerLabelInput.oninput = () => {
             const selection = this.getSelectedElements();
             for (const [type, serverId] of selection){
-                this.emitUpdateElement(type, serverId, "weight", this.outerLabelInput.value )
+                this.emitUpdateElement(type, serverId, "outerLabel", this.outerLabelInput.value )
             }
         }
 
@@ -1348,6 +1348,15 @@ export class ClientBoard  {
         return undefined;
     }
 
+    getElement(type: BoardElementType, serverId: number): Option<BoardElement>{
+        for (const elt of this.elements.values()){
+            if (elt.boardElementType == type && elt.serverId == serverId){
+                return elt;
+            }
+        }
+        return undefined;
+    }
+
 
     getElementNearby(pos: CanvasCoord, interactableElementType: Set<DOWN_TYPE>): Option<ELEMENT_DATA> {
 
@@ -1545,21 +1554,7 @@ export class ClientBoard  {
         this.hideAttributes()
     }
 
-    setC1(serverId: number, x: number, y: number){
-        for (const element of this.elements.values()){
-            if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(new Coord(x,y), element.canvasC2.serverPos);
-            }
-        }
-    }
-
-    setC2(serverId: number, x: number, y: number){
-        for (const element of this.elements.values()){
-            if (element instanceof ShapeElement && element.serverId == serverId){
-                element.setCorners(element.canvasC1.serverPos, new Coord(x,y));
-            }
-        }
-    }
+   
 
     translateElement(type: BoardElementType, serverId: number, cshift: CanvasVect){
         for (const element of this.elements.values()){
@@ -1657,11 +1652,11 @@ export class ClientBoard  {
 
     emitApplyModifyer(modifyer: GraphModifyer){
         console.log("Emit: apply modifier")
-        const attributes_data = new Array<string | number>();
+        const attributesData = new Array<string | number>();
         let sendVerticesSelection = false;
         for (const attribute of modifyer.attributes){
             
-            attributes_data.push(attribute.value);
+            attributesData.push(attribute.value);
         }
         if ( sendVerticesSelection){
             const verticesSelection = new Array<number>();
@@ -1670,10 +1665,10 @@ export class ClientBoard  {
                     verticesSelection.push(vertex.serverId);
                 }
             }
-            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data, verticesSelection);
+            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributesData, verticesSelection);
         }
         else {
-            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributes_data);
+            socket.emit(SocketMsgType.APPLY_MODIFYER, modifyer.name, attributesData);
         }
     }
 

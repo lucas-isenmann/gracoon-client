@@ -12,8 +12,9 @@ import { ELEMENT_DATA_VERTEX, PointedElementData } from "../../interactors/point
 import { GridType } from "../../board/display/grid";
 import { BoardVertex } from "../../board/elements/vertex";
 import { Color } from "../../board/display/colors_v2";
-import { Rectangle } from "../../board/elements/rectangle";
+import { Rectangle } from "../../board/local_elements/rectangle";
 import { LocalPoint } from "../../board/elements/localPoint";
+import { makeid } from "../../utils";
 
 
 export function createSelectionInteractor(board: ClientBoard): PreInteractor{
@@ -27,11 +28,17 @@ export function createSelectionInteractor(board: ClientBoard): PreInteractor{
     let selectedIndices = new Set<number>;
 
     let isRectangularSelecting = false;
-    const rectSelection = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Green);
+    const rectSelectionId = makeid(5);
+    const rectSelection = new Rectangle(rectSelectionId, board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Green);
     rectSelection.hide();
+    board.localElements.set(rectSelectionId, rectSelection);
 
-    const boundingBox = new Rectangle(board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Red);
+    const boundingBoxId = makeid(5);
+    const boundingBox = new Rectangle(boundingBoxId, board, new CanvasCoord(0,0, board.camera), new CanvasCoord(100,100, board.camera), Color.Red);
     boundingBox.hide();
+    board.localElements.set(boundingBoxId, boundingBox);
+
+
     const rotateIcon = new LocalPoint(board, new CanvasCoord(0,0, board.camera));
     rotateIcon.hide();
     let rotating = false;

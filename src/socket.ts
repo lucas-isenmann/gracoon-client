@@ -372,18 +372,20 @@ export function setupHandlers(board: ClientBoard) {
                 }
             }
         } else if (data.kind == "Vertex"){
-            if (data.param == "color"){
-                board.setColor(BoardElementType.Vertex, data.index, data.value as Color);
-            }
+            
 
             const vertex = board.getVertex(data.index);
-            if (typeof vertex == "undefined") return;
-            if (data.param == "weight"){
-                const text = data.value as string;
-                vertex.setOuterLabel(text);
-                weightUpdate = true;
-            } else if (data.param == "innerLabel"){
-                vertex.setInnerLabel(data.value);
+            if (typeof vertex != "undefined"){
+                if (data.param == "color"){
+                    board.setColor(BoardElementType.Vertex, data.index, data.value as Color);
+                }
+                else if (data.param == "outerLabel"){
+                    const text = data.value as string;
+                    vertex.setOuterLabel(text);
+                    weightUpdate = true;
+                } else if (data.param == "innerLabel"){
+                    vertex.setInnerLabel(data.value);
+                }
             }
         }else if (data.kind == "Link"){
             if (data.param == "color"){
@@ -429,17 +431,20 @@ export function setupHandlers(board: ClientBoard) {
             //     stroke.color = color as Color;
             // }
         } else if (data.kind == "Rectangle"){
-            if (data.param == "color"){
-                board.setColor(BoardElementType.Rectangle, data.index, data.value as Color);
+            const shape = board.getElement(BoardElementType.Rectangle, data.index)
+            if (typeof shape != "undefined" && shape instanceof ShapeElement){
+                if (data.param == "color"){
+                    shape.setColor(data.value as Color)
+                } else if (data.param == "c1"){
+                    shape.setCorners(new Coord(data.value.x, data.value.y), shape.canvasC2.serverPos);
+                } else if (data.param == "c2"){
+                    shape.setCorners(shape.canvasC1.serverPos, new Coord(data.value.x, data.value.y));
+                } else if (data.param == "innerLabel"){
+                    shape.setInnerLabel(data.value)
+                } else if (data.param == "outerLabel"){
+                    shape.setOuterLabel(data.value)
+                }
             }
-
-            if (data.param == "c1"){
-                board.setC1(data.index, data.value.x, data.value.y);
-            }
-            if (data.param == "c2"){
-                board.setC2(data.index, data.value.x, data.value.y);
-            }
-
             
         } else {
             console.log("Kind not supported :", data.kind);
@@ -450,8 +455,10 @@ export function setupHandlers(board: ClientBoard) {
         board.resetGraph()
     }
 
-    function handleResetBoard(rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], rawRectangles: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number}]){
-        // console.log("[Handle] reset board");
+    function handleResetBoard(
+        rawTextZones: [[number, {pos: {x: number, y: number}, width: number, text: string}]], 
+        rawShapes: [{c1: {x: number, y: number}, c2:{x: number, y: number}, color: string, index: number, attributes: any}]){
+        console.log("[Handle] reset board");
 
         for (const data of rawTextZones) {
             const pos = new Coord(data[1].pos.x, data[1].pos.y);
@@ -460,11 +467,15 @@ export function setupHandlers(board: ClientBoard) {
             new TextZoneElement(pos, width, text, board, data[0]);
         }
 
-        for (const rectangle of rawRectangles){
-            const c1 = new Coord(rectangle.c1.x, rectangle.c1.y);
-            const c2 = new Coord(rectangle.c2.x, rectangle.c2.y);
-            const color = rectangle.color as Color;
-            new ShapeElement(board, rectangle.index, c1, c2, color)
+        for (const rawShape of rawShapes){
+            const c1 = new Coord(rawShape.c1.x, rawShape.c1.y);
+            const c2 = new Coord(rawShape.c2.x, rawShape.c2.y);
+            const color = rawShape.color as Color;
+            const shape = new ShapeElement(board, rawShape.index, c1, c2, color)
+
+            const attributes = new Map<string, string>(rawShape.attributes);
+            shape.setInnerLabel(attributes.get("innerLabel") || "");
+            shape.setOuterLabel(attributes.get("outerLabel") || "");
         }
     }
 
@@ -499,7 +510,9 @@ export function setupHandlers(board: ClientBoard) {
 
 
     function handleResetGraph(
-        rawVertices: [[number, {data: {pos: {x: number, y: number}, weight: string, innerLabel: string, color: string}}]], 
+        rawVertices: any
+        //[[number, {data: {pos: {x: number, y: number}, weight: string,  color: string}, attributes: any}]]
+        , 
         rawLinks: [[number, {orientation: string, startVertex: {index: number}, endVertex: {index: number}, data: {cp: {x: number, y: number} | undefined , color: string, weight: string, strokeStyle: string} }]], 
         sensibilities: [SENSIBILITY])
          {
@@ -517,8 +530,14 @@ export function setupHandlers(board: ClientBoard) {
             }
         }
 
-        for (const data of rawVertices) {
-            new BoardVertex(board, data[0], data[1].data.pos.x, data[1].data.pos.y, data[1].data.innerLabel, data[1].data.weight, data[1].data.color as Color)
+        for (const rawVertex of rawVertices) {
+            console.log(rawVertex)
+            console.log(rawVertex.data)
+            const v = new BoardVertex(board, rawVertex.index, rawVertex.data.pos.x, rawVertex.data.pos.y, "", "", rawVertex.data.color as Color)
+
+            const attributes = new Map<string, string>(rawVertex.attributes);
+            v.setInnerLabel(attributes.get("innerLabel") || "");
+            v.setOuterLabel(attributes.get("outerLabel") || "");
         }
 
         for (const data of rawLinks) {
